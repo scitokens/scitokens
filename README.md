@@ -6,7 +6,7 @@ This library aims to be a reference implementation of the SciTokens' JSON Web To
 
 SciTokens is built on top of the [PyJWT](https://github.com/jpadilla/pyjwt) and [cryptography](https://cryptography.io/en/latest/) libraries.  We aim to provide a safe, high-level interface for token manipulation, avoiding common pitfalls of using the underling libraries directly.
 
-*NOTE*: SciTokens (the format and this library) is currently being designed; this README describes how we would like it to work, not necessarily current functionality.
+*NOTE*: SciTokens (the format and this library) is currently being designed; this README describes how we would like it to work, not necessarily current functionality.  Particularly, we do not foresee the chained tokens described here as part of the first release's functionality.  The ideas behind the separate `Validator` in this library is taken from [libmacaroons](https://github.com/rescrv/libmacaroons).
 
 Generating Tokens
 -----------------
