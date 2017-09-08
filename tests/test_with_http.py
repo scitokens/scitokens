@@ -2,7 +2,6 @@ import os
 import sys
 import unittest
 import threading
-import json
 import base64
 
 # Allow unittests to be run from within the project base.
@@ -16,7 +15,6 @@ import scitokens
 import cryptography.utils
 from cryptography.hazmat.primitives.asymmetric.rsa import generate_private_key
 from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.primitives import serialization
 
 try:
     from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
@@ -58,8 +56,6 @@ class S(BaseHTTPRequestHandler):
 
 
 class TestDeserialization(unittest.TestCase):
-
-    
 
     def setUp(self):
         # Start a web server to act as the "issuer"
