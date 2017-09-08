@@ -127,8 +127,8 @@ class SciToken(object):
         self._serialized_token = encoded
         
         # Move claims over to verified claims
-        self.verified_claims.update(self.claims)
-        self.claims = {}
+        self._verified_claims.update(self._claims)
+        self._claims = {}
         
         return encoded
         
