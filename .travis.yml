@@ -4,7 +4,7 @@ python:
   - "3.4"
 
 install:
-  - pip install sphinx sphinx_rtd_theme
+  - pip install sphinx sphinx_rtd_theme coverage
   - pip install -r requirements.txt
 
 script:
