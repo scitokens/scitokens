@@ -11,7 +11,6 @@ if os.path.exists("../src"):
     sys.path.append("../src")
 
 import scitokens
-import cryptography
 from cryptography.hazmat.primitives.asymmetric.rsa import generate_private_key
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
@@ -20,7 +19,6 @@ from cryptography.hazmat.primitives import serialization
 class TestCreation(unittest.TestCase):
 
     def test_create(self):
-        
         private_key = generate_private_key(
             public_exponent=65537,
             key_size=2048,
