@@ -27,7 +27,7 @@ cp -R ../build/html/* ./
 
 # Add and commit changes.
 git add -A .
-git commit -m "[ci skip] Autodoc commit for $COMMIT."
+git commit -m "[ci skip] Autodoc commit for $TRAVIS_COMMIT."
 if [ "$1" != "dry" ]; then
     if [ "${TRAVIS_PULL_REQUEST}" = "false" ]; then
         git push -q origin gh-pages

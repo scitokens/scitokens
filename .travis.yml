@@ -4,13 +4,14 @@ python:
   - "3.4"
 
 install:
-  - pip install sphinx sphinx_rtd_theme
+  - pip install sphinx sphinx_rtd_theme coverage
   - pip install -r requirements.txt
 
 script:
   - python setup.py install
-  - pytest
+  - coverage run `which pytest`
 
 after_success:
   - if [ "${TRAVIS_PYTHON_VERSION}" == "2.7" ]; then cd docs; make gh-pages; fi
+  - if [ "${TRAVIS_PYTHON_VERSION}" == "2.7" -a "${TRAVIS_PULL_REQUEST}" = "false" ]; then coverage xml --include 'src/scitokens/*'; python-codacy-coverage -r coverage.xml; fi
 
