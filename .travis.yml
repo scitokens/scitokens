@@ -10,6 +10,9 @@ install:
 script:
   - python setup.py install
   - coverage run `which pytest`
+  - find
+  - coverage debug data
+  - coverage xml
 
 after_success:
   - pushd docs
