@@ -1,0 +1,388 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>scitokens.scitokens &#8212; SciTokens Library 0.1 documentation</title>
+    <link rel="stylesheet" href="../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+  </head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">SciTokens Library 0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for scitokens.scitokens</h1><div class="highlight"><pre>
+<span></span>
+<span class="kn">import</span> <span class="nn">base64</span>
+<span class="kn">import</span> <span class="nn">urllib</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">urlparse</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">urllib.parse</span> <span class="k">as</span> <span class="nn">urlparse</span>
+<span class="kn">import</span> <span class="nn">json</span>
+
+<span class="kn">import</span> <span class="nn">jwt</span>
+
+<span class="kn">import</span> <span class="nn">cryptography.utils</span>
+<span class="kn">import</span> <span class="nn">cryptography.hazmat.primitives.asymmetric.ec</span> <span class="k">as</span> <span class="nn">ec</span>
+<span class="kn">import</span> <span class="nn">cryptography.hazmat.primitives.asymmetric.rsa</span> <span class="k">as</span> <span class="nn">rsa</span>
+<span class="kn">import</span> <span class="nn">cryptography.hazmat.backends</span> <span class="k">as</span> <span class="nn">backends</span>
+
+<div class="viewcode-block" id="long_from_bytes"><a class="viewcode-back" href="../../scitokens.html#scitokens.scitokens.long_from_bytes">[docs]</a><span class="k">def</span> <span class="nf">long_from_bytes</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">cryptography</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">int_from_bytes</span><span class="p">(</span><span class="n">decode_base64</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">&quot;ascii&quot;</span><span class="p">)),</span> <span class="s1">&#39;big&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="decode_base64"><a class="viewcode-back" href="../../scitokens.html#scitokens.scitokens.decode_base64">[docs]</a><span class="k">def</span> <span class="nf">decode_base64</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Decode base64, padding being optional.</span>
+
+<span class="sd">    :param data: Base64 data as an ASCII byte string</span>
+<span class="sd">    :returns: The decoded byte string.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">missing_padding</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="o">%</span> <span class="mi">4</span>
+    <span class="k">if</span> <span class="n">missing_padding</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">data</span> <span class="o">+=</span> <span class="sa">b</span><span class="s1">&#39;=&#39;</span><span class="o">*</span> <span class="p">(</span><span class="mi">4</span> <span class="o">-</span> <span class="n">missing_padding</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">base64</span><span class="o">.</span><span class="n">urlsafe_b64decode</span><span class="p">(</span><span class="n">data</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="MissingKeyException"><a class="viewcode-back" href="../../scitokens.html#scitokens.scitokens.MissingKeyException">[docs]</a><span class="k">class</span> <span class="nc">MissingKeyException</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="UnsupportedKeyException"><a class="viewcode-back" href="../../scitokens.html#scitokens.scitokens.UnsupportedKeyException">[docs]</a><span class="k">class</span> <span class="nc">UnsupportedKeyException</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="SciToken"><a class="viewcode-back" href="../../scitokens.html#scitokens.scitokens.SciToken">[docs]</a><span class="k">class</span> <span class="nc">SciToken</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        </span>
+<span class="sd">        </span>
+<span class="sd">        :param key: Private key to sign the SciToken with.  It should be the PEM contents.</span>
+<span class="sd">        :param parent: Parent SciToken that will be chained</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+    
+        <span class="bp">self</span><span class="o">.</span><span class="n">_key</span> <span class="o">=</span> <span class="n">key</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span> <span class="o">=</span> <span class="n">parent</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_claims</span> <span class="o">=</span> <span class="p">{}</span>
+        
+
+<div class="viewcode-block" id="SciToken.claims"><a class="viewcode-back" href="../../scitokens.html#scitokens.scitokens.SciToken.claims">[docs]</a>    <span class="k">def</span> <span class="nf">claims</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return an iterator of (key, value) pairs of claims, starting</span>
+<span class="sd">        with the claims from the first token in the chain.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">claim</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">claims</span><span class="p">():</span>
+                <span class="k">yield</span> <span class="n">claim</span><span class="p">,</span> <span class="n">value</span>
+        <span class="k">for</span> <span class="n">claim</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_claims</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">yield</span> <span class="n">claim</span><span class="p">,</span> <span class="n">value</span></div>
+
+
+<div class="viewcode-block" id="SciToken.verify"><a class="viewcode-back" href="../../scitokens.html#scitokens.scitokens.SciToken.verify">[docs]</a>    <span class="k">def</span> <span class="nf">verify</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Verify the claims of the in-memory token.</span>
+
+<span class="sd">        Automatically called by deserialize.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="SciToken.serialize"><a class="viewcode-back" href="../../scitokens.html#scitokens.scitokens.SciToken.serialize">[docs]</a>    <span class="k">def</span> <span class="nf">serialize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">include_key</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Serialize the existing SciToken.</span>
+<span class="sd">        &quot;&quot;&quot;</span></div>
+        
+
+<div class="viewcode-block" id="SciToken.update_claims"><a class="viewcode-back" href="../../scitokens.html#scitokens.scitokens.SciToken.update_claims">[docs]</a>    <span class="k">def</span> <span class="nf">update_claims</span><span class="p">(</span><span class="n">claims</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Add new claims to the token.</span>
+<span class="sd">        </span>
+<span class="sd">        :param claims: Dictionary of claims to add to the token</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">_claims</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">claims</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">claim</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Assign a new claim to the token.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_claims</span><span class="p">[</span><span class="n">claim</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+
+<div class="viewcode-block" id="SciToken.clone_chain"><a class="viewcode-back" href="../../scitokens.html#scitokens.scitokens.SciToken.clone_chain">[docs]</a>    <span class="k">def</span> <span class="nf">clone_chain</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return a new, empty SciToken</span>
+<span class="sd">        &quot;&quot;&quot;</span></div>
+
+    <span class="k">def</span> <span class="nf">_deserialize_key</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key_serialized</span><span class="p">,</span> <span class="n">unverified_headers</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Given a serialized key and a set of UNVERIFIED headers, return</span>
+<span class="sd">        a corresponding private key object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_get_issuer_publickey</span><span class="p">(</span><span class="n">header</span><span class="p">,</span> <span class="n">payload</span><span class="p">):</span>
+        
+        <span class="c1"># Get the issuer</span>
+        <span class="n">issuer</span> <span class="o">=</span> <span class="n">payload</span><span class="p">[</span><span class="s1">&#39;iss&#39;</span><span class="p">]</span>
+        
+        <span class="c1"># Go to the issuer&#39;s website, and download the OAuth well known bits</span>
+        <span class="c1"># https://tools.ietf.org/html/draft-ietf-oauth-discovery-07</span>
+        <span class="n">well_known_uri</span> <span class="o">=</span> <span class="s2">&quot;/.well-known/openid-configuration&quot;</span>
+        <span class="n">meta_uri</span> <span class="o">=</span> <span class="n">urlparse</span><span class="o">.</span><span class="n">urljoin</span><span class="p">(</span><span class="n">issuer</span><span class="p">,</span> <span class="n">well_known_uri</span><span class="p">)</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="n">urllib</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="n">meta_uri</span><span class="p">)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
+        
+        <span class="c1"># Get the keys URL from the openid-configuration</span>
+        <span class="n">jwks_uri</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;jwks_uri&#39;</span><span class="p">]</span>
+        
+        <span class="c1"># Now, get the keys</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="n">urllib</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="n">jwks_uri</span><span class="p">)</span>
+        <span class="n">keys_data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
+        <span class="c1"># Loop through each key, looking for the right key id</span>
+        <span class="n">public_key</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">keys_data</span><span class="p">[</span><span class="s1">&#39;keys&#39;</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">key</span><span class="p">[</span><span class="s1">&#39;kid&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">header</span><span class="p">[</span><span class="s1">&#39;kid&#39;</span><span class="p">]):</span>
+                <span class="k">if</span> <span class="n">key</span><span class="p">[</span><span class="s1">&#39;kty&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;RSA&quot;</span><span class="p">:</span>
+                    <span class="n">public_key_numbers</span> <span class="o">=</span> <span class="n">rsa</span><span class="o">.</span><span class="n">RSAPublicNumbers</span><span class="p">(</span>
+                        <span class="n">long_from_bytes</span><span class="p">(</span><span class="n">key</span><span class="p">[</span><span class="s1">&#39;e&#39;</span><span class="p">]),</span>
+                        <span class="n">long_from_bytes</span><span class="p">(</span><span class="n">key</span><span class="p">[</span><span class="s1">&#39;n&#39;</span><span class="p">])</span>
+                    <span class="p">)</span>
+                    <span class="n">public_key</span> <span class="o">=</span> <span class="n">public_key_numbers</span><span class="o">.</span><span class="n">public_key</span><span class="p">(</span><span class="n">backends</span><span class="o">.</span><span class="n">default_backend</span><span class="p">())</span>
+                    <span class="k">break</span>
+                <span class="k">elif</span> <span class="n">key</span><span class="p">[</span><span class="s1">&#39;kty&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;EC&#39;</span><span class="p">:</span>
+                    <span class="n">public_key_numbers</span> <span class="o">=</span> <span class="n">ec</span><span class="o">.</span><span class="n">EllipticCurvePublicNumbers</span><span class="p">(</span>
+                           <span class="n">long_from_bytes</span><span class="p">(</span><span class="n">key</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">]),</span>
+                           <span class="n">long_from_bytes</span><span class="p">(</span><span class="n">key</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">]),</span>
+                           <span class="n">ec</span><span class="o">.</span><span class="n">SECP256R1</span>
+                       <span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="n">UnsupportedKeyException</span><span class="p">(</span><span class="s2">&quot;SciToken signed with an unsupported key type&quot;</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="n">public_key</span>
+        
+        
+<div class="viewcode-block" id="SciToken.deserialize"><a class="viewcode-back" href="../../scitokens.html#scitokens.scitokens.SciToken.deserialize">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">deserialize</span><span class="p">(</span><span class="n">serialized_token</span><span class="p">,</span> <span class="n">require_key</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Given a serialized SciToken, load it into a SciTokens object.</span>
+
+<span class="sd">        Verifies the claims pass the current set of validation scripts.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">info</span> <span class="o">=</span> <span class="n">serialized_token</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">info</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">3</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">info</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">4</span><span class="p">:</span> <span class="c1"># header, format, signature[, key]</span>
+            <span class="k">raise</span> <span class="n">MissingKeyException</span><span class="p">(</span><span class="s2">&quot;No key present in serialized token&quot;</span><span class="p">)</span>
+
+        <span class="n">key</span> <span class="o">=</span> <span class="n">info</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">serialized_jwt</span> <span class="o">=</span> <span class="n">info</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;.&quot;</span> <span class="o">+</span> <span class="n">info</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;.&quot;</span> <span class="o">+</span> <span class="n">info</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+
+        <span class="n">unverified_headers</span> <span class="o">=</span> <span class="n">jwt</span><span class="o">.</span><span class="n">get_unverified_header</span><span class="p">(</span><span class="n">serialized_jwt</span><span class="p">)</span>
+        <span class="n">unverified_payload</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">decode_base64</span><span class="p">(</span><span class="n">info</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+        
+        <span class="c1"># Get the public key from the issuer</span>
+        <span class="n">issuer_public_key</span> <span class="o">=</span> <span class="n">SciToken</span><span class="o">.</span><span class="n">_get_issuer_publickey</span><span class="p">(</span><span class="n">unverified_headers</span><span class="p">,</span> <span class="n">unverified_payload</span><span class="p">)</span>
+        
+        <span class="n">claims</span> <span class="o">=</span> <span class="n">jwt</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="n">serialized_token</span><span class="p">,</span> <span class="n">issuer_public_key</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">claims</span><span class="p">)</span>
+        <span class="k">return</span>
+        
+        <span class="c1"># Clean up all of the below</span>
+
+        <span class="n">key_decoded</span> <span class="o">=</span> <span class="n">base64</span><span class="o">.</span><span class="n">urlsafe_b64decode</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+        <span class="n">jwk_dict</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">key_decoded</span><span class="p">)</span>
+        <span class="c1"># TODO: Full range of keytypes and curves from JWK RFC.</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">jwk_dict</span><span class="p">[</span><span class="s1">&#39;kty&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="s1">&#39;EC&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">jwt_dict</span><span class="p">[</span><span class="s1">&#39;crv&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="s1">&#39;P-256&#39;</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">UnsupportedKeyException</span><span class="p">(</span><span class="s2">&quot;SciToken signed with an unsupported key type&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="s1">&#39;d&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">jwk_dict</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">UnsupportedKeyException</span><span class="p">(</span><span class="s2">&quot;SciToken key does not contain private number.&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="s1">&#39;pwt&#39;</span> <span class="ow">in</span> <span class="n">unverified_headers</span><span class="p">:</span>
+            <span class="n">pwt</span> <span class="o">=</span> <span class="n">unverified_headers</span><span class="p">[</span><span class="s1">&#39;pwt&#39;</span><span class="p">]</span>
+            <span class="n">st</span> <span class="o">=</span> <span class="n">SciToken</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span>
+            <span class="n">st</span><span class="o">.</span><span class="n">deserialize</span><span class="p">(</span><span class="n">pwt</span><span class="p">,</span> <span class="n">require_key</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="n">headers</span> <span class="o">=</span> <span class="n">pwt</span><span class="o">.</span><span class="n">headers</span><span class="p">()</span>
+            <span class="k">if</span> <span class="s1">&#39;cwk&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">headers</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">InvalidParentToken</span><span class="p">(</span><span class="s2">&quot;Parent token MUST specify a child JWK.&quot;</span><span class="p">)</span>
+            <span class="c1"># Validate the key type / curve matches.  TODO: what other headers to check?</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">jwk_dict</span><span class="p">[</span><span class="s1">&#39;kty&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="n">headers</span><span class="p">[</span><span class="s1">&#39;kty&#39;</span><span class="p">])</span> <span class="ow">or</span> <span class="p">(</span><span class="n">jwk_dict</span><span class="p">[</span><span class="s1">&#39;crv&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="n">headers</span><span class="p">[</span><span class="s1">&#39;crv&#39;</span><span class="p">]):</span>
+                <span class="k">if</span> <span class="s1">&#39;x&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">jwk_dict</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="s1">&#39;x&#39;</span> <span class="ow">in</span> <span class="n">headers</span><span class="p">:</span>
+                        <span class="n">jwk_dict</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">headers</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">]</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">MissingPublicKeyException</span><span class="p">(</span><span class="s2">&quot;JWK public key is missing &#39;x&#39;&quot;</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">jwk_dict</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="n">headers</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">]:</span>
+                    <span class="k">raise</span> <span class="n">UnsupportedKeyException</span><span class="p">(</span><span class="s2">&quot;Parent SciToken specifies an incompatible child JWK&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="s1">&#39;y&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">jwk_dict</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="s1">&#39;y&#39;</span> <span class="ow">in</span> <span class="n">headers</span><span class="p">:</span>
+                        <span class="n">jwk_dict</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">headers</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">]</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">MissingPublicKeyException</span><span class="p">(</span><span class="s2">&quot;JWK public key is missing &#39;y&#39;&quot;</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">jwk_dict</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="n">headers</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">]:</span>
+                    <span class="k">raise</span> <span class="n">UnsupportedKeyException</span><span class="p">(</span><span class="s2">&quot;Parent SciToken specifies an incompatible child JWK&quot;</span><span class="p">)</span>
+        <span class="c1"># TODO: Handle non-chained case.</span>
+        <span class="k">elif</span> <span class="s1">&#39;x5u&#39;</span> <span class="ow">in</span> <span class="n">unverified_headers</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Non-chained verification is not implemented.&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">UnableToValidate</span><span class="p">(</span><span class="s2">&quot;No token validation method available.&quot;</span><span class="p">)</span>
+
+        <span class="n">public_key_numbers</span> <span class="o">=</span> <span class="n">ec</span><span class="o">.</span><span class="n">EllipticCurvePublicNumbers</span><span class="p">(</span>
+               <span class="n">long_from_bytes</span><span class="p">(</span><span class="n">jwk_dict</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">]),</span>
+               <span class="n">long_from_bytes</span><span class="p">(</span><span class="n">jwk_dict</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">]),</span>
+               <span class="n">ec</span><span class="o">.</span><span class="n">SECP256R1</span>
+           <span class="p">)</span>
+        <span class="n">private_key_numbers</span> <span class="o">=</span> <span class="n">ec</span><span class="o">.</span><span class="n">EllipticCurvePrivateNumbers</span><span class="p">(</span>
+           <span class="n">long_from_bytes</span><span class="p">(</span><span class="n">jwk_dict</span><span class="p">[</span><span class="s1">&#39;d&#39;</span><span class="p">]),</span>
+           <span class="n">public_key_numbers</span>
+        <span class="p">)</span>
+        <span class="n">private_key</span> <span class="o">=</span> <span class="n">private_key_numbers</span><span class="o">.</span><span class="n">private_key</span><span class="p">(</span><span class="n">backends</span><span class="o">.</span><span class="n">default_backend</span><span class="p">())</span>
+        <span class="n">public_key</span>  <span class="o">=</span> <span class="n">public_key_numbers</span><span class="o">.</span><span class="n">public_key</span><span class="p">(</span><span class="n">backends</span><span class="o">.</span><span class="n">default_backend</span><span class="p">())</span>
+
+        <span class="c1"># TODO: check that public and private key match?</span>
+
+        <span class="n">claims</span> <span class="o">=</span> <span class="n">jwt</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="n">serialized_token</span><span class="p">,</span> <span class="n">public_key</span><span class="p">,</span> <span class="n">algorithm</span><span class="o">=</span><span class="s2">&quot;EC256&quot;</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="ValidationFailure"><a class="viewcode-back" href="../../scitokens.html#scitokens.scitokens.ValidationFailure">[docs]</a><span class="k">class</span> <span class="nc">ValidationFailure</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Validation of a token was attempted but failed for an unknown reason.</span>
+<span class="sd">    &quot;&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="NoRegisteredValidator"><a class="viewcode-back" href="../../scitokens.html#scitokens.scitokens.NoRegisteredValidator">[docs]</a><span class="k">class</span> <span class="nc">NoRegisteredValidator</span><span class="p">(</span><span class="n">ValidationFailure</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    The Validator object attempted validation of a token, but encountered a</span>
+<span class="sd">    claim with no registered validator.</span>
+<span class="sd">    &quot;&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="ClaimInvalid"><a class="viewcode-back" href="../../scitokens.html#scitokens.scitokens.ClaimInvalid">[docs]</a><span class="k">class</span> <span class="nc">ClaimInvalid</span><span class="p">(</span><span class="n">ValidationFailure</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    The Validator object attempted validation of a given claim, but one of the</span>
+<span class="sd">    callbacks marked the claim as invalid.</span>
+<span class="sd">    &quot;&quot;&quot;</span></div>
+
+<div class="viewcode-block" id="Validator"><a class="viewcode-back" href="../../scitokens.html#scitokens.scitokens.Validator">[docs]</a><span class="k">class</span> <span class="nc">Validator</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Validate the contents of a SciToken.</span>
+
+<span class="sd">    Given a SciToken, validate the contents of its claims.  Unlike verification,</span>
+<span class="sd">    which checks that the token is correctly signed, validation provides an easy-to-use</span>
+<span class="sd">    interface that ensures the claims in the token are understood by the user.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_callbacks</span> <span class="o">=</span> <span class="p">{}</span>
+
+<div class="viewcode-block" id="Validator.add_validator"><a class="viewcode-back" href="../../scitokens.html#scitokens.scitokens.Validator.add_validator">[docs]</a>    <span class="k">def</span> <span class="nf">add_validator</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">claim</span><span class="p">,</span> <span class="n">validate_op</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Add a validation callback for a given claim.  When the given ``claim``</span>
+<span class="sd">        encountered in a token, ``validate_op`` object will be called with the</span>
+<span class="sd">        following signature::</span>
+
+<span class="sd">        &gt;&gt;&gt; validate_op(value)</span>
+
+<span class="sd">        where ``value`` is the value of the token&#39;s claim converted to a python</span>
+<span class="sd">        object.</span>
+
+<span class="sd">        The validator should return ``True`` if the value is acceptable and ``False``</span>
+<span class="sd">        otherwise.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">validator_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_callbacks</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">claim</span><span class="p">,</span> <span class="p">[])</span>
+        <span class="n">validator_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">validate_op</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Validator.validate"><a class="viewcode-back" href="../../scitokens.html#scitokens.scitokens.Validator.validate">[docs]</a>    <span class="k">def</span> <span class="nf">validate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">token</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Validate the claims of a token.</span>
+
+<span class="sd">        This will iterate through all claims in the given :class:`SciToken`</span>
+<span class="sd">        and determine whether all claims a valid, given the current set of</span>
+<span class="sd">        validators.</span>
+
+<span class="sd">        This will throw an exception if the token is invalid and return ``True``</span>
+<span class="sd">        if the token is valid.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">claim</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">token</span><span class="o">.</span><span class="n">claims</span><span class="p">():</span>
+            <span class="n">validator_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_callbacks</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">claim</span><span class="p">,</span> <span class="p">[])</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">validator_list</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">NoRegisteredValidator</span><span class="p">(</span><span class="s2">&quot;No validator was registered to handle encountered claim &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="n">claim</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">validator</span> <span class="ow">in</span> <span class="n">validator_list</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">validator</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+                    <span class="k">raise</span> <span class="n">ClaimInvalid</span><span class="p">(</span><span class="s2">&quot;Validator rejected value of &#39;</span><span class="si">%s</span><span class="s2">&#39; for claim &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">claim</span><span class="p">))</span>
+        <span class="k">return</span> <span class="kc">True</span></div>
+
+    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">token</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">token</span><span class="p">)</span></div>
+
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">SciTokens Library 0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, Brian Bockelman and Derek Weitzel.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.3.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,264 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>scitokens Package &#8212; SciTokens Library 0.1 documentation</title>
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Welcome to SciTokens Library’s documentation!" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Welcome to SciTokens Library’s documentation!"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">SciTokens Library 0.1 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="scitokens-package">
+<h1>scitokens Package<a class="headerlink" href="#scitokens-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="id1">
+<h2><a class="reference internal" href="#module-scitokens" title="scitokens"><code class="xref py py-mod docutils literal"><span class="pre">scitokens</span></code></a> Package<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="module-scitokens"></span></div>
+<div class="section" id="module-scitokens.scitokens">
+<span id="scitokens-module"></span><h2><a class="reference internal" href="#module-scitokens" title="scitokens"><code class="xref py py-mod docutils literal"><span class="pre">scitokens</span></code></a> Module<a class="headerlink" href="#module-scitokens.scitokens" title="Permalink to this headline">¶</a></h2>
+<dl class="exception">
+<dt id="scitokens.scitokens.ClaimInvalid">
+<em class="property">exception </em><code class="descclassname">scitokens.scitokens.</code><code class="descname">ClaimInvalid</code><a class="reference internal" href="_modules/scitokens/scitokens.html#ClaimInvalid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scitokens.scitokens.ClaimInvalid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#scitokens.scitokens.ValidationFailure" title="scitokens.scitokens.ValidationFailure"><code class="xref py py-class docutils literal"><span class="pre">scitokens.scitokens.ValidationFailure</span></code></a></p>
+<p>The Validator object attempted validation of a given claim, but one of the
+callbacks marked the claim as invalid.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="scitokens.scitokens.MissingKeyException">
+<em class="property">exception </em><code class="descclassname">scitokens.scitokens.</code><code class="descname">MissingKeyException</code><a class="reference internal" href="_modules/scitokens/scitokens.html#MissingKeyException"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scitokens.scitokens.MissingKeyException" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/exceptions.html#exceptions.Exception" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></code></a></p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="scitokens.scitokens.NoRegisteredValidator">
+<em class="property">exception </em><code class="descclassname">scitokens.scitokens.</code><code class="descname">NoRegisteredValidator</code><a class="reference internal" href="_modules/scitokens/scitokens.html#NoRegisteredValidator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scitokens.scitokens.NoRegisteredValidator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#scitokens.scitokens.ValidationFailure" title="scitokens.scitokens.ValidationFailure"><code class="xref py py-class docutils literal"><span class="pre">scitokens.scitokens.ValidationFailure</span></code></a></p>
+<p>The Validator object attempted validation of a token, but encountered a
+claim with no registered validator.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="scitokens.scitokens.SciToken">
+<em class="property">class </em><code class="descclassname">scitokens.scitokens.</code><code class="descname">SciToken</code><span class="sig-paren">(</span><em>key=None</em>, <em>parent=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scitokens/scitokens.html#SciToken"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scitokens.scitokens.SciToken" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+<dl class="method">
+<dt id="scitokens.scitokens.SciToken.claims">
+<code class="descname">claims</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/scitokens/scitokens.html#SciToken.claims"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scitokens.scitokens.SciToken.claims" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return an iterator of (key, value) pairs of claims, starting
+with the claims from the first token in the chain.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="scitokens.scitokens.SciToken.clone_chain">
+<code class="descname">clone_chain</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/scitokens/scitokens.html#SciToken.clone_chain"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scitokens.scitokens.SciToken.clone_chain" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a new, empty SciToken</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="scitokens.scitokens.SciToken.deserialize">
+<em class="property">static </em><code class="descname">deserialize</code><span class="sig-paren">(</span><em>serialized_token</em>, <em>require_key=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scitokens/scitokens.html#SciToken.deserialize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scitokens.scitokens.SciToken.deserialize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a serialized SciToken, load it into a SciTokens object.</p>
+<p>Verifies the claims pass the current set of validation scripts.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="scitokens.scitokens.SciToken.serialize">
+<code class="descname">serialize</code><span class="sig-paren">(</span><em>include_key=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scitokens/scitokens.html#SciToken.serialize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scitokens.scitokens.SciToken.serialize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Serialize the existing SciToken.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="scitokens.scitokens.SciToken.update_claims">
+<code class="descname">update_claims</code><span class="sig-paren">(</span><em>claims</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scitokens/scitokens.html#SciToken.update_claims"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scitokens.scitokens.SciToken.update_claims" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add new claims to the token.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>claims</strong> – Dictionary of claims to add to the token</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="scitokens.scitokens.SciToken.verify">
+<code class="descname">verify</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/scitokens/scitokens.html#SciToken.verify"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scitokens.scitokens.SciToken.verify" title="Permalink to this definition">¶</a></dt>
+<dd><p>Verify the claims of the in-memory token.</p>
+<p>Automatically called by deserialize.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="scitokens.scitokens.UnsupportedKeyException">
+<em class="property">exception </em><code class="descclassname">scitokens.scitokens.</code><code class="descname">UnsupportedKeyException</code><a class="reference internal" href="_modules/scitokens/scitokens.html#UnsupportedKeyException"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scitokens.scitokens.UnsupportedKeyException" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/exceptions.html#exceptions.Exception" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></code></a></p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="scitokens.scitokens.ValidationFailure">
+<em class="property">exception </em><code class="descclassname">scitokens.scitokens.</code><code class="descname">ValidationFailure</code><a class="reference internal" href="_modules/scitokens/scitokens.html#ValidationFailure"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scitokens.scitokens.ValidationFailure" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/exceptions.html#exceptions.Exception" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></code></a></p>
+<p>Validation of a token was attempted but failed for an unknown reason.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="scitokens.scitokens.Validator">
+<em class="property">class </em><code class="descclassname">scitokens.scitokens.</code><code class="descname">Validator</code><a class="reference internal" href="_modules/scitokens/scitokens.html#Validator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scitokens.scitokens.Validator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+<p>Validate the contents of a SciToken.</p>
+<p>Given a SciToken, validate the contents of its claims.  Unlike verification,
+which checks that the token is correctly signed, validation provides an easy-to-use
+interface that ensures the claims in the token are understood by the user.</p>
+<dl class="method">
+<dt id="scitokens.scitokens.Validator.add_validator">
+<code class="descname">add_validator</code><span class="sig-paren">(</span><em>claim</em>, <em>validate_op</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scitokens/scitokens.html#Validator.add_validator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scitokens.scitokens.Validator.add_validator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a validation callback for a given claim.  When the given <code class="docutils literal"><span class="pre">claim</span></code>
+encountered in a token, <code class="docutils literal"><span class="pre">validate_op</span></code> object will be called with the
+following signature:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">validate_op</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>where <code class="docutils literal"><span class="pre">value</span></code> is the value of the token’s claim converted to a python
+object.</p>
+<p>The validator should return <code class="docutils literal"><span class="pre">True</span></code> if the value is acceptable and <code class="docutils literal"><span class="pre">False</span></code>
+otherwise.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="scitokens.scitokens.Validator.validate">
+<code class="descname">validate</code><span class="sig-paren">(</span><em>token</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scitokens/scitokens.html#Validator.validate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scitokens.scitokens.Validator.validate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Validate the claims of a token.</p>
+<p>This will iterate through all claims in the given <a class="reference internal" href="#scitokens.scitokens.SciToken" title="scitokens.scitokens.SciToken"><code class="xref py py-class docutils literal"><span class="pre">SciToken</span></code></a>
+and determine whether all claims a valid, given the current set of
+validators.</p>
+<p>This will throw an exception if the token is invalid and return <code class="docutils literal"><span class="pre">True</span></code>
+if the token is valid.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="scitokens.scitokens.decode_base64">
+<code class="descclassname">scitokens.scitokens.</code><code class="descname">decode_base64</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scitokens/scitokens.html#decode_base64"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scitokens.scitokens.decode_base64" title="Permalink to this definition">¶</a></dt>
+<dd><p>Decode base64, padding being optional.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>data</strong> – Base64 data as an ASCII byte string</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The decoded byte string.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="scitokens.scitokens.long_from_bytes">
+<code class="descclassname">scitokens.scitokens.</code><code class="descname">long_from_bytes</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scitokens/scitokens.html#long_from_bytes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scitokens.scitokens.long_from_bytes" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">scitokens Package</a><ul>
+<li><a class="reference internal" href="#id1"><code class="docutils literal"><span class="pre">scitokens</span></code> Package</a></li>
+<li><a class="reference internal" href="#module-scitokens.scitokens"><code class="docutils literal"><span class="pre">scitokens</span></code> Module</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="index.html"
+                        title="previous chapter">Welcome to SciTokens Library’s documentation!</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/scitokens.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Welcome to SciTokens Library’s documentation!"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">SciTokens Library 0.1 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, Brian Bockelman and Derek Weitzel.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.3.
+    </div>
+  </body>
+</html>
