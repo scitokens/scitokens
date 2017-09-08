@@ -98,3 +98,23 @@ Once all the known validator callbacks have been registered, use the `validate` 
 
 This will throw a `ValidationException` if the token could not be validated.
 
+
+Enforcing Authorizations
+------------------------
+
+SciTokens has a specific claims language and a set of processing logic for enforcing resource authorization.  Given a SciToken, one may want to check if the bearer has authorization to perform a certain action.  The `Enforcer` object encodes the SciTokens rules to do this determination.
+
+The `Enforcer` object is tied to a specific issuer:
+
+```
+>>> enf = scitokens.Enforcer("https://cilogon.org/example/ligo")
+```
+
+Only tokens from that issuer will be allowed by the enforcer.  Given the object, one can use the `test` method to see if a particular action is allowed:
+
+```
+>>> enf.test(token, "read", path="/some/path")
+```
+
+The `test` method returns ``True`` if the token has the appropriate authorization and ``False`` otherwise.
+
