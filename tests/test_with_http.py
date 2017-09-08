@@ -64,8 +64,6 @@ class TestDeserialization(unittest.TestCase):
         t = threading.Thread(target = httpd.serve_forever)
         t.daemon = True
         t.start()
-        #httpd.serve_forever()
-        
 
     def test_deserialization(self):
         global test_n

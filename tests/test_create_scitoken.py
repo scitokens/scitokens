@@ -24,7 +24,6 @@ class TestCreation(unittest.TestCase):
             key_size=2048,
             backend=default_backend()
         )
-        
         print(private_key.public_key().public_bytes(
             encoding=serialization.Encoding.PEM,
             format=serialization.PublicFormat.SubjectPublicKeyInfo
