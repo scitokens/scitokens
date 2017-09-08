@@ -209,7 +209,7 @@ class SciToken(object):
 
         Verifies the claims pass the current set of validation scripts.
         """
-        info = serialized_token.split(".")
+        info = serialized_token.decode('utf8').split(".")
         if len(info) != 3 and len(info) != 4: # header, format, signature[, key]
             raise MissingKeyException("No key present in serialized token")
 
