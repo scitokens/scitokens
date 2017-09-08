@@ -115,11 +115,11 @@ class SciToken(object):
         """
         raise NotImplementedError()
 
+
     def serialize(self, include_key=False):
         """
         Serialize the existing SciToken.
         """
-        
         
 
     def update_claims(claims):
@@ -210,4 +210,77 @@ class SciToken(object):
 
         claims = jwt.decode(serialized_token, public_key, algorithm="EC256")
 
+
+class ValidationFailure(Exception):
+    """
+    Validation of a token was attempted but failed for an unknown reason.
+    """
+
+
+class NoRegisteredValidator(ValidationFailure):
+    """
+    The Validator object attempted validation of a token, but encountered a
+    claim with no registered validator.
+    """
+
+
+class ClaimInvalid(ValidationFailure):
+    """
+    The Validator object attempted validation of a given claim, but one of the
+    callbacks marked the claim as invalid.
+    """
+
+class Validator(object):
+
+    """
+    Validate the contents of a SciToken.
+
+    Given a SciToken, validate the contents of its claims.  Unlike verification,
+    which checks that the token is correctly signed, validation provides an easy-to-use
+    interface that ensures the claims in the token are understood by the user.
+    """
+
+
+    def __init__(self):
+        self._callbacks = {}
+
+    def add_validator(self, claim, validate_op):
+        """
+        Add a validation callback for a given claim.  When the given ``claim``
+        encountered in a token, ``validate_op`` object will be called with the
+        following signature::
+
+        >>> validate_op(value)
+
+        where ``value`` is the value of the token's claim converted to a python
+        object.
+
+        The validator should return ``True`` if the value is acceptable and ``False``
+        otherwise.
+        """
+        validator_list = self._callbacks.setdefault(claim, [])
+        validator_list.append(validate_op)
+
+    def validate(self, token):
+        """
+        Validate the claims of a token.
+
+        This will iterate through all claims in the given :class:`SciToken`
+        and determine whether all claims a valid, given the current set of
+        validators.
+
+        This will throw an exception if the token is invalid and return ``True``
+        if the token is valid.
+        """
+        for claim, value in token.claims():
+            validator_list = self._callbacks.setdefault(claim, [])
+            if not validator_list:
+                raise NoRegisteredValidator("No validator was registered to handle encountered claim '%s'" % claim)
+            for validator in validator_list:
+                if not validator(value):
+                    raise ClaimInvalid("Validator rejected value of '%s' for claim '%s'" % (value, claim))
+        return True
+
+    def __call__(self, token):
+        return validate(token)
 
