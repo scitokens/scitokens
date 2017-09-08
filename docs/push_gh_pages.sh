@@ -4,7 +4,7 @@
 set -ex
 
 # Setup deploy key
-if [ "$1" != "dry" ]; then
+if [ "$1" != "dry" -a "${TRAVIS_PULL_REQUEST}" = "false"  ]; then
     openssl aes-256-cbc -K $encrypted_1d262b48bc9b_key -iv $encrypted_1d262b48bc9b_iv -in deploy-key.enc -out deploy-key -d
     chmod 600 deploy-key
     eval `ssh-agent -s`
