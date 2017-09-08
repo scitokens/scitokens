@@ -55,7 +55,7 @@ class NonHTTPSIssuer(Exception):
 
 class SciToken(object):
 
-    def __init__(self, key=None, parent=None, claims=None, serialized_token=None):
+    def __init__(self, key=None, parent=None, claims=None):
         """
         
         
@@ -68,7 +68,7 @@ class SciToken(object):
         self._claims = {}
         self._verified_claims = {}
         self.insecure = False
-        
+        self._serialized_token = None
 
     def claims(self):
         """
@@ -156,7 +156,7 @@ class SciToken(object):
         """
         
     @staticmethod
-    def _get_issuer_publickey(header, payload):
+    def _get_issuer_publickey(header, payload, insecure=False):
         
         # Get the issuer
         issuer = payload['iss']
@@ -167,7 +167,7 @@ class SciToken(object):
         meta_uri = urlparse.urljoin(issuer, well_known_uri)
         
         # Make sure the protocol is https
-        if not self.insecure:
+        if not insecure:
             parsed_url = urlparse(meta_uri)
             if parsed_url.scheme is not "https":
                 raise NonHTTPSIssuer("Issuer is not over HTTPS.  RFC requires it to be over HTTPS")
@@ -178,7 +178,7 @@ class SciToken(object):
         jwks_uri = data['jwks_uri']
         
         # Now, get the keys
-        if not self.insecure:
+        if not insecure:
             parsed_url = urlparse(jwks_uri)
             if parse_url.scheme is not "https":
                 raise NonHTTPSIssuer("jwks_uri is not over HTTPS, insecure!")
@@ -221,7 +221,7 @@ class SciToken(object):
         
         
     @staticmethod
-    def deserialize(serialized_token, require_key=True):
+    def deserialize(serialized_token, require_key=True, insecure=False):
         """
         Given a serialized SciToken, load it into a SciTokens object.
 
@@ -238,16 +238,17 @@ class SciToken(object):
         unverified_payload = json.loads(decode_base64(info[1].encode("ascii")).decode('utf-8'))
         
         # Get the public key from the issuer
-        issuer_public_key = SciToken._get_issuer_publickey(unverified_headers, unverified_payload)
+        issuer_public_key = SciToken._get_issuer_publickey(unverified_headers, unverified_payload, insecure=insecure)
         
         claims = jwt.decode(serialized_token, issuer_public_key)
         # Do we have the private key?
         if (len(info) == 4):
-            to_return = SciToken(serialized_token = serialized_token, key = key)
+            to_return = SciToken(key = key)
         else:
-            to_return = SciToken(serialized_token = serialized_token)
+            to_return = SciToken()
             
         to_return.verified_claims = claims
+        to_return._serialized_token = serialized_token
         return to_return
         
         

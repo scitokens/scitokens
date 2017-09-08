@@ -84,7 +84,7 @@ class TestDeserialization(unittest.TestCase):
         
         self.assertEqual(len(serialized_token.decode('utf8').split(".")), 3)
         
-        scitoken = scitokens.SciToken.deserialize(serialized_token)
+        scitoken = scitokens.SciToken.deserialize(serialized_token, insecure=True)
         
         self.assertIsInstance(scitoken, scitokens.SciToken)
 
