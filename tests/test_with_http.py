@@ -18,7 +18,11 @@ from cryptography.hazmat.primitives.asymmetric.rsa import generate_private_key
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 
-from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
+try:
+    from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
+except ImportError:
+    from http.server import BaseHTTPRequestHandler, HTTPServer
+import json
 
 # For use in the HTTP Serve test class
 #test_kid = ""
