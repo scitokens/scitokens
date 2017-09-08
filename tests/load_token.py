@@ -2,5 +2,5 @@ import scitokens
 import sys
 
 
-scitokens.SciToken(token=sys.argv[1])
+scitokens.SciToken.deserialize(sys.argv[1])
 
