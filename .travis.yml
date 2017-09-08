@@ -10,10 +10,11 @@ install:
 script:
   - python setup.py install
   - coverage run `which pytest`
+  - coverage xml --include 'src/scitokens/*'
 
 after_success:
   - pushd docs
   - if [ "${TRAVIS_PYTHON_VERSION}" == "2.7" ]; then make gh-pages; fi
   - popd
-  - if [ "${TRAVIS_PYTHON_VERSION}" == "2.7" -a "${TRAVIS_PULL_REQUEST}" = "false" ]; then coverage xml --include 'src/scitokens/*'; python-codacy-coverage -r coverage.xml; fi
+  - if [ "${TRAVIS_PYTHON_VERSION}" == "2.7" -a "${TRAVIS_PULL_REQUEST}" = "false" ]; then python-codacy-coverage -r coverage.xml; fi
 
