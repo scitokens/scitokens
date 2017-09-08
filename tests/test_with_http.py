@@ -30,7 +30,7 @@ test_n = 0
 test_e = 0
 
 def bytes_from_long(data):
-    return base64.urlsafe_b64encode(cryptography.utils.int_to_bytes(data))
+    return base64.urlsafe_b64encode(cryptography.utils.int_to_bytes(data)).decode('ascii')
 
 class S(BaseHTTPRequestHandler):
     def _set_headers(self):
@@ -53,7 +53,7 @@ class S(BaseHTTPRequestHandler):
             key_info['kty'] = "RSA"
             key_info['alg']=  "RS256"
             to_write = json.dumps({'keys': [key_info]})
-        self.wfile.write(to_write)
+        self.wfile.write(to_write.encode())
 
 
 

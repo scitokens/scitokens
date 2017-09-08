@@ -1,6 +1,11 @@
 
 import base64
-import urllib
+
+try:
+    import urllib.request as request
+except ImportError:
+    import urllib as request
+    
 try:
     import urlparse
 except ImportError:
@@ -29,8 +34,10 @@ def decode_base64(data):
     """
     missing_padding = len(data) % 4
     if missing_padding != 0:
-        data += str(b'='* (4 - missing_padding))
-    return base64.urlsafe_b64decode(data.encode("ascii"))
+        data += b'='* (4 - missing_padding)
+    
+    return base64.urlsafe_b64decode(data)
+
 
 class MissingKeyException(Exception):
     pass
@@ -157,14 +164,14 @@ class SciToken(object):
         # https://tools.ietf.org/html/draft-ietf-oauth-discovery-07
         well_known_uri = "/.well-known/openid-configuration"
         meta_uri = urlparse.urljoin(issuer, well_known_uri)
-        response = urllib.urlopen(meta_uri)
+        response = request.urlopen(meta_uri)
         data = json.loads(response.read())
         
         # Get the keys URL from the openid-configuration
         jwks_uri = data['jwks_uri']
         
         # Now, get the keys
-        response = urllib.urlopen(jwks_uri)
+        response = request.urlopen(jwks_uri)
         keys_data = json.loads(response.read())
         # Loop through each key, looking for the right key id
         public_key = ""
@@ -217,7 +224,7 @@ class SciToken(object):
         serialized_jwt = info[0] + "." + info[1] + "." + info[2]
 
         unverified_headers = jwt.get_unverified_header(serialized_jwt)
-        unverified_payload = json.loads(str(decode_base64(info[1])))
+        unverified_payload = json.loads(decode_base64(info[1].encode("ascii")))
         
         # Get the public key from the issuer
         issuer_public_key = SciToken._get_issuer_publickey(unverified_headers, unverified_payload)
