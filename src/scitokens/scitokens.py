@@ -6,8 +6,10 @@ try:
 except ImportError:
     import urllib.parse as urlparse
 import json
+import time
 
 import jwt
+import urltools
 
 import cryptography.utils
 import cryptography.hazmat.primitives.asymmetric.ec as ec
@@ -244,6 +246,14 @@ class ClaimInvalid(ValidationFailure):
     callbacks marked the claim as invalid.
     """
 
+
+class MissingClaims(ValidationFailure):
+    """
+    Validation failed because one or more claim marked as critical is missing
+    from the token.
+    """
+
+
 class Validator(object):
 
     """
@@ -275,7 +285,7 @@ class Validator(object):
         validator_list = self._callbacks.setdefault(claim, [])
         validator_list.append(validate_op)
 
-    def validate(self, token):
+    def validate(self, token, critical_claims=[]):
         """
         Validate the claims of a token.
 
@@ -283,18 +293,130 @@ class Validator(object):
         and determine whether all claims a valid, given the current set of
         validators.
 
+        If ``critical_claims`` is specified, then validation will fail if one
+        or more claim in this list is not present in the token.
+
         This will throw an exception if the token is invalid and return ``True``
         if the token is valid.
         """
+        critical_claims = set(critical_claims)
         for claim, value in token.claims():
+            if claim in critical_claims:
+                critical_claims.remove(claim)
             validator_list = self._callbacks.setdefault(claim, [])
             if not validator_list:
                 raise NoRegisteredValidator("No validator was registered to handle encountered claim '%s'" % claim)
             for validator in validator_list:
                 if not validator(value):
                     raise ClaimInvalid("Validator rejected value of '%s' for claim '%s'" % (value, claim))
+        if len(critical_claims):
+            raise MissingClaims("Validation failed because the following claims are missing: %s" % ", ".join(critical_claims))
         return True
 
     def __call__(self, token):
         return self.validate(token)
+
+
+class EnforcementError(Exception):
+    """
+    A generic error during the enforcement of a SciToken.
+    """
+
+class Enforcer(object):
+
+    """
+    Enforce SciTokens-specific validation logic.
+
+    Allows one to test if a given token has a particular authorization.
+
+    This class is NOT thread safe; a separate object is needed for every thread.
+    """
+
+    _authz_requiring_path = set(["read", "write"])
+
+    def __init__(self, issuer, site=None, audience=None):
+        self._issuer = issuer
+        self.last_failure = None
+        if not self._issuer:
+            raise EnforcementError("Issuer must be specified.")
+        self._now = 0
+        self._authz = None
+        self._test_path = None
+        self._audience = audience
+        self._site = site
+        self._validator = Validator()
+        self._validator.add_validator("exp", self._validate_exp)
+        self._validator.add_validator("nbf", self._validate_nbf)
+        self._validator.add_validator("iss", self._validate_iss)
+        self._validator.add_validator("iat", self._validate_iat)
+        self._validator.add_validator("site", self._validate_site)
+        self._validator.add_validator("aud", self._validate_aud)
+        self._validator.add_validator("path", self._validate_path)
+        self._validator.add_validator("authz", self._validate_authz)
+
+    def add_validator(self, claim, validator):
+        """
+        Add a user-defined validator in addition to the default enforcer logic.
+        """
+        self._validator.add_validator(claim, validator)
+
+    def test(self, token, authz, path=None):
+        """
+        Test whether a given token has the requested permission within the
+        current enforcer context.
+        """
+        critical_claims = set(["authz"])
+        if authz in self._authz_requiring_path:
+            critical_claims.add("path")
+        self._now = time.time()
+        self._test_path = path
+        self._test_authz = authz
+        try:
+            self._validator.validate(token, critical_claims=critical_claims)
+        except ValidationFailure as vf:
+            self.last_failure = str(vf)
+            return False
+        return True
+
+    def _validate_exp(self, value):
+        exp = float(value)
+        return exp >= self._now
+
+    def _validate_nbf(self, value):
+        nbf = float(value)
+        return nbf < self._now
+
+    def _validate_iss(self, value):
+        return self._issuer == value
+
+    def _validate_iat(self, value):
+        return float(value) < self._now
+
+    def _validate_site(self, value):
+        if not self._site:
+            return False
+        return value == self._site
+
+    def _validate_aud(self, value):
+        if not self._audience:
+            return False
+        return value == self._audience
+
+    def _validate_path(self, value):
+        if not isinstance(value, list):
+            value = [value]
+        norm_requested_path = urltools.normalize(self._test_path)
+        for path in value:
+            norm_path = urltools.normalize(path)
+            if norm_requested_path.startswith(norm_path):
+                return True
+        return False
+
+    def _validate_authz(self, value):
+        if not isinstance(value, list):
+            value = [value]
+        for authz in value:
+            if self._test_authz == authz:
+                return True
+        return False
 
