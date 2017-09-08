@@ -36,7 +36,7 @@ class TestCreation(unittest.TestCase):
         token.update_claims({"test": "true"})
         serialized_token = token.serialize(issuer = "local")
         
-        self.assertEqual(len(serialized_token.split(".")), 3)
+        self.assertEqual(len(serialized_token.decode('utf8').split(".")), 3)
         print(serialized_token)
         
         
