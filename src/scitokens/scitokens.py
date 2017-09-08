@@ -6,6 +6,8 @@ try:
 except ImportError:
     import urllib.parse as urlparse
 import json
+from datetime import datetime, timedelta
+from time import mktime
 
 import jwt
 
@@ -34,6 +36,9 @@ class MissingKeyException(Exception):
     pass
 
 class UnsupportedKeyException(Exception):
+    pass
+    
+class MissingIssuerException(Exception):
     pass
 
 class SciToken(object):
@@ -75,13 +80,48 @@ class SciToken(object):
         raise NotImplementedError()
 
 
-    def serialize(self, include_key=False):
+    def serialize(self, include_key=False, issuer = None, lifetime = 600):
         """
         Serialize the existing SciToken.
+        
+        :return str: base64 encoded token
         """
         
+        if self._key == None:
+            raise MissingKeyException("Unable to serialize, missing private key")
+        
+        # Issuer needs to be available, otherwise throw an error
+        if issuer == None and 'iss' not in self._claims:
+            raise MissingIssuerException("Issuer not specific in claims or as argument")
+        
+        if not issuer:
+            issuer = self._claims['iss']
+        
+        issue_time = int(mktime(datetime.utcnow().timetuple()))
+        exp_time = int(mktime((datetime.utcnow() + timedelta(seconds=lifetime)).timetuple()))
+        
+        # All the claims are the
+        header = {
+            "typ": "JWT",
+            "alg": "RS256"
+        }
+        
+        payload = dict(self._claims)
+        
+        # Anything below will override what is in the claims
+        payload.update({
+            "iss": issuer,
+            "exp": exp_time,
+            "iat": issue_time,
+        })
+        
+        encoded = jwt.encode(payload, self._key, algorithm = "RS256")
+        
+        return encoded
+        
+        
 
-    def update_claims(claims):
+    def update_claims(self, claims):
         """
         Add new claims to the token.
         
