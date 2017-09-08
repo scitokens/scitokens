@@ -45,54 +45,6 @@ class SciToken(object):
         self._key = key
         self._parent = parent
         self._claims = {}
-
-    def __init__(self, token):
-        """ 
-        When the token is all we have
-        
-        TODO: lots of verification of token input!
-        
-        :param token: base64 encoded token
-        """
-        
-        # Split the token: header.payload.signature
-        split_token = token.split('.')
-        
-        # Decode the header and payload from base64 to json
-        header = json.loads(decode_base64(split_token[0]))
-        payload = json.loads(decode_base64(split_token[1]))
-        
-        # Get the issuer of the token (is it in payload or header?)
-        issuer = payload['iss']
-        
-        # TODO: whitelist of issuers that we trust?
-        
-        # Go to the issuer's website, and download the OAuth well known bits
-        # https://tools.ietf.org/html/draft-ietf-oauth-discovery-07
-        well_known_uri = "/.well-known/openid-configuration"
-        meta_uri = urlparse.urljoin(issuer, well_known_uri)
-        response = urllib.urlopen(meta_uri)
-        data = json.loads(response.read())
-        
-        # Get the keys URL from the openid-configuration
-        jwks_uri = data['jwks_uri']
-        
-        # Now, get the keys
-        response = urllib.urlopen(jwks_uri)
-        keys_data = json.loads(response.read())
-        # Loop through each key, looking for the right key id
-        public_key = ""
-        for key in keys_data['keys']:
-            if (key['kid'] == header['kid']):
-                public_key_numbers = rsa.RSAPublicNumbers(
-                    long_from_bytes(key['e']),
-                    long_from_bytes(key['n'])
-                )
-                public_key = public_key_numbers.public_key(backends.default_backend())
-                break
-        
-        
-        claims = jwt.decode(token, public_key)
         
 
     def claims(self):
@@ -141,21 +93,74 @@ class SciToken(object):
         Given a serialized key and a set of UNVERIFIED headers, return
         a corresponding private key object.
         """
-
-    def deserialize(self, serialized_token, require_key=True):
+        
+    @staticmethod
+    def _get_issuer_publickey(header, payload):
+        
+        # Get the issuer
+        issuer = payload['iss']
+        
+        # Go to the issuer's website, and download the OAuth well known bits
+        # https://tools.ietf.org/html/draft-ietf-oauth-discovery-07
+        well_known_uri = "/.well-known/openid-configuration"
+        meta_uri = urlparse.urljoin(issuer, well_known_uri)
+        response = urllib.urlopen(meta_uri)
+        data = json.loads(response.read())
+        
+        # Get the keys URL from the openid-configuration
+        jwks_uri = data['jwks_uri']
+        
+        # Now, get the keys
+        response = urllib.urlopen(jwks_uri)
+        keys_data = json.loads(response.read())
+        # Loop through each key, looking for the right key id
+        public_key = ""
+        for key in keys_data['keys']:
+            if (key['kid'] == header['kid']):
+                if key['kty'] == "RSA":
+                    public_key_numbers = rsa.RSAPublicNumbers(
+                        long_from_bytes(key['e']),
+                        long_from_bytes(key['n'])
+                    )
+                    public_key = public_key_numbers.public_key(backends.default_backend())
+                    break
+                elif key['kty'] == 'EC':
+                    public_key_numbers = ec.EllipticCurvePublicNumbers(
+                           long_from_bytes(key['x']),
+                           long_from_bytes(key['y']),
+                           ec.SECP256R1
+                       )
+                else:
+                    raise UnsupportedKeyException("SciToken signed with an unsupported key type")
+        
+        return public_key
+        
+        
+    @staticmethod
+    def deserialize(serialized_token, require_key=True):
         """
         Given a serialized SciToken, load it into a SciTokens object.
 
         Verifies the claims pass the current set of validation scripts.
         """
         info = serialized_token.split(".")
-        if len(info) != 4: # header, format, signature, key
+        if len(info) != 3 and len(info) != 4: # header, format, signature[, key]
             raise MissingKeyException("No key present in serialized token")
 
         key = info[-1]
         serialized_jwt = info[0] + "." + info[1] + "." + info[2]
 
-        unverified_headers = jwt.get_unverified_headers(serialized_jwt)
+        unverified_headers = jwt.get_unverified_header(serialized_jwt)
+        unverified_payload = json.loads(decode_base64(info[1]))
+        
+        # Get the public key from the issuer
+        issuer_public_key = SciToken._get_issuer_publickey(unverified_headers, unverified_payload)
+        
+        claims = jwt.decode(serialized_token, issuer_public_key)
+        print claims
+        return
+        
+        # Clean up all of the below
 
         key_decoded = base64.urlsafe_b64decode(key)
         jwk_dict = json.loads(key_decoded)
