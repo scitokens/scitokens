@@ -37,7 +37,7 @@ class UnsupportedKeyException(Exception):
 
 class SciToken(object):
 
-    def __init__(self, key=None, parent=None):
+    def __init__(self, key=None, parent=None, claims=None, serialized_token=None):
         """
         
         
@@ -48,6 +48,7 @@ class SciToken(object):
         self._key = key
         self._parent = parent
         self._claims = {}
+        self._verified_claims = {}
         
 
     def claims(self):
@@ -58,6 +59,8 @@ class SciToken(object):
         if self._parent:
             for claim, value in self._parent.claims():
                 yield claim, value
+        for claim, value in self._verified_claims.items():
+            yield claim, value
         for claim, value in self._claims.items():
             yield claim, value
 
@@ -166,8 +169,15 @@ class SciToken(object):
         issuer_public_key = SciToken._get_issuer_publickey(unverified_headers, unverified_payload)
         
         claims = jwt.decode(serialized_token, issuer_public_key)
-        print(claims)
-        return
+        # Do we have the private key?
+        if (len(info) == 4):
+            to_return = SciToken(serialized_token = serialized_token, key = key)
+        else:
+            to_return = SciToken(serialized_token = serialized_token)
+            
+        to_return._verified_claims(claims)
+        return to_return
+        
         
         # Clean up all of the below
 
