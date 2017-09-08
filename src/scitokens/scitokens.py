@@ -168,23 +168,36 @@ class SciToken(object):
         keys_data = json.loads(response.read())
         # Loop through each key, looking for the right key id
         public_key = ""
-        for key in keys_data['keys']:
-            if (key['kid'] == header['kid']):
-                if key['kty'] == "RSA":
-                    public_key_numbers = rsa.RSAPublicNumbers(
-                        long_from_bytes(key['e']),
-                        long_from_bytes(key['n'])
-                    )
-                    public_key = public_key_numbers.public_key(backends.default_backend())
+        raw_key = {}
+        
+        # If there is no kid in the header, then just take the first key?
+        if 'kid' not in header:
+            if len(keys_data['keys']) != 1:
+                raise NotImplementedError("No kid in header, but multiple keys in response from certs server.  Don't know which key to use!")
+            else:
+                raw_key = keys_data['keys'][0]
+        else:
+            # Find the right key
+            for key in keys_data['keys']:
+                if (key['kid'] == header['kid']):
+                    raw_key = key
                     break
-                elif key['kty'] == 'EC':
-                    public_key_numbers = ec.EllipticCurvePublicNumbers(
-                           long_from_bytes(key['x']),
-                           long_from_bytes(key['y']),
-                           ec.SECP256R1
-                       )
-                else:
-                    raise UnsupportedKeyException("SciToken signed with an unsupported key type")
+                
+        if raw_key['kty'] == "RSA":
+            public_key_numbers = rsa.RSAPublicNumbers(
+                long_from_bytes(raw_key['e']),
+                long_from_bytes(raw_key['n'])
+            )
+            public_key = public_key_numbers.public_key(backends.default_backend())
+        elif raw_key['kty'] == 'EC':
+            public_key_numbers = ec.EllipticCurvePublicNumbers(
+                   long_from_bytes(raw_key['x']),
+                   long_from_bytes(raw_key['y']),
+                   ec.SECP256R1
+               )
+            public_key = public_key_numbers.public_key(backends.default_backend())
+        else:
+            raise UnsupportedKeyException("SciToken signed with an unsupported key type")
         
         return public_key
         
@@ -216,7 +229,7 @@ class SciToken(object):
         else:
             to_return = SciToken(serialized_token = serialized_token)
             
-        to_return._verified_claims(claims)
+        to_return.verified_claims = claims
         return to_return
         
         
