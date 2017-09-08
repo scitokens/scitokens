@@ -1,7 +1,10 @@
 
 import base64
 import urllib
-import urlparse
+try:
+    import urlparse
+except ImportError:
+    import urllib.parse as urlparse
 import json
 
 import jwt
@@ -163,7 +166,7 @@ class SciToken(object):
         issuer_public_key = SciToken._get_issuer_publickey(unverified_headers, unverified_payload)
         
         claims = jwt.decode(serialized_token, issuer_public_key)
-        print claims
+        print(claims)
         return
         
         # Clean up all of the below
