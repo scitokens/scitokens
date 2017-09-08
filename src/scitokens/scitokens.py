@@ -167,14 +167,14 @@ class SciToken(object):
         well_known_uri = "/.well-known/openid-configuration"
         meta_uri = urlparse.urljoin(issuer, well_known_uri)
         response = request.urlopen(meta_uri)
-        data = json.loads(response.read())
+        data = json.loads(response.read().decode('utf-8'))
         
         # Get the keys URL from the openid-configuration
         jwks_uri = data['jwks_uri']
         
         # Now, get the keys
         response = request.urlopen(jwks_uri)
-        keys_data = json.loads(response.read())
+        keys_data = json.loads(response.read().decode('utf-8'))
         # Loop through each key, looking for the right key id
         public_key = ""
         raw_key = {}
