@@ -12,7 +12,6 @@ import cryptography.hazmat.primitives.asymmetric.rsa as rsa
 import cryptography.hazmat.backends as backends
 
 def long_from_bytes(data):
-    #return cryptography.utils.int_from_bytes(base64.urlsafe_b64decode(data, 'big'))
     return cryptography.utils.int_from_bytes(decode_base64(data.encode("ascii")), 'big')
     
 def decode_base64(data):
