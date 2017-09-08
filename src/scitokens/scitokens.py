@@ -49,6 +49,9 @@ class UnsupportedKeyException(Exception):
     
 class MissingIssuerException(Exception):
     pass
+    
+class NonHTTPSIssuer(Exception):
+    pass
 
 class SciToken(object):
 
@@ -64,6 +67,7 @@ class SciToken(object):
         self._parent = parent
         self._claims = {}
         self._verified_claims = {}
+        self.insecure = False
         
 
     def claims(self):
@@ -106,8 +110,9 @@ class SciToken(object):
         if not issuer:
             issuer = self._claims['iss']
         
-        issue_time = int(mktime(datetime.utcnow().timetuple()))
-        exp_time = int(mktime((datetime.utcnow() + timedelta(seconds=lifetime)).timetuple()))
+        # Set the issue and expiration time of the token
+        issue_time = time.time()
+        exp_time = issue_time + lifetime
         
         payload = dict(self._claims)
         
@@ -160,6 +165,12 @@ class SciToken(object):
         # https://tools.ietf.org/html/draft-ietf-oauth-discovery-07
         well_known_uri = "/.well-known/openid-configuration"
         meta_uri = urlparse.urljoin(issuer, well_known_uri)
+        
+        # Make sure the protocol is https
+        if not self.insecure:
+            parsed_url = urlparse(meta_uri)
+            if parsed_url.scheme is not "https":
+                raise NonHTTPSIssuer("Issuer is not over HTTPS.  RFC requires it to be over HTTPS")
         response = request.urlopen(meta_uri)
         data = json.loads(response.read().decode('utf-8'))
         
@@ -167,6 +178,10 @@ class SciToken(object):
         jwks_uri = data['jwks_uri']
         
         # Now, get the keys
+        if not self.insecure:
+            parsed_url = urlparse(jwks_uri)
+            if parse_url.scheme is not "https":
+                raise NonHTTPSIssuer("jwks_uri is not over HTTPS, insecure!")
         response = request.urlopen(jwks_uri)
         keys_data = json.loads(response.read().decode('utf-8'))
         # Loop through each key, looking for the right key id
