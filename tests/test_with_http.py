@@ -30,7 +30,7 @@ test_e = 0
 def bytes_from_long(data):
     return base64.urlsafe_b64encode(cryptography.utils.int_to_bytes(data)).decode('ascii')
 
-class S(BaseHTTPRequestHandler):
+class OauthRequestHandler(BaseHTTPRequestHandler):
     def _set_headers(self):
         self.send_response(200)
         self.send_header('Content-type', 'text/json')
@@ -60,10 +60,13 @@ class TestDeserialization(unittest.TestCase):
     def setUp(self):
         # Start a web server to act as the "issuer"
         server_address = ('', 8080)
-        httpd = HTTPServer(server_address, S)
-        t = threading.Thread(target = httpd.serve_forever)
-        t.daemon = True
-        t.start()
+        httpd = HTTPServer(server_address, OauthRequestHandler)
+        self.t = threading.Thread(target = httpd.serve_forever)
+        self.t.daemon = True
+        self.t.start()
+
+    def tearDown(self):
+        del self.t
 
     def test_deserialization(self):
         global test_n

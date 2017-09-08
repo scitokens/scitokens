@@ -35,8 +35,6 @@ class TestCreation(unittest.TestCase):
         
         self.assertEqual(len(serialized_token.decode('utf8').split(".")), 3)
         print(serialized_token)
-        
-        
 
 
 
