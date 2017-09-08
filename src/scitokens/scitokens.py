@@ -285,7 +285,7 @@ class Validator(object):
         validator_list = self._callbacks.setdefault(claim, [])
         validator_list.append(validate_op)
 
-    def validate(self, token, critical_claims=[]):
+    def validate(self, token, critical_claims=None):
         """
         Validate the claims of a token.
 
@@ -299,7 +299,10 @@ class Validator(object):
         This will throw an exception if the token is invalid and return ``True``
         if the token is valid.
         """
-        critical_claims = set(critical_claims)
+        if critical_claims:
+            critical_claims = set(critical_claims)
+        else:
+            critical_claims = set()
         for claim, value in token.claims():
             if claim in critical_claims:
                 critical_claims.remove(claim)
