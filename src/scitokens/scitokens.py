@@ -93,7 +93,7 @@ class SciToken(object):
         raise NotImplementedError()
 
 
-    def serialize(self, include_key=False, issuer = None, lifetime = 600):
+    def serialize(self, include_key=False, issuer=None, lifetime=600):
         """
         Serialize the existing SciToken.
         
@@ -124,6 +124,11 @@ class SciToken(object):
         })
         
         encoded = jwt.encode(payload, self._key, algorithm = "RS256")
+        self._serialized_token = encoded
+        
+        # Move claims over to verified claims
+        self.verified_claims.update(self.claims)
+        self.claims = {}
         
         return encoded
         
