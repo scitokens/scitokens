@@ -46,6 +46,13 @@
             
   <h1>Source code for scitokens.scitokens</h1><div class="highlight"><pre>
 <span></span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">SciTokens reference library.</span>
+
+<span class="sd">This library provides the primitives necessary for working with SciTokens</span>
+<span class="sd">authorization tokens.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
 <span class="kn">import</span> <span class="nn">base64</span>
 <span class="kn">import</span> <span class="nn">urllib</span>
 <span class="k">try</span><span class="p">:</span>
@@ -64,6 +71,12 @@
 <span class="kn">import</span> <span class="nn">cryptography.hazmat.backends</span> <span class="k">as</span> <span class="nn">backends</span>
 
 <div class="viewcode-block" id="long_from_bytes"><a class="viewcode-back" href="../../scitokens.html#scitokens.scitokens.long_from_bytes">[docs]</a><span class="k">def</span> <span class="nf">long_from_bytes</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return an integer from base64-encoded string.</span>
+
+<span class="sd">    :param data: UTF-8 string containing base64-encoded data.</span>
+<span class="sd">    :returns: Corresponding decoded integer.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">cryptography</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">int_from_bytes</span><span class="p">(</span><span class="n">decode_base64</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">&quot;ascii&quot;</span><span class="p">)),</span> <span class="s1">&#39;big&#39;</span><span class="p">)</span></div>
 
 
@@ -80,16 +93,25 @@
     <span class="k">return</span> <span class="n">base64</span><span class="o">.</span><span class="n">urlsafe_b64decode</span><span class="p">(</span><span class="n">data</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="MissingKeyException"><a class="viewcode-back" href="../../scitokens.html#scitokens.scitokens.MissingKeyException">[docs]</a><span class="k">class</span> <span class="nc">MissingKeyException</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
-    <span class="k">pass</span></div>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    The SciToken required the use of a public or private key, but</span>
+<span class="sd">    it was not provided by the caller.</span>
+<span class="sd">    &quot;&quot;&quot;</span></div>
 
 <div class="viewcode-block" id="UnsupportedKeyException"><a class="viewcode-back" href="../../scitokens.html#scitokens.scitokens.UnsupportedKeyException">[docs]</a><span class="k">class</span> <span class="nc">UnsupportedKeyException</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
-    <span class="k">pass</span></div>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A public or private key was provided to the SciToken, but</span>
+<span class="sd">    could not be handled by this library.</span>
+<span class="sd">    &quot;&quot;&quot;</span></div>
 
 <div class="viewcode-block" id="SciToken"><a class="viewcode-back" href="../../scitokens.html#scitokens.scitokens.SciToken">[docs]</a><span class="k">class</span> <span class="nc">SciToken</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    An object representing the contents of a SciToken.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        </span>
+<span class="sd">        Construct a SciToken object.</span>
 <span class="sd">        </span>
 <span class="sd">        :param key: Private key to sign the SciToken with.  It should be the PEM contents.</span>
 <span class="sd">        :param parent: Parent SciToken that will be chained</span>
@@ -175,7 +197,7 @@
         <span class="c1"># Loop through each key, looking for the right key id</span>
         <span class="n">public_key</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
         <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">keys_data</span><span class="p">[</span><span class="s1">&#39;keys&#39;</span><span class="p">]:</span>
-            <span class="k">if</span> <span class="p">(</span><span class="n">key</span><span class="p">[</span><span class="s1">&#39;kid&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">header</span><span class="p">[</span><span class="s1">&#39;kid&#39;</span><span class="p">]):</span>
+            <span class="k">if</span> <span class="n">key</span><span class="p">[</span><span class="s1">&#39;kid&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">header</span><span class="p">[</span><span class="s1">&#39;kid&#39;</span><span class="p">]:</span>
                 <span class="k">if</span> <span class="n">key</span><span class="p">[</span><span class="s1">&#39;kty&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;RSA&quot;</span><span class="p">:</span>
                     <span class="n">public_key_numbers</span> <span class="o">=</span> <span class="n">rsa</span><span class="o">.</span><span class="n">RSAPublicNumbers</span><span class="p">(</span>
                         <span class="n">long_from_bytes</span><span class="p">(</span><span class="n">key</span><span class="p">[</span><span class="s1">&#39;e&#39;</span><span class="p">]),</span>
@@ -231,7 +253,7 @@
 
         <span class="k">if</span> <span class="s1">&#39;pwt&#39;</span> <span class="ow">in</span> <span class="n">unverified_headers</span><span class="p">:</span>
             <span class="n">pwt</span> <span class="o">=</span> <span class="n">unverified_headers</span><span class="p">[</span><span class="s1">&#39;pwt&#39;</span><span class="p">]</span>
-            <span class="n">st</span> <span class="o">=</span> <span class="n">SciToken</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span>
+            <span class="n">scitoken</span> <span class="o">=</span> <span class="n">SciToken</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span>
             <span class="n">st</span><span class="o">.</span><span class="n">deserialize</span><span class="p">(</span><span class="n">pwt</span><span class="p">,</span> <span class="n">require_key</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
             <span class="n">headers</span> <span class="o">=</span> <span class="n">pwt</span><span class="o">.</span><span class="n">headers</span><span class="p">()</span>
             <span class="k">if</span> <span class="s1">&#39;cwk&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">headers</span><span class="p">:</span>
@@ -361,7 +383,8 @@
                 <span class="k">if</span> <span class="ow">not</span> <span class="n">validator</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
                     <span class="k">raise</span> <span class="n">ClaimInvalid</span><span class="p">(</span><span class="s2">&quot;Validator rejected value of &#39;</span><span class="si">%s</span><span class="s2">&#39; for claim &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">claim</span><span class="p">))</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">critical_claims</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="n">MissingClaims</span><span class="p">(</span><span class="s2">&quot;Validation failed because the following claims are missing: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">critical_claims</span><span class="p">))</span>
+            <span class="k">raise</span> <span class="n">MissingClaims</span><span class="p">(</span><span class="s2">&quot;Validation failed because the following claims are missing: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> \
+                                <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">critical_claims</span><span class="p">))</span>
         <span class="k">return</span> <span class="kc">True</span></div>
 
     <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">token</span><span class="p">):</span>

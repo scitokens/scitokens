@@ -54,6 +54,9 @@
 <span class="target" id="module-scitokens"></span></div>
 <div class="section" id="module-scitokens.scitokens">
 <span id="scitokens-module"></span><h2><a class="reference internal" href="#module-scitokens" title="scitokens"><code class="xref py py-mod docutils literal"><span class="pre">scitokens</span></code></a> Module<a class="headerlink" href="#module-scitokens.scitokens" title="Permalink to this headline">¶</a></h2>
+<p>SciTokens reference library.</p>
+<p>This library provides the primitives necessary for working with SciTokens
+authorization tokens.</p>
 <dl class="exception">
 <dt id="scitokens.scitokens.ClaimInvalid">
 <em class="property">exception </em><code class="descclassname">scitokens.scitokens.</code><code class="descname">ClaimInvalid</code><a class="reference internal" href="_modules/scitokens/scitokens.html#ClaimInvalid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scitokens.scitokens.ClaimInvalid" title="Permalink to this definition">¶</a></dt>
@@ -103,6 +106,8 @@ from the token.</p>
 <dt id="scitokens.scitokens.MissingKeyException">
 <em class="property">exception </em><code class="descclassname">scitokens.scitokens.</code><code class="descname">MissingKeyException</code><a class="reference internal" href="_modules/scitokens/scitokens.html#MissingKeyException"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scitokens.scitokens.MissingKeyException" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/exceptions.html#exceptions.Exception" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></code></a></p>
+<p>The SciToken required the use of a public or private key, but
+it was not provided by the caller.</p>
 </dd></dl>
 
 <dl class="exception">
@@ -117,6 +122,7 @@ claim with no registered validator.</p>
 <dt id="scitokens.scitokens.SciToken">
 <em class="property">class </em><code class="descclassname">scitokens.scitokens.</code><code class="descname">SciToken</code><span class="sig-paren">(</span><em>key=None</em>, <em>parent=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scitokens/scitokens.html#SciToken"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scitokens.scitokens.SciToken" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+<p>An object representing the contents of a SciToken.</p>
 <dl class="method">
 <dt id="scitokens.scitokens.SciToken.claims">
 <code class="descname">claims</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/scitokens/scitokens.html#SciToken.claims"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scitokens.scitokens.SciToken.claims" title="Permalink to this definition">¶</a></dt>
@@ -170,6 +176,8 @@ with the claims from the first token in the chain.</p>
 <dt id="scitokens.scitokens.UnsupportedKeyException">
 <em class="property">exception </em><code class="descclassname">scitokens.scitokens.</code><code class="descname">UnsupportedKeyException</code><a class="reference internal" href="_modules/scitokens/scitokens.html#UnsupportedKeyException"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scitokens.scitokens.UnsupportedKeyException" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/exceptions.html#exceptions.Exception" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></code></a></p>
+<p>A public or private key was provided to the SciToken, but
+could not be handled by this library.</p>
 </dd></dl>
 
 <dl class="exception">
@@ -236,7 +244,18 @@ if the token is valid.</p>
 <dl class="function">
 <dt id="scitokens.scitokens.long_from_bytes">
 <code class="descclassname">scitokens.scitokens.</code><code class="descname">long_from_bytes</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scitokens/scitokens.html#long_from_bytes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scitokens.scitokens.long_from_bytes" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Return an integer from base64-encoded string.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>data</strong> – UTF-8 string containing base64-encoded data.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Corresponding decoded integer.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 </div>
 </div>
