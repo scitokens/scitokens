@@ -53,8 +53,10 @@
 <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
     <span class="kn">import</span> <span class="nn">urllib.parse</span> <span class="k">as</span> <span class="nn">urlparse</span>
 <span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">time</span>
 
 <span class="kn">import</span> <span class="nn">jwt</span>
+<span class="kn">import</span> <span class="nn">urltools</span>
 
 <span class="kn">import</span> <span class="nn">cryptography.utils</span>
 <span class="kn">import</span> <span class="nn">cryptography.hazmat.primitives.asymmetric.ec</span> <span class="k">as</span> <span class="nn">ec</span>
@@ -292,6 +294,14 @@
 <span class="sd">    callbacks marked the claim as invalid.</span>
 <span class="sd">    &quot;&quot;&quot;</span></div>
 
+
+<div class="viewcode-block" id="MissingClaims"><a class="viewcode-back" href="../../scitokens.html#scitokens.scitokens.MissingClaims">[docs]</a><span class="k">class</span> <span class="nc">MissingClaims</span><span class="p">(</span><span class="n">ValidationFailure</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Validation failed because one or more claim marked as critical is missing</span>
+<span class="sd">    from the token.</span>
+<span class="sd">    &quot;&quot;&quot;</span></div>
+
+
 <div class="viewcode-block" id="Validator"><a class="viewcode-back" href="../../scitokens.html#scitokens.scitokens.Validator">[docs]</a><span class="k">class</span> <span class="nc">Validator</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
 
     <span class="sd">&quot;&quot;&quot;</span>
@@ -323,7 +333,7 @@
         <span class="n">validator_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_callbacks</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">claim</span><span class="p">,</span> <span class="p">[])</span>
         <span class="n">validator_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">validate_op</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Validator.validate"><a class="viewcode-back" href="../../scitokens.html#scitokens.scitokens.Validator.validate">[docs]</a>    <span class="k">def</span> <span class="nf">validate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">token</span><span class="p">):</span>
+<div class="viewcode-block" id="Validator.validate"><a class="viewcode-back" href="../../scitokens.html#scitokens.scitokens.Validator.validate">[docs]</a>    <span class="k">def</span> <span class="nf">validate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">token</span><span class="p">,</span> <span class="n">critical_claims</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Validate the claims of a token.</span>
 
@@ -331,20 +341,135 @@
 <span class="sd">        and determine whether all claims a valid, given the current set of</span>
 <span class="sd">        validators.</span>
 
+<span class="sd">        If ``critical_claims`` is specified, then validation will fail if one</span>
+<span class="sd">        or more claim in this list is not present in the token.</span>
+
 <span class="sd">        This will throw an exception if the token is invalid and return ``True``</span>
 <span class="sd">        if the token is valid.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">critical_claims</span><span class="p">:</span>
+            <span class="n">critical_claims</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">critical_claims</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">critical_claims</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
         <span class="k">for</span> <span class="n">claim</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">token</span><span class="o">.</span><span class="n">claims</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">claim</span> <span class="ow">in</span> <span class="n">critical_claims</span><span class="p">:</span>
+                <span class="n">critical_claims</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">claim</span><span class="p">)</span>
             <span class="n">validator_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_callbacks</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">claim</span><span class="p">,</span> <span class="p">[])</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">validator_list</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="n">NoRegisteredValidator</span><span class="p">(</span><span class="s2">&quot;No validator was registered to handle encountered claim &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="n">claim</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">validator</span> <span class="ow">in</span> <span class="n">validator_list</span><span class="p">:</span>
                 <span class="k">if</span> <span class="ow">not</span> <span class="n">validator</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
                     <span class="k">raise</span> <span class="n">ClaimInvalid</span><span class="p">(</span><span class="s2">&quot;Validator rejected value of &#39;</span><span class="si">%s</span><span class="s2">&#39; for claim &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">claim</span><span class="p">))</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">critical_claims</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">MissingClaims</span><span class="p">(</span><span class="s2">&quot;Validation failed because the following claims are missing: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">critical_claims</span><span class="p">))</span>
         <span class="k">return</span> <span class="kc">True</span></div>
 
     <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">token</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">token</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="EnforcementError"><a class="viewcode-back" href="../../scitokens.html#scitokens.scitokens.EnforcementError">[docs]</a><span class="k">class</span> <span class="nc">EnforcementError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A generic error during the enforcement of a SciToken.</span>
+<span class="sd">    &quot;&quot;&quot;</span></div>
+
+<div class="viewcode-block" id="Enforcer"><a class="viewcode-back" href="../../scitokens.html#scitokens.scitokens.Enforcer">[docs]</a><span class="k">class</span> <span class="nc">Enforcer</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Enforce SciTokens-specific validation logic.</span>
+
+<span class="sd">    Allows one to test if a given token has a particular authorization.</span>
+
+<span class="sd">    This class is NOT thread safe; a separate object is needed for every thread.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">_authz_requiring_path</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="s2">&quot;read&quot;</span><span class="p">,</span> <span class="s2">&quot;write&quot;</span><span class="p">])</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">issuer</span><span class="p">,</span> <span class="n">site</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">audience</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_issuer</span> <span class="o">=</span> <span class="n">issuer</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">last_failure</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_issuer</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">EnforcementError</span><span class="p">(</span><span class="s2">&quot;Issuer must be specified.&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_now</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_authz</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_test_path</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_audience</span> <span class="o">=</span> <span class="n">audience</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_site</span> <span class="o">=</span> <span class="n">site</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_validator</span> <span class="o">=</span> <span class="n">Validator</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_validator</span><span class="o">.</span><span class="n">add_validator</span><span class="p">(</span><span class="s2">&quot;exp&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_validate_exp</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_validator</span><span class="o">.</span><span class="n">add_validator</span><span class="p">(</span><span class="s2">&quot;nbf&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_validate_nbf</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_validator</span><span class="o">.</span><span class="n">add_validator</span><span class="p">(</span><span class="s2">&quot;iss&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_validate_iss</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_validator</span><span class="o">.</span><span class="n">add_validator</span><span class="p">(</span><span class="s2">&quot;iat&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_validate_iat</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_validator</span><span class="o">.</span><span class="n">add_validator</span><span class="p">(</span><span class="s2">&quot;site&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_validate_site</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_validator</span><span class="o">.</span><span class="n">add_validator</span><span class="p">(</span><span class="s2">&quot;aud&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_validate_aud</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_validator</span><span class="o">.</span><span class="n">add_validator</span><span class="p">(</span><span class="s2">&quot;path&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_validate_path</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_validator</span><span class="o">.</span><span class="n">add_validator</span><span class="p">(</span><span class="s2">&quot;authz&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_validate_authz</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Enforcer.add_validator"><a class="viewcode-back" href="../../scitokens.html#scitokens.scitokens.Enforcer.add_validator">[docs]</a>    <span class="k">def</span> <span class="nf">add_validator</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">claim</span><span class="p">,</span> <span class="n">validator</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Add a user-defined validator in addition to the default enforcer logic.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_validator</span><span class="o">.</span><span class="n">add_validator</span><span class="p">(</span><span class="n">claim</span><span class="p">,</span> <span class="n">validator</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Enforcer.test"><a class="viewcode-back" href="../../scitokens.html#scitokens.scitokens.Enforcer.test">[docs]</a>    <span class="k">def</span> <span class="nf">test</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">token</span><span class="p">,</span> <span class="n">authz</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Test whether a given token has the requested permission within the</span>
+<span class="sd">        current enforcer context.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">critical_claims</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="s2">&quot;authz&quot;</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">authz</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_authz_requiring_path</span><span class="p">:</span>
+            <span class="n">critical_claims</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">&quot;path&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_now</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_test_path</span> <span class="o">=</span> <span class="n">path</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_test_authz</span> <span class="o">=</span> <span class="n">authz</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_validator</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">token</span><span class="p">,</span> <span class="n">critical_claims</span><span class="o">=</span><span class="n">critical_claims</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">ValidationFailure</span> <span class="k">as</span> <span class="n">vf</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">last_failure</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">vf</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">return</span> <span class="kc">True</span></div>
+
+    <span class="k">def</span> <span class="nf">_validate_exp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="n">exp</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">exp</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_now</span>
+
+    <span class="k">def</span> <span class="nf">_validate_nbf</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="n">nbf</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">nbf</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_now</span>
+
+    <span class="k">def</span> <span class="nf">_validate_iss</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_issuer</span> <span class="o">==</span> <span class="n">value</span>
+
+    <span class="k">def</span> <span class="nf">_validate_iat</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_now</span>
+
+    <span class="k">def</span> <span class="nf">_validate_site</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_site</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">return</span> <span class="n">value</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_site</span>
+
+    <span class="k">def</span> <span class="nf">_validate_aud</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_audience</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">return</span> <span class="n">value</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_audience</span>
+
+    <span class="k">def</span> <span class="nf">_validate_path</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="p">[</span><span class="n">value</span><span class="p">]</span>
+        <span class="n">norm_requested_path</span> <span class="o">=</span> <span class="n">urltools</span><span class="o">.</span><span class="n">normalize</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_test_path</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">value</span><span class="p">:</span>
+            <span class="n">norm_path</span> <span class="o">=</span> <span class="n">urltools</span><span class="o">.</span><span class="n">normalize</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">norm_requested_path</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">norm_path</span><span class="p">):</span>
+                <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="k">def</span> <span class="nf">_validate_authz</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="p">[</span><span class="n">value</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">authz</span> <span class="ow">in</span> <span class="n">value</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_test_authz</span> <span class="o">==</span> <span class="n">authz</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">return</span> <span class="kc">False</span></div>
 
 </pre></div>
 

@@ -63,6 +63,43 @@ callbacks marked the claim as invalid.</p>
 </dd></dl>
 
 <dl class="exception">
+<dt id="scitokens.scitokens.EnforcementError">
+<em class="property">exception </em><code class="descclassname">scitokens.scitokens.</code><code class="descname">EnforcementError</code><a class="reference internal" href="_modules/scitokens/scitokens.html#EnforcementError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scitokens.scitokens.EnforcementError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/exceptions.html#exceptions.Exception" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></code></a></p>
+<p>A generic error during the enforcement of a SciToken.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="scitokens.scitokens.Enforcer">
+<em class="property">class </em><code class="descclassname">scitokens.scitokens.</code><code class="descname">Enforcer</code><span class="sig-paren">(</span><em>issuer</em>, <em>site=None</em>, <em>audience=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scitokens/scitokens.html#Enforcer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scitokens.scitokens.Enforcer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+<p>Enforce SciTokens-specific validation logic.</p>
+<p>Allows one to test if a given token has a particular authorization.</p>
+<p>This class is NOT thread safe; a separate object is needed for every thread.</p>
+<dl class="method">
+<dt id="scitokens.scitokens.Enforcer.add_validator">
+<code class="descname">add_validator</code><span class="sig-paren">(</span><em>claim</em>, <em>validator</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scitokens/scitokens.html#Enforcer.add_validator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scitokens.scitokens.Enforcer.add_validator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a user-defined validator in addition to the default enforcer logic.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="scitokens.scitokens.Enforcer.test">
+<code class="descname">test</code><span class="sig-paren">(</span><em>token</em>, <em>authz</em>, <em>path=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scitokens/scitokens.html#Enforcer.test"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scitokens.scitokens.Enforcer.test" title="Permalink to this definition">¶</a></dt>
+<dd><p>Test whether a given token has the requested permission within the
+current enforcer context.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="scitokens.scitokens.MissingClaims">
+<em class="property">exception </em><code class="descclassname">scitokens.scitokens.</code><code class="descname">MissingClaims</code><a class="reference internal" href="_modules/scitokens/scitokens.html#MissingClaims"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scitokens.scitokens.MissingClaims" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#scitokens.scitokens.ValidationFailure" title="scitokens.scitokens.ValidationFailure"><code class="xref py py-class docutils literal"><span class="pre">scitokens.scitokens.ValidationFailure</span></code></a></p>
+<p>Validation failed because one or more claim marked as critical is missing
+from the token.</p>
+</dd></dl>
+
+<dl class="exception">
 <dt id="scitokens.scitokens.MissingKeyException">
 <em class="property">exception </em><code class="descclassname">scitokens.scitokens.</code><code class="descname">MissingKeyException</code><a class="reference internal" href="_modules/scitokens/scitokens.html#MissingKeyException"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scitokens.scitokens.MissingKeyException" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/exceptions.html#exceptions.Exception" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></code></a></p>
@@ -167,11 +204,13 @@ otherwise.</p>
 
 <dl class="method">
 <dt id="scitokens.scitokens.Validator.validate">
-<code class="descname">validate</code><span class="sig-paren">(</span><em>token</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scitokens/scitokens.html#Validator.validate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scitokens.scitokens.Validator.validate" title="Permalink to this definition">¶</a></dt>
+<code class="descname">validate</code><span class="sig-paren">(</span><em>token</em>, <em>critical_claims=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scitokens/scitokens.html#Validator.validate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scitokens.scitokens.Validator.validate" title="Permalink to this definition">¶</a></dt>
 <dd><p>Validate the claims of a token.</p>
 <p>This will iterate through all claims in the given <a class="reference internal" href="#scitokens.scitokens.SciToken" title="scitokens.scitokens.SciToken"><code class="xref py py-class docutils literal"><span class="pre">SciToken</span></code></a>
 and determine whether all claims a valid, given the current set of
 validators.</p>
+<p>If <code class="docutils literal"><span class="pre">critical_claims</span></code> is specified, then validation will fail if one
+or more claim in this list is not present in the token.</p>
 <p>This will throw an exception if the token is invalid and return <code class="docutils literal"><span class="pre">True</span></code>
 if the token is valid.</p>
 </dd></dl>
