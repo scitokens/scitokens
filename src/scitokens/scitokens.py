@@ -109,12 +109,6 @@ class SciToken(object):
         issue_time = int(mktime(datetime.utcnow().timetuple()))
         exp_time = int(mktime((datetime.utcnow() + timedelta(seconds=lifetime)).timetuple()))
         
-        # All the claims are the
-        header = {
-            "typ": "JWT",
-            "alg": "RS256"
-        }
-        
         payload = dict(self._claims)
         
         # Anything below will override what is in the claims
