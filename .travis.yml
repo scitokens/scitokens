@@ -12,5 +12,5 @@ script:
   - pytest
 
 after_success:
-  - if [ "${TRAVIS_PYTHON_VERSION}" == "2.7" ]; then pushd docs; make gh-pages; popd; fi
+  - if [ "${TRAVIS_PYTHON_VERSION}" == "2.7" ]; then cd docs; make gh-pages; fi
 
