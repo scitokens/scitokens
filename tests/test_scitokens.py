@@ -6,6 +6,8 @@ import unittest
 # Allow unittests to be run from within the project base.
 if os.path.exists("src"):
     sys.path.append("src")
+if os.path.exists("../src"):
+    sys.path.append("../src")
 
 import scitokens
 

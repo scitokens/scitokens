@@ -52,11 +52,11 @@ class SciToken(object):
         Return an iterator of (key, value) pairs of claims, starting
         with the claims from the first token in the chain.
         """
-        if parent:
-            for claim in self._parent.claims():
-                yield claim
-        for claim in self._claims:
-            yield claim
+        if self._parent:
+            for claim, value in self._parent.claims():
+                yield claim, value
+        for claim, value in self._claims.items():
+            yield claim, value
 
 
     def verify(self):
@@ -82,6 +82,12 @@ class SciToken(object):
         """
         
         self._claims.update(claims)
+
+    def __setitem__(self, claim, value):
+        """
+        Assign a new claim to the token.
+        """
+        self._claims[claim] = value
 
     def clone_chain(self):
         """
@@ -287,5 +293,5 @@ class Validator(object):
         return True
 
     def __call__(self, token):
-        return validate(token)
+        return self.validate(token)
 
