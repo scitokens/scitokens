@@ -9,7 +9,7 @@ install:
 
 script:
   - python setup.py install
-  - coverage run `which pytest`
+  - PYTHONPATH=src coverage run `which pytest`
   - coverage debug data
   - coverage xml --include "src/scitokens/*"
 
