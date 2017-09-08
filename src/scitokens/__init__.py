@@ -1,1 +1,1 @@
-from scitokens import SciToken
+from scitokens import SciToken, Validator
