@@ -16,7 +16,8 @@ import cryptography.hazmat.backends as backends
 
 def long_from_bytes(data):
     return cryptography.utils.int_from_bytes(decode_base64(data.encode("ascii")), 'big')
-    
+
+
 def decode_base64(data):
     """Decode base64, padding being optional.
 
@@ -94,7 +95,7 @@ class SciToken(object):
 
     def clone_chain(self):
         """
-        Return a new, empty SciToken 
+        Return a new, empty SciToken
         """
 
     def _deserialize_key(self, key_serialized, unverified_headers):
