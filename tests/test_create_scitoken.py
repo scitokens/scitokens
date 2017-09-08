@@ -27,17 +27,17 @@ class TestCreation(unittest.TestCase):
             backend=default_backend()
         )
         
-        print private_key.public_key().public_bytes(
+        print(private_key.public_key().public_bytes(
             encoding=serialization.Encoding.PEM,
             format=serialization.PublicFormat.SubjectPublicKeyInfo
-        )
+        ))
         
         token = scitokens.SciToken(key = private_key)
         token.update_claims({"test": "true"})
         serialized_token = token.serialize(issuer = "local")
         
         self.assertEqual(len(serialized_token.split(".")), 3)
-        print serialized_token
+        print(serialized_token)
         
         
 
