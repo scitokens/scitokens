@@ -88,7 +88,7 @@ class TestDeserialization(unittest.TestCase):
         test_e = public_numbers.e
         test_n = public_numbers.n
         
-        self.assertEqual(len(serialized_token.split(".")), 3)
+        self.assertEqual(len(serialized_token.decode('utf8').split(".")), 3)
         
         scitoken = scitokens.SciToken.deserialize(serialized_token)
         
