@@ -95,6 +95,13 @@ current enforcer context.</p>
 </dd></dl>
 
 <dl class="exception">
+<dt id="scitokens.scitokens.InvalidTokenFormat">
+<em class="property">exception </em><code class="descclassname">scitokens.scitokens.</code><code class="descname">InvalidTokenFormat</code><a class="reference internal" href="_modules/scitokens/scitokens.html#InvalidTokenFormat"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scitokens.scitokens.InvalidTokenFormat" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/exceptions.html#exceptions.Exception" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></code></a></p>
+<p>Encoded token has an invalid format.</p>
+</dd></dl>
+
+<dl class="exception">
 <dt id="scitokens.scitokens.MissingClaims">
 <em class="property">exception </em><code class="descclassname">scitokens.scitokens.</code><code class="descname">MissingClaims</code><a class="reference internal" href="_modules/scitokens/scitokens.html#MissingClaims"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scitokens.scitokens.MissingClaims" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#scitokens.scitokens.ValidationFailure" title="scitokens.scitokens.ValidationFailure"><code class="xref py py-class docutils literal"><span class="pre">scitokens.scitokens.ValidationFailure</span></code></a></p>
@@ -106,6 +113,7 @@ from the token.</p>
 <dt id="scitokens.scitokens.MissingKeyException">
 <em class="property">exception </em><code class="descclassname">scitokens.scitokens.</code><code class="descname">MissingKeyException</code><a class="reference internal" href="_modules/scitokens/scitokens.html#MissingKeyException"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scitokens.scitokens.MissingKeyException" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/exceptions.html#exceptions.Exception" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></code></a></p>
+<p>No private key is present.</p>
 <p>The SciToken required the use of a public or private key, but
 it was not provided by the caller.</p>
 </dd></dl>
@@ -176,6 +184,7 @@ with the claims from the first token in the chain.</p>
 <dt id="scitokens.scitokens.UnsupportedKeyException">
 <em class="property">exception </em><code class="descclassname">scitokens.scitokens.</code><code class="descname">UnsupportedKeyException</code><a class="reference internal" href="_modules/scitokens/scitokens.html#UnsupportedKeyException"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scitokens.scitokens.UnsupportedKeyException" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/exceptions.html#exceptions.Exception" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></code></a></p>
+<p>Key is present but is of an unsupported format.</p>
 <p>A public or private key was provided to the SciToken, but
 could not be handled by this library.</p>
 </dd></dl>
