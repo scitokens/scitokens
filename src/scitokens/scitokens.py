@@ -1,4 +1,11 @@
 
+"""
+SciTokens reference library.
+
+This library provides the primitives necessary for working with SciTokens
+authorization tokens.
+"""
+
 import base64
 import urllib
 try:
@@ -17,6 +24,12 @@ import cryptography.hazmat.primitives.asymmetric.rsa as rsa
 import cryptography.hazmat.backends as backends
 
 def long_from_bytes(data):
+    """
+    Return an integer from base64-encoded string.
+
+    :param data: UTF-8 string containing base64-encoded data.
+    :returns: Corresponding decoded integer.
+    """
     return cryptography.utils.int_from_bytes(decode_base64(data.encode("ascii")), 'big')
 
 
@@ -36,12 +49,18 @@ def decode_base64(data):
 class MissingKeyException(Exception):
     """
     No private key is present.
+
+    The SciToken required the use of a public or private key, but
+    it was not provided by the caller.
     """
 
 
 class UnsupportedKeyException(Exception):
     """
     Key is present but is of an unsupported format.
+
+    A public or private key was provided to the SciToken, but
+    could not be handled by this library.
     """
 
 
@@ -52,10 +71,13 @@ class InvalidTokenFormat(Exception):
 
 
 class SciToken(object):
+    """
+    An object representing the contents of a SciToken.
+    """
 
     def __init__(self, key=None, parent=None):
         """
-        
+        Construct a SciToken object.
         
         :param key: Private key to sign the SciToken with.  It should be the PEM contents.
         :param parent: Parent SciToken that will be chained
@@ -141,7 +163,7 @@ class SciToken(object):
         # Loop through each key, looking for the right key id
         public_key = ""
         for key in keys_data['keys']:
-            if (key['kid'] == header['kid']):
+            if key['kid'] == header['kid']:
                 if key['kty'] == "RSA":
                     public_key_numbers = rsa.RSAPublicNumbers(
                         long_from_bytes(key['e']),
@@ -329,7 +351,8 @@ class Validator(object):
                 if not validator(value):
                     raise ClaimInvalid("Validator rejected value of '%s' for claim '%s'" % (value, claim))
         if len(critical_claims):
-            raise MissingClaims("Validation failed because the following claims are missing: %s" % ", ".join(critical_claims))
+            raise MissingClaims("Validation failed because the following claims are missing: %s" % \
+                                ", ".join(critical_claims))
         return True
 
     def __call__(self, token):

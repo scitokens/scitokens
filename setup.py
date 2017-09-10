@@ -1,4 +1,8 @@
 
+"""
+Install file for SciTokens project.
+"""
+
 import setuptools
 
 setuptools.setup(name="scitokens",
