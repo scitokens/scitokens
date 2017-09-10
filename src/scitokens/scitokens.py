@@ -115,7 +115,7 @@ class SciToken(object):
         """
         
 
-    def update_claims(claims):
+    def update_claims(self, claims):
         """
         Add new claims to the token.
         
@@ -382,7 +382,7 @@ class Enforcer(object):
         if not self._issuer:
             raise EnforcementError("Issuer must be specified.")
         self._now = 0
-        self._authz = None
+        self._test_authz = None
         self._test_path = None
         self._audience = audience
         self._site = site
