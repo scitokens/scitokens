@@ -162,7 +162,7 @@
 <span class="sd">        &quot;&quot;&quot;</span></div>
         
 
-<div class="viewcode-block" id="SciToken.update_claims"><a class="viewcode-back" href="../../scitokens.html#scitokens.scitokens.SciToken.update_claims">[docs]</a>    <span class="k">def</span> <span class="nf">update_claims</span><span class="p">(</span><span class="n">claims</span><span class="p">):</span>
+<div class="viewcode-block" id="SciToken.update_claims"><a class="viewcode-back" href="../../scitokens.html#scitokens.scitokens.SciToken.update_claims">[docs]</a>    <span class="k">def</span> <span class="nf">update_claims</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">claims</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Add new claims to the token.</span>
 <span class="sd">        </span>
@@ -429,7 +429,7 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_issuer</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">EnforcementError</span><span class="p">(</span><span class="s2">&quot;Issuer must be specified.&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_now</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_authz</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_test_authz</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_test_path</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_audience</span> <span class="o">=</span> <span class="n">audience</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_site</span> <span class="o">=</span> <span class="n">site</span>
