@@ -18,7 +18,8 @@ class TestValidation(unittest.TestCase):
     def test_valid(self):
 
         def always_accept(value):
-            return True
+            if value or not value:
+                return True
 
         validator = scitokens.Validator()
         validator.add_validator("foo", always_accept)
@@ -46,7 +47,8 @@ class TestEnforcer(unittest.TestCase):
     def test_enforce(self):
 
         def always_accept(value):
-            return True
+            if value or not value:
+                return True
 
         enf = scitokens.Enforcer(self._test_issuer)
         enf.add_validator("foo", always_accept)

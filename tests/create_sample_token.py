@@ -63,7 +63,7 @@ def main():
     #child_token_encoded = jwt.encode({"read": "/ligo/brian"}, serialized_child_private, algorithm="ES256", headers={"pwt": pwt})
     signature = token_encoded.split(".")[-1]
 
-    numbers = loaded_private_key.private_numbers()
+    #numbers = loaded_private_key.private_numbers()
 
     flattened = {}
     flattened['payload'] = jwt.decode(token_encoded, verify=False)
