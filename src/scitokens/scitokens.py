@@ -11,8 +11,6 @@ try:
 except ImportError:
     import urllib.parse as urlparse
 import json
-from datetime import datetime, timedelta
-from time import mktime
 import time
 
 import jwt
@@ -42,15 +40,28 @@ def decode_base64(data):
 
 
 class MissingKeyException(Exception):
+    """
+    Missing the Private Key in order to sign the tokens
+    """
     pass
 
 class UnsupportedKeyException(Exception):
+    """
+    The key type is unsupported in the SciTokens librar
+    """
     pass
     
 class MissingIssuerException(Exception):
+    """
+    Missing the issuer in the SciToken, unable to verify token
+    """
     pass
     
 class NonHTTPSIssuer(Exception):
+    """
+    Non HTTPs issuer, as required by draft-ietf-oauth-discovery-07
+    https://tools.ietf.org/html/draft-ietf-oauth-discovery-07
+    """
     pass
 
 class SciToken(object):
@@ -97,6 +108,9 @@ class SciToken(object):
         """
         Serialize the existing SciToken.
         
+        :param bool include_key: When true, include the public key to the serialized token.  Default=False
+        :param str issuer: A string indicating the issuer for the token.  It should be an HTTPS address, as specified in https://tools.ietf.org/html/draft-ietf-oauth-discovery-07
+        :param int lifetime: Number of seconds that the token should be valid
         :return str: base64 encoded token
         """
         
@@ -231,6 +245,10 @@ class SciToken(object):
         Given a serialized SciToken, load it into a SciTokens object.
 
         Verifies the claims pass the current set of validation scripts.
+        
+        :param str serialized_token: The serialized token.
+        :param bool require_key: When True, require the key
+        :param bool insecure: When True, allow insecure methods to verify the issuer, including allowing "localhost" issuer (useful in testing).  Default=False
         """
         info = serialized_token.decode('utf8').split(".")
         if len(info) != 3 and len(info) != 4: # header, format, signature[, key]
@@ -247,7 +265,7 @@ class SciToken(object):
         
         claims = jwt.decode(serialized_token, issuer_public_key)
         # Do we have the private key?
-        if (len(info) == 4):
+        if len(info) == 4:
             to_return = SciToken(key = key)
         else:
             to_return = SciToken()
