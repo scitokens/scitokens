@@ -1,4 +1,6 @@
-
+"""
+Test for creating a simple scitoken.
+"""
 
 import os
 import sys
@@ -17,8 +19,14 @@ from cryptography.hazmat.primitives import serialization
 
 
 class TestCreation(unittest.TestCase):
+    """
+    Test the creation of a simple SciToken
+    """
 
     def test_create(self):
+        """
+        Test the creation of a simple SciToken.
+        """
         private_key = generate_private_key(
             public_exponent=65537,
             key_size=2048,
