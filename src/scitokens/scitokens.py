@@ -1,4 +1,11 @@
 
+"""
+SciTokens reference library.
+
+This library provides the primitives necessary for working with SciTokens
+authorization tokens.
+"""
+
 import base64
 
 try:
@@ -22,6 +29,12 @@ import cryptography.hazmat.primitives.asymmetric.rsa as rsa
 import cryptography.hazmat.backends as backends
 
 def long_from_bytes(data):
+    """
+    Return an integer from base64-encoded string.
+
+    :param data: UTF-8 string containing base64-encoded data.
+    :returns: Corresponding decoded integer.
+    """
     return cryptography.utils.int_from_bytes(decode_base64(data.encode("ascii")), 'big')
 
 
@@ -41,13 +54,19 @@ def decode_base64(data):
 
 class MissingKeyException(Exception):
     """
-    Missing the Private Key in order to sign the tokens
+    No private key is present.
+
+    The SciToken required the use of a public or private key, but
+    it was not provided by the caller.
     """
     pass
 
 class UnsupportedKeyException(Exception):
     """
-    The key type is unsupported in the SciTokens librar
+    Key is present but is of an unsupported format.
+
+    A public or private key was provided to the SciToken, but
+    could not be handled by this library.
     """
     pass
     
@@ -63,12 +82,21 @@ class NonHTTPSIssuer(Exception):
     https://tools.ietf.org/html/draft-ietf-oauth-discovery-07
     """
     pass
+    
+class InvalidTokenFormat(Exception):
+    """
+    Encoded token has an invalid format.
+    """
+
 
 class SciToken(object):
+    """
+    An object representing the contents of a SciToken.
+    """
 
     def __init__(self, key=None, parent=None, claims=None):
         """
-        
+        Construct a SciToken object.
         
         :param key: Private key to sign the SciToken with.  It should be the PEM contents.
         :param parent: Parent SciToken that will be chained
@@ -253,11 +281,11 @@ class SciToken(object):
         :param bool insecure: When True, allow insecure methods to verify the issuer, 
                               including allowing "localhost" issuer (useful in testing).  Default=False
         """
-        info = serialized_token.decode('utf8').split(".")
+        info = serialized_token.decode('utf8').split(".")        
+        
         if len(info) != 3 and len(info) != 4: # header, format, signature[, key]
             raise MissingKeyException("No key present in serialized token")
 
-        key = info[-1]
         serialized_jwt = info[0] + "." + info[1] + "." + info[2]
 
         unverified_headers = jwt.get_unverified_header(serialized_jwt)
@@ -420,7 +448,8 @@ class Validator(object):
                 if not validator(value):
                     raise ClaimInvalid("Validator rejected value of '%s' for claim '%s'" % (value, claim))
         if len(critical_claims):
-            raise MissingClaims("Validation failed because the following claims are missing: %s" % ", ".join(critical_claims))
+            raise MissingClaims("Validation failed because the following claims are missing: %s" % \
+                                ", ".join(critical_claims))
         return True
 
     def __call__(self, token):
@@ -450,7 +479,7 @@ class Enforcer(object):
         if not self._issuer:
             raise EnforcementError("Issuer must be specified.")
         self._now = 0
-        self._authz = None
+        self._test_authz = None
         self._test_path = None
         self._audience = audience
         self._site = site

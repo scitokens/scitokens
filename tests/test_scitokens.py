@@ -18,7 +18,8 @@ class TestValidation(unittest.TestCase):
     def test_valid(self):
 
         def always_accept(value):
-            return True
+            if value or not value:
+                return True
 
         validator = scitokens.Validator()
         validator.add_validator("foo", always_accept)
@@ -46,7 +47,8 @@ class TestEnforcer(unittest.TestCase):
     def test_enforce(self):
 
         def always_accept(value):
-            return True
+            if value or not value:
+                return True
 
         enf = scitokens.Enforcer(self._test_issuer)
         enf.add_validator("foo", always_accept)
@@ -56,6 +58,20 @@ class TestEnforcer(unittest.TestCase):
         self._token["authz"] = "read"
         self._token["path"] = "/"
         self.assertTrue(enf.test(self._token, "read", "/"), msg=enf.last_failure)
+
+        enf = scitokens.Enforcer(self._test_issuer, audience = "https://example.unl.edu")
+        enf.add_validator("foo", always_accept)
+        self.assertTrue(enf.test(self._token, "read", "/"), msg=enf.last_failure)
+
+        self._token["path"] = "/foo/bar"
+        self.assertFalse(enf.test(self._token, "read", "/foo"), msg=enf.last_failure)
+
+        self._token["site"] = "T2_US_Example"
+        self.assertFalse(enf.test(self._token, "read", "/foo/bar"), msg=enf.last_failure)
+        enf = scitokens.Enforcer(self._test_issuer, site="T2_US_Example")
+        enf.add_validator("foo", always_accept)
+        self.assertTrue(enf.test(self._token, "read", "/foo/bar"), msg=enf.last_failure)
+
 
 if __name__ == '__main__':
     unittest.main()
