@@ -1,3 +1,7 @@
+"""
+Test the full HTTP to SciToken serialize and deserialize
+"""
+
 import os
 import sys
 import unittest
@@ -24,21 +28,30 @@ import json
 
 # For use in the HTTP Serve test class
 #test_kid = ""
-test_n = 0
-test_e = 0
+Test_n = 0
+Test_e = 0
 
 def bytes_from_long(data):
+    """
+    Create a base64 encoded string for an integer
+    """
     return base64.urlsafe_b64encode(cryptography.utils.int_to_bytes(data)).decode('ascii')
 
 class OauthRequestHandler(BaseHTTPRequestHandler):
+    """
+    Request handler for the HTTP requests to authenticate deserialization of a SciToken
+    """
     def _set_headers(self):
         self.send_response(200)
         self.send_header('Content-type', 'text/json')
         self.end_headers()
 
     def do_GET(self):
-        global test_n
-        global test_e
+        """
+        Receive the GET command for the oauth certs
+        """
+        global Test_n
+        global Test_e
         self._set_headers()
         to_write = ""
         if self.path == "/.well-known/openid-configuration":
@@ -46,8 +59,8 @@ class OauthRequestHandler(BaseHTTPRequestHandler):
         elif self.path == "/oauth2/certs":
             key_info = {}
             #key_info['kid'] = test_kid
-            key_info['n'] = bytes_from_long(test_n)
-            key_info['e'] = bytes_from_long(test_e)
+            key_info['n'] = bytes_from_long(Test_n)
+            key_info['e'] = bytes_from_long(Test_e)
             key_info['kty'] = "RSA"
             key_info['alg']=  "RS256"
             to_write = json.dumps({'keys': [key_info]})
@@ -61,16 +74,16 @@ class TestDeserialization(unittest.TestCase):
         # Start a web server to act as the "issuer"
         server_address = ('', 8080)
         httpd = HTTPServer(server_address, OauthRequestHandler)
-        self.t = threading.Thread(target = httpd.serve_forever)
-        self.t.daemon = True
-        self.t.start()
+        self.thread = threading.Thread(target = httpd.serve_forever)
+        self.thread.daemon = True
+        self.thread.start()
 
     def tearDown(self):
-        del self.t
+        del self.thread
 
     def test_deserialization(self):
-        global test_n
-        global test_e
+        global Test_n
+        global Test_e
         private_key = generate_private_key(
             public_exponent=65537,
             key_size=2048,
@@ -82,8 +95,8 @@ class TestDeserialization(unittest.TestCase):
         serialized_token = token.serialize(issuer = "http://localhost:8080/")
         
         public_numbers = private_key.public_key().public_numbers()
-        test_e = public_numbers.e
-        test_n = public_numbers.n
+        Test_e = public_numbers.e
+        Test_n = public_numbers.n
         
         self.assertEqual(len(serialized_token.decode('utf8').split(".")), 3)
         
