@@ -137,7 +137,7 @@ class SciToken(object):
         Serialize the existing SciToken.
         
         :param bool include_key: When true, include the public key to the serialized token.  Default=False
-        :param str issuer: A string indicating the issuer for the token.  It should be an HTTPS address, 
+        :param str issuer: A string indicating the issuer for the token.  It should be an HTTPS address,
                            as specified in https://tools.ietf.org/html/draft-ietf-oauth-discovery-07
         :param int lifetime: Number of seconds that the token should be valid
         :return str: base64 encoded token
@@ -246,7 +246,7 @@ class SciToken(object):
         else:
             # Find the right key
             for key in keys_data['keys']:
-                if (key['kid'] == header['kid']):
+                if key['kid'] == header['kid']:
                     raw_key = key
                     break
                 
@@ -278,10 +278,10 @@ class SciToken(object):
         
         :param str serialized_token: The serialized token.
         :param bool require_key: When True, require the key
-        :param bool insecure: When True, allow insecure methods to verify the issuer, 
+        :param bool insecure: When True, allow insecure methods to verify the issuer,
                               including allowing "localhost" issuer (useful in testing).  Default=False
         """
-        info = serialized_token.decode('utf8').split(".")        
+        info = serialized_token.decode('utf8').split(".")
         
         if len(info) != 3 and len(info) != 4: # header, format, signature[, key]
             raise MissingKeyException("No key present in serialized token")
