@@ -101,6 +101,9 @@ class SciToken(object):
         :param key: Private key to sign the SciToken with.  It should be the PEM contents.
         :param parent: Parent SciToken that will be chained
         """
+        
+        if claims is not None:
+            raise NotImplementedError()
     
         self._key = key
         self._parent = parent
@@ -142,6 +145,9 @@ class SciToken(object):
         :param int lifetime: Number of seconds that the token should be valid
         :return str: base64 encoded token
         """
+        
+        if include_key is not False:
+            raise NotImplementedError()
         
         if self._key == None:
             raise MissingKeyException("Unable to serialize, missing private key")
@@ -270,7 +276,7 @@ class SciToken(object):
         
         
     @staticmethod
-    def deserialize(serialized_token, require_key=True, insecure=False):
+    def deserialize(serialized_token, require_key=False, insecure=False):
         """
         Given a serialized SciToken, load it into a SciTokens object.
 
@@ -281,6 +287,10 @@ class SciToken(object):
         :param bool insecure: When True, allow insecure methods to verify the issuer,
                               including allowing "localhost" issuer (useful in testing).  Default=False
         """
+        
+        if require_key is not False:
+            raise NotImplementedError()
+        
         info = serialized_token.decode('utf8').split(".")
         
         if len(info) != 3 and len(info) != 4: # header, format, signature[, key]
