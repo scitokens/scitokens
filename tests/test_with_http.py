@@ -28,8 +28,8 @@ import json
 
 # For use in the HTTP Serve test class
 #test_kid = ""
-Test_n = 0
-Test_e = 0
+TestN = 0
+TestE = 0
 
 def bytes_from_long(data):
     """
@@ -46,35 +46,38 @@ class OauthRequestHandler(BaseHTTPRequestHandler):
         self.send_header('Content-type', 'text/json')
         self.end_headers()
 
-    def do_GET(self):
+    def do_GET(self): # pylint: disable=invalid-name
         """
         Receive the GET command for the oauth certs
         """
-        global Test_n
-        global Test_e
+        global TestN
+        global TestE
         self._set_headers()
         to_write = ""
         if self.path == "/.well-known/openid-configuration":
-            to_write = json.dumps({"jwks_uri": "http://localhost:8080/oauth2/certs" })
+            to_write = json.dumps({"jwks_uri": "http://localhost:8080/oauth2/certs"})
         elif self.path == "/oauth2/certs":
             key_info = {}
             #key_info['kid'] = test_kid
-            key_info['n'] = bytes_from_long(Test_n)
-            key_info['e'] = bytes_from_long(Test_e)
+            key_info['n'] = bytes_from_long(TestN)
+            key_info['e'] = bytes_from_long(TestE)
             key_info['kty'] = "RSA"
-            key_info['alg']=  "RS256"
+            key_info['alg'] = "RS256"
             to_write = json.dumps({'keys': [key_info]})
         self.wfile.write(to_write.encode())
 
 
 
 class TestDeserialization(unittest.TestCase):
+    """
+    Test the deserialization of a SciToken
+    """
 
     def setUp(self):
         # Start a web server to act as the "issuer"
         server_address = ('', 8080)
         httpd = HTTPServer(server_address, OauthRequestHandler)
-        self.thread = threading.Thread(target = httpd.serve_forever)
+        self.thread = threading.Thread(target=httpd.serve_forever)
         self.thread.daemon = True
         self.thread.start()
 
@@ -82,26 +85,29 @@ class TestDeserialization(unittest.TestCase):
         del self.thread
 
     def test_deserialization(self):
-        global Test_n
-        global Test_e
+        """
+        Perform the deserialization test
+        """
+        global TestN
+        global TestE
         private_key = generate_private_key(
             public_exponent=65537,
             key_size=2048,
             backend=default_backend()
         )
-        
-        token = scitokens.SciToken(key = private_key)
+
+        token = scitokens.SciToken(key=private_key)
         token.update_claims({"test": "true"})
-        serialized_token = token.serialize(issuer = "http://localhost:8080/")
-        
+        serialized_token = token.serialize(issuer="http://localhost:8080/")
+
         public_numbers = private_key.public_key().public_numbers()
-        Test_e = public_numbers.e
-        Test_n = public_numbers.n
-        
+        TestE = public_numbers.e
+        TestN = public_numbers.n
+
         self.assertEqual(len(serialized_token.decode('utf8').split(".")), 3)
-        
+
         scitoken = scitokens.SciToken.deserialize(serialized_token, insecure=True)
-        
+
         self.assertIsInstance(scitoken, scitokens.SciToken)
 
 
