@@ -28,8 +28,8 @@ import json
 
 # For use in the HTTP Serve test class
 #test_kid = ""
-TestN = 0
-TestE = 0
+TEST_N = 0
+TEST_E = 0
 
 def bytes_from_long(data):
     """
@@ -50,8 +50,8 @@ class OauthRequestHandler(BaseHTTPRequestHandler):
         """
         Receive the GET command for the oauth certs
         """
-        global TestN
-        global TestE
+        global TEST_N
+        global TEST_E
         self._set_headers()
         to_write = ""
         if self.path == "/.well-known/openid-configuration":
@@ -59,8 +59,8 @@ class OauthRequestHandler(BaseHTTPRequestHandler):
         elif self.path == "/oauth2/certs":
             key_info = {}
             #key_info['kid'] = test_kid
-            key_info['n'] = bytes_from_long(TestN)
-            key_info['e'] = bytes_from_long(TestE)
+            key_info['n'] = bytes_from_long(TEST_N)
+            key_info['e'] = bytes_from_long(TEST_E)
             key_info['kty'] = "RSA"
             key_info['alg'] = "RS256"
             to_write = json.dumps({'keys': [key_info]})
@@ -88,8 +88,8 @@ class TestDeserialization(unittest.TestCase):
         """
         Perform the deserialization test
         """
-        global TestN
-        global TestE
+        global TEST_N
+        global TEST_E
         private_key = generate_private_key(
             public_exponent=65537,
             key_size=2048,
@@ -101,8 +101,8 @@ class TestDeserialization(unittest.TestCase):
         serialized_token = token.serialize(issuer="http://localhost:8080/")
 
         public_numbers = private_key.public_key().public_numbers()
-        TestE = public_numbers.e
-        TestN = public_numbers.n
+        TEST_E = public_numbers.e
+        TEST_N = public_numbers.n
 
         self.assertEqual(len(serialized_token.decode('utf8').split(".")), 3)
 
