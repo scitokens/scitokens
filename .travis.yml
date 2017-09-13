@@ -1,20 +1,29 @@
 language: python
 python:
-  - "2.7"
-  - "3.4"
-
+- '2.7'
+- '3.4'
 install:
-  - pip install sphinx sphinx_rtd_theme coverage codacy-coverage
-  - pip install -r requirements.txt
-
+- pip install sphinx sphinx_rtd_theme coverage codacy-coverage
+- pip install -r requirements.txt
 script:
-  - python setup.py install
-  - PYTHONPATH=src coverage run `which pytest`
-  - coverage xml --include "src/scitokens/*"
-
+- python setup.py install
+- PYTHONPATH=src coverage run `which pytest`
+- coverage xml --include "src/scitokens/*"
 after_success:
-  - pushd docs
-  - if [ "${TRAVIS_PYTHON_VERSION}" == "2.7" ]; then make gh-pages; fi
-  - popd
-  - if [ "${TRAVIS_PYTHON_VERSION}" == "2.7" -a "${TRAVIS_PULL_REQUEST}" = "false" ]; then python-codacy-coverage -r coverage.xml; fi
-
+- pushd docs
+- if [ "${TRAVIS_PYTHON_VERSION}" == "2.7" ]; then make gh-pages; fi
+- popd
+- if [ "${TRAVIS_PYTHON_VERSION}" == "2.7" -a "${TRAVIS_PULL_REQUEST}" = "false" ];
+  then python-codacy-coverage -r coverage.xml; fi
+deploy:
+  provider: pypi
+  user: "Your username"
+  password:
+    secure: "Your encrypted password"
+deploy:
+  provider: pypi
+  user: "djw8605"
+  password:
+    secure: E13ZdtIrgENFDCbg+IzKapUeoDe/6bS5ytJk0mq3eN1AoCZCUuPzCRMQQKwWYz1US2p3JVLeOtk2McicyFAA9q7uVyy+ND/4EwLNgMrlgdvXMU2V+hz1N8bfarnXweuWea3OdhPOabj2zFKvzIZeOcrS9rcrl5T0mtqSNrvFos+quBmUzuO6zAeKwPrWvwMVxMo4tP8fk60jCB4YF7w0aTD5L6ZVMHrxhl5yfhuL27/zujh53u4XGqJyhOCfWUD6sq2TaykQ+NOUagtwOATqUO5xJC4TZB2vPwR+/F84VSEmZXgtNdrlk1H2KjAFxXlNWh1wFNMZj/hGsQS7RLj1rpoMk9IdjN/itDItZyw6QBuhigSpQoHugHjaKNAzRyKKN3Vv3Tmstkv3mZjXtbcD3zIjNdk7+S6HXeB4o0vT4m049RHm9717JTvBq1bBK0GRavJj/5jhec94wLDCt0GpkX3RPDpgrTWjS+zNZCoSMHzSSV64iYh/TDWCbO/fgDp1f2xETL5Q4x3cSraNgE+xWuvkg5IxG2LWpfy6SqpcIsRPa0tbZqu5Ctjqij4nDimXLzgQk2YB8XCrE2nNdZ17sUKWBKnX7a1C3zcx1J3qJoi1ZNXNIcsZH5pU/QN5rAoo+T4RmKPnC9KdeBtJmiRdn1pKaVN/3Ie2jFBFuqYY4eQ=
+  on:
+    tags: true
