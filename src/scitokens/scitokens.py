@@ -7,7 +7,12 @@ authorization tokens.
 """
 
 import base64
-import urllib
+
+try:
+    import urllib.request as request
+except ImportError:
+    import urllib as request
+    
 try:
     import urlparse
 except ImportError:
@@ -43,6 +48,7 @@ def decode_base64(data):
     missing_padding = len(data) % 4
     if missing_padding != 0:
         data += b'='* (4 - missing_padding)
+    
     return base64.urlsafe_b64decode(data)
 
 
@@ -53,7 +59,7 @@ class MissingKeyException(Exception):
     The SciToken required the use of a public or private key, but
     it was not provided by the caller.
     """
-
+    pass
 
 class UnsupportedKeyException(Exception):
     """
@@ -62,8 +68,21 @@ class UnsupportedKeyException(Exception):
     A public or private key was provided to the SciToken, but
     could not be handled by this library.
     """
-
-
+    pass
+    
+class MissingIssuerException(Exception):
+    """
+    Missing the issuer in the SciToken, unable to verify token
+    """
+    pass
+    
+class NonHTTPSIssuer(Exception):
+    """
+    Non HTTPs issuer, as required by draft-ietf-oauth-discovery-07
+    https://tools.ietf.org/html/draft-ietf-oauth-discovery-07
+    """
+    pass
+    
 class InvalidTokenFormat(Exception):
     """
     Encoded token has an invalid format.
@@ -75,18 +94,23 @@ class SciToken(object):
     An object representing the contents of a SciToken.
     """
 
-    def __init__(self, key=None, parent=None):
+    def __init__(self, key=None, parent=None, claims=None):
         """
         Construct a SciToken object.
         
         :param key: Private key to sign the SciToken with.  It should be the PEM contents.
         :param parent: Parent SciToken that will be chained
         """
+        
+        if claims is not None:
+            raise NotImplementedError()
     
         self._key = key
         self._parent = parent
         self._claims = {}
-        
+        self._verified_claims = {}
+        self.insecure = False
+        self._serialized_token = None
 
     def claims(self):
         """
@@ -96,6 +120,8 @@ class SciToken(object):
         if self._parent:
             for claim, value in self._parent.claims():
                 yield claim, value
+        for claim, value in self._verified_claims.items():
+            yield claim, value
         for claim, value in self._claims.items():
             yield claim, value
 
@@ -109,10 +135,52 @@ class SciToken(object):
         raise NotImplementedError()
 
 
-    def serialize(self, include_key=False):
+    def serialize(self, include_key=False, issuer=None, lifetime=600):
         """
         Serialize the existing SciToken.
+        
+        :param bool include_key: When true, include the public key to the serialized token.  Default=False
+        :param str issuer: A string indicating the issuer for the token.  It should be an HTTPS address,
+                           as specified in https://tools.ietf.org/html/draft-ietf-oauth-discovery-07
+        :param int lifetime: Number of seconds that the token should be valid
+        :return str: base64 encoded token
         """
+        
+        if include_key is not False:
+            raise NotImplementedError()
+        
+        if self._key == None:
+            raise MissingKeyException("Unable to serialize, missing private key")
+        
+        # Issuer needs to be available, otherwise throw an error
+        if issuer == None and 'iss' not in self._claims:
+            raise MissingIssuerException("Issuer not specific in claims or as argument")
+        
+        if not issuer:
+            issuer = self._claims['iss']
+        
+        # Set the issue and expiration time of the token
+        issue_time = time.time()
+        exp_time = issue_time + lifetime
+        
+        payload = dict(self._claims)
+        
+        # Anything below will override what is in the claims
+        payload.update({
+            "iss": issuer,
+            "exp": exp_time,
+            "iat": issue_time,
+        })
+        
+        encoded = jwt.encode(payload, self._key, algorithm = "RS256")
+        self._serialized_token = encoded
+        
+        # Move claims over to verified claims
+        self._verified_claims.update(self._claims)
+        self._claims = {}
+        
+        return encoded
+        
         
 
     def update_claims(self, claims):
@@ -142,7 +210,7 @@ class SciToken(object):
         """
         
     @staticmethod
-    def _get_issuer_publickey(header, payload):
+    def _get_issuer_publickey(header, payload, insecure=False):
         
         # Get the issuer
         issuer = payload['iss']
@@ -151,118 +219,157 @@ class SciToken(object):
         # https://tools.ietf.org/html/draft-ietf-oauth-discovery-07
         well_known_uri = "/.well-known/openid-configuration"
         meta_uri = urlparse.urljoin(issuer, well_known_uri)
-        response = urllib.urlopen(meta_uri)
-        data = json.loads(response.read())
+        
+        # Make sure the protocol is https
+        if not insecure:
+            parsed_url = urlparse(meta_uri)
+            if parsed_url.scheme is not "https":
+                raise NonHTTPSIssuer("Issuer is not over HTTPS.  RFC requires it to be over HTTPS")
+        response = request.urlopen(meta_uri)
+        data = json.loads(response.read().decode('utf-8'))
         
         # Get the keys URL from the openid-configuration
         jwks_uri = data['jwks_uri']
         
         # Now, get the keys
-        response = urllib.urlopen(jwks_uri)
-        keys_data = json.loads(response.read())
+        if not insecure:
+            parsed_url = urlparse(jwks_uri)
+            if parse_url.scheme is not "https":
+                raise NonHTTPSIssuer("jwks_uri is not over HTTPS, insecure!")
+        response = request.urlopen(jwks_uri)
+        keys_data = json.loads(response.read().decode('utf-8'))
         # Loop through each key, looking for the right key id
         public_key = ""
-        for key in keys_data['keys']:
-            if key['kid'] == header['kid']:
-                if key['kty'] == "RSA":
-                    public_key_numbers = rsa.RSAPublicNumbers(
-                        long_from_bytes(key['e']),
-                        long_from_bytes(key['n'])
-                    )
-                    public_key = public_key_numbers.public_key(backends.default_backend())
+        raw_key = {}
+        
+        # If there is no kid in the header, then just take the first key?
+        if 'kid' not in header:
+            if len(keys_data['keys']) != 1:
+                raise NotImplementedError("No kid in header, but multiple keys in "
+                                          "response from certs server.  Don't know which key to use!")
+            else:
+                raw_key = keys_data['keys'][0]
+        else:
+            # Find the right key
+            for key in keys_data['keys']:
+                if key['kid'] == header['kid']:
+                    raw_key = key
                     break
-                elif key['kty'] == 'EC':
-                    public_key_numbers = ec.EllipticCurvePublicNumbers(
-                           long_from_bytes(key['x']),
-                           long_from_bytes(key['y']),
-                           ec.SECP256R1
-                       )
-                else:
-                    raise UnsupportedKeyException("SciToken signed with an unsupported key type")
+                
+        if raw_key['kty'] == "RSA":
+            public_key_numbers = rsa.RSAPublicNumbers(
+                long_from_bytes(raw_key['e']),
+                long_from_bytes(raw_key['n'])
+            )
+            public_key = public_key_numbers.public_key(backends.default_backend())
+        elif raw_key['kty'] == 'EC':
+            public_key_numbers = ec.EllipticCurvePublicNumbers(
+                   long_from_bytes(raw_key['x']),
+                   long_from_bytes(raw_key['y']),
+                   ec.SECP256R1
+               )
+            public_key = public_key_numbers.public_key(backends.default_backend())
+        else:
+            raise UnsupportedKeyException("SciToken signed with an unsupported key type")
         
         return public_key
         
         
     @staticmethod
-    def deserialize(serialized_token, require_key=True):
+    def deserialize(serialized_token, require_key=False, insecure=False):
         """
         Given a serialized SciToken, load it into a SciTokens object.
 
         Verifies the claims pass the current set of validation scripts.
+        
+        :param str serialized_token: The serialized token.
+        :param bool require_key: When True, require the key
+        :param bool insecure: When True, allow insecure methods to verify the issuer,
+                              including allowing "localhost" issuer (useful in testing).  Default=False
         """
-        info = serialized_token.split(".")
-
-        if require_key and len(info) != 4:
-            raise InvalidTokenFormat("Key required, but no key present in serialized token")
-
+        
+        if require_key is not False:
+            raise NotImplementedError()
+        
+        info = serialized_token.decode('utf8').split(".")
+        
         if len(info) != 3 and len(info) != 4: # header, format, signature[, key]
             raise MissingKeyException("No key present in serialized token")
 
         serialized_jwt = info[0] + "." + info[1] + "." + info[2]
 
         unverified_headers = jwt.get_unverified_header(serialized_jwt)
-        unverified_payload = json.loads(decode_base64(info[1]))
+        unverified_payload = jwt.decode(serialized_jwt, verify=False)
         
         # Get the public key from the issuer
-        issuer_public_key = SciToken._get_issuer_publickey(unverified_headers, unverified_payload)
+        issuer_public_key = SciToken._get_issuer_publickey(unverified_headers, unverified_payload, insecure=insecure)
         
         claims = jwt.decode(serialized_token, issuer_public_key)
-
-        # Clean up all of the below
+        # Do we have the private key?
         if len(info) == 4:
-            key = info[-1]
-            key_decoded = base64.urlsafe_b64decode(key)
-            jwk_dict = json.loads(key_decoded)
-            # TODO: Full range of keytypes and curves from JWK RFC.
-            if (jwk_dict['kty'] != 'EC') or (jwt_dict['crv'] != 'P-256'):
-                raise UnsupportedKeyException("SciToken signed with an unsupported key type")
-            elif 'd' not in jwk_dict:
-                raise UnsupportedKeyException("SciToken key does not contain private number.")
+            to_return = SciToken(key = key)
+        else:
+            to_return = SciToken()
+            
+        to_return._verified_claims = claims
+        to_return._serialized_token = serialized_token
+        return to_return
+        
+        
+        # Clean up all of the below
 
-            if 'pwt' in unverified_headers:
-                pwt = unverified_headers['pwt']
-                st = SciToken.clone()
-                st.deserialize(pwt, require_key=False)
-                headers = pwt.headers()
-                if 'cwk' not in headers:
-                    raise InvalidParentToken("Parent token MUST specify a child JWK.")
-                # Validate the key type / curve matches.  TODO: what other headers to check?
-                if (jwk_dict['kty'] != headers['kty']) or (jwk_dict['crv'] != headers['crv']):
-                    if 'x' not in jwk_dict:
-                        if 'x' in headers:
-                            jwk_dict['x'] = headers['x']
-                        else:
-                            MissingPublicKeyException("JWK public key is missing 'x'")
-                    elif jwk_dict['x'] != headers['x']:
-                        raise UnsupportedKeyException("Parent SciToken specifies an incompatible child JWK")
-                    if 'y' not in jwk_dict:
-                        if 'y' in headers:
-                            jwk_dict['y'] = headers['y']
-                        else:
-                            MissingPublicKeyException("JWK public key is missing 'y'")
-                    elif jwk_dict['y'] != headers['y']:
-                        raise UnsupportedKeyException("Parent SciToken specifies an incompatible child JWK")
-            # TODO: Handle non-chained case.
-            elif 'x5u' in unverified_headers:
-                raise NotImplementedError("Non-chained verification is not implemented.")
-            else:
-                raise UnableToValidate("No token validation method available.")
+        key_decoded = base64.urlsafe_b64decode(key)
+        jwk_dict = json.loads(key_decoded)
+        # TODO: Full range of keytypes and curves from JWK RFC.
+        if (jwk_dict['kty'] != 'EC') or (jwt_dict['crv'] != 'P-256'):
+            raise UnsupportedKeyException("SciToken signed with an unsupported key type")
+        elif 'd' not in jwk_dict:
+            raise UnsupportedKeyException("SciToken key does not contain private number.")
 
-            public_key_numbers = ec.EllipticCurvePublicNumbers(
-                   long_from_bytes(jwk_dict['x']),
-                   long_from_bytes(jwk_dict['y']),
-                   ec.SECP256R1
-               )
-            private_key_numbers = ec.EllipticCurvePrivateNumbers(
-               long_from_bytes(jwk_dict['d']),
-               public_key_numbers
-            )
-            private_key = private_key_numbers.private_key(backends.default_backend())
-            public_key  = public_key_numbers.public_key(backends.default_backend())
+        if 'pwt' in unverified_headers:
+            pwt = unverified_headers['pwt']
+            st = SciToken.clone()
+            st.deserialize(pwt, require_key=False)
+            headers = pwt.headers()
+            if 'cwk' not in headers:
+                raise InvalidParentToken("Parent token MUST specify a child JWK.")
+            # Validate the key type / curve matches.  TODO: what other headers to check?
+            if (jwk_dict['kty'] != headers['kty']) or (jwk_dict['crv'] != headers['crv']):
+                if 'x' not in jwk_dict:
+                    if 'x' in headers:
+                        jwk_dict['x'] = headers['x']
+                    else:
+                        MissingPublicKeyException("JWK public key is missing 'x'")
+                elif jwk_dict['x'] != headers['x']:
+                    raise UnsupportedKeyException("Parent SciToken specifies an incompatible child JWK")
+                if 'y' not in jwk_dict:
+                    if 'y' in headers:
+                        jwk_dict['y'] = headers['y']
+                    else:
+                        MissingPublicKeyException("JWK public key is missing 'y'")
+                elif jwk_dict['y'] != headers['y']:
+                    raise UnsupportedKeyException("Parent SciToken specifies an incompatible child JWK")
+        # TODO: Handle non-chained case.
+        elif 'x5u' in unverified_headers:
+            raise NotImplementedError("Non-chained verification is not implemented.")
+        else:
+            raise UnableToValidate("No token validation method available.")
 
-            # TODO: check that public and private key match?
+        public_key_numbers = ec.EllipticCurvePublicNumbers(
+               long_from_bytes(jwk_dict['x']),
+               long_from_bytes(jwk_dict['y']),
+               ec.SECP256R1
+           )
+        private_key_numbers = ec.EllipticCurvePrivateNumbers(
+           long_from_bytes(jwk_dict['d']),
+           public_key_numbers
+        )
+        private_key = private_key_numbers.private_key(backends.default_backend())
+        public_key  = public_key_numbers.public_key(backends.default_backend())
 
-            claims = jwt.decode(serialized_token, public_key, algorithm="EC256")
+        # TODO: check that public and private key match?
+
+        claims = jwt.decode(serialized_token, public_key, algorithm="EC256")
 
 
 class ValidationFailure(Exception):
