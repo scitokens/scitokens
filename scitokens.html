@@ -111,6 +111,13 @@ from the token.</p>
 </dd></dl>
 
 <dl class="exception">
+<dt id="scitokens.scitokens.MissingIssuerException">
+<em class="property">exception </em><code class="descclassname">scitokens.scitokens.</code><code class="descname">MissingIssuerException</code><a class="reference internal" href="_modules/scitokens/scitokens.html#MissingIssuerException"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scitokens.scitokens.MissingIssuerException" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/exceptions.html#exceptions.Exception" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></code></a></p>
+<p>Missing the issuer in the SciToken, unable to verify token</p>
+</dd></dl>
+
+<dl class="exception">
 <dt id="scitokens.scitokens.MissingKeyException">
 <em class="property">exception </em><code class="descclassname">scitokens.scitokens.</code><code class="descname">MissingKeyException</code><a class="reference internal" href="_modules/scitokens/scitokens.html#MissingKeyException"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scitokens.scitokens.MissingKeyException" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/exceptions.html#exceptions.Exception" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></code></a></p>
@@ -127,9 +134,17 @@ it was not provided by the caller.</p>
 claim with no registered validator.</p>
 </dd></dl>
 
+<dl class="exception">
+<dt id="scitokens.scitokens.NonHTTPSIssuer">
+<em class="property">exception </em><code class="descclassname">scitokens.scitokens.</code><code class="descname">NonHTTPSIssuer</code><a class="reference internal" href="_modules/scitokens/scitokens.html#NonHTTPSIssuer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scitokens.scitokens.NonHTTPSIssuer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/exceptions.html#exceptions.Exception" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></code></a></p>
+<p>Non HTTPs issuer, as required by draft-ietf-oauth-discovery-07
+<a class="reference external" href="https://tools.ietf.org/html/draft-ietf-oauth-discovery-07">https://tools.ietf.org/html/draft-ietf-oauth-discovery-07</a></p>
+</dd></dl>
+
 <dl class="class">
 <dt id="scitokens.scitokens.SciToken">
-<em class="property">class </em><code class="descclassname">scitokens.scitokens.</code><code class="descname">SciToken</code><span class="sig-paren">(</span><em>key=None</em>, <em>parent=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scitokens/scitokens.html#SciToken"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scitokens.scitokens.SciToken" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">scitokens.scitokens.</code><code class="descname">SciToken</code><span class="sig-paren">(</span><em>key=None</em>, <em>parent=None</em>, <em>claims=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scitokens/scitokens.html#SciToken"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scitokens.scitokens.SciToken" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
 <p>An object representing the contents of a SciToken.</p>
 <dl class="method">
@@ -147,15 +162,46 @@ with the claims from the first token in the chain.</p>
 
 <dl class="staticmethod">
 <dt id="scitokens.scitokens.SciToken.deserialize">
-<em class="property">static </em><code class="descname">deserialize</code><span class="sig-paren">(</span><em>serialized_token</em>, <em>require_key=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scitokens/scitokens.html#SciToken.deserialize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scitokens.scitokens.SciToken.deserialize" title="Permalink to this definition">¶</a></dt>
+<em class="property">static </em><code class="descname">deserialize</code><span class="sig-paren">(</span><em>serialized_token</em>, <em>require_key=False</em>, <em>insecure=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scitokens/scitokens.html#SciToken.deserialize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scitokens.scitokens.SciToken.deserialize" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given a serialized SciToken, load it into a SciTokens object.</p>
 <p>Verifies the claims pass the current set of validation scripts.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>serialized_token</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – The serialized token.</li>
+<li><strong>require_key</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) – When True, require the key</li>
+<li><strong>insecure</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) – When True, allow insecure methods to verify the issuer,
+including allowing “localhost” issuer (useful in testing).  Default=False</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
 <dt id="scitokens.scitokens.SciToken.serialize">
-<code class="descname">serialize</code><span class="sig-paren">(</span><em>include_key=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scitokens/scitokens.html#SciToken.serialize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scitokens.scitokens.SciToken.serialize" title="Permalink to this definition">¶</a></dt>
+<code class="descname">serialize</code><span class="sig-paren">(</span><em>include_key=False</em>, <em>issuer=None</em>, <em>lifetime=600</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scitokens/scitokens.html#SciToken.serialize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scitokens.scitokens.SciToken.serialize" title="Permalink to this definition">¶</a></dt>
 <dd><p>Serialize the existing SciToken.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>include_key</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) – When true, include the public key to the serialized token.  Default=False</li>
+<li><strong>issuer</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – A string indicating the issuer for the token.  It should be an HTTPS address,
+as specified in <a class="reference external" href="https://tools.ietf.org/html/draft-ietf-oauth-discovery-07">https://tools.ietf.org/html/draft-ietf-oauth-discovery-07</a></li>
+<li><strong>lifetime</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) – Number of seconds that the token should be valid</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return str:</th><td class="field-body"><p class="first last">base64 encoded token</p>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
