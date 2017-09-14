@@ -13,5 +13,7 @@ setuptools.setup(name="scitokens",
                  url="https://scitokens.org",
                  package_dir={"": "src"},
                  packages=["scitokens"],
-                 install_requires=['cryptography,PyJWT,urltools'],
+                 install_requires=['cryptography',
+                                   'PyJWT',
+                                   'urltools'],
                 )
