@@ -11,7 +11,7 @@ import base64
 try:
     import urllib.request as request
 except ImportError:
-    import urllib as request
+    import urllib2 as request
     
 try:
     import urlparse
@@ -215,6 +215,9 @@ class SciToken(object):
         # Get the issuer
         issuer = payload['iss']
         
+        # Set the user agent so Cloudflare isn't mad at us
+        headers={'User-Agent': 'Mozilla/5.0'}
+        
         # Go to the issuer's website, and download the OAuth well known bits
         # https://tools.ietf.org/html/draft-ietf-oauth-discovery-07
         well_known_uri = "/.well-known/openid-configuration"
@@ -222,10 +225,10 @@ class SciToken(object):
         
         # Make sure the protocol is https
         if not insecure:
-            parsed_url = urlparse(meta_uri)
-            if parsed_url.scheme is not "https":
+            parsed_url = urlparse.urlparse(meta_uri)
+            if parsed_url.scheme != "https":
                 raise NonHTTPSIssuer("Issuer is not over HTTPS.  RFC requires it to be over HTTPS")
-        response = request.urlopen(meta_uri)
+        response = request.urlopen(request.Request(meta_uri, headers=headers))
         data = json.loads(response.read().decode('utf-8'))
         
         # Get the keys URL from the openid-configuration
@@ -233,10 +236,10 @@ class SciToken(object):
         
         # Now, get the keys
         if not insecure:
-            parsed_url = urlparse(jwks_uri)
-            if parse_url.scheme is not "https":
+            parsed_url = urlparse.urlparse(jwks_uri)
+            if parsed_url.scheme != "https":
                 raise NonHTTPSIssuer("jwks_uri is not over HTTPS, insecure!")
-        response = request.urlopen(jwks_uri)
+        response = request.urlopen(request.Request(jwks_uri, headers=headers))
         keys_data = json.loads(response.read().decode('utf-8'))
         # Loop through each key, looking for the right key id
         public_key = ""
