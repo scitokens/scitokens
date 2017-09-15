@@ -24,11 +24,11 @@ import jwt
 import urltools
 import pkg_resources  # part of setuptools
 try:
-    pkg_version = pkg_resources.require("scitokens")[0].version
+    PKG_VERSION = pkg_resources.require("scitokens")[0].version
 except pkg_resources.DistributionNotFound as error:
     # During testing, scitokens won't be installed, so requiring it will fail
     # Instead, fake it
-    pkg_version = '1.0.0'
+    PKG_VERSION = '1.0.0'
 
 import cryptography.utils
 import cryptography.hazmat.primitives.asymmetric.ec as ec
@@ -223,7 +223,7 @@ class SciToken(object):
         issuer = payload['iss']
         
         # Set the user agent so Cloudflare isn't mad at us
-        headers={'User-Agent': 'SciTokens/{}'.format(pkg_version)}
+        headers={'User-Agent': 'SciTokens/{}'.format(PKG_VERSION)}
         
         # Go to the issuer's website, and download the OAuth well known bits
         # https://tools.ietf.org/html/draft-ietf-oauth-discovery-07

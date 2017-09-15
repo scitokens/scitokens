@@ -52,7 +52,7 @@ class OauthRequestHandler(BaseHTTPRequestHandler):
         """
         global TEST_N
         global TEST_E
-        
+
         # Make sure the User-Agent is SciTokens*
         user_agent = self.headers.get('User-Agent')
         if not user_agent.startswith("SciTokens"):
