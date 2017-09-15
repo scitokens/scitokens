@@ -52,6 +52,12 @@ class OauthRequestHandler(BaseHTTPRequestHandler):
         """
         global TEST_N
         global TEST_E
+
+        # Make sure the User-Agent is SciTokens*
+        user_agent = self.headers.get('User-Agent')
+        if not user_agent.startswith("SciTokens"):
+            self.send_response(404)
+            return
         self._set_headers()
         to_write = ""
         if self.path == "/.well-known/openid-configuration":
