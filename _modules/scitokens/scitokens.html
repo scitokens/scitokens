@@ -58,7 +58,7 @@
 <span class="k">try</span><span class="p">:</span>
     <span class="kn">import</span> <span class="nn">urllib.request</span> <span class="k">as</span> <span class="nn">request</span>
 <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
-    <span class="kn">import</span> <span class="nn">urllib</span> <span class="k">as</span> <span class="nn">request</span>
+    <span class="kn">import</span> <span class="nn">urllib2</span> <span class="k">as</span> <span class="nn">request</span>
     
 <span class="k">try</span><span class="p">:</span>
     <span class="kn">import</span> <span class="nn">urlparse</span>
@@ -69,6 +69,13 @@
 
 <span class="kn">import</span> <span class="nn">jwt</span>
 <span class="kn">import</span> <span class="nn">urltools</span>
+<span class="kn">import</span> <span class="nn">pkg_resources</span>  <span class="c1"># part of setuptools</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">PKG_VERSION</span> <span class="o">=</span> <span class="n">pkg_resources</span><span class="o">.</span><span class="n">require</span><span class="p">(</span><span class="s2">&quot;scitokens&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">version</span>
+<span class="k">except</span> <span class="n">pkg_resources</span><span class="o">.</span><span class="n">DistributionNotFound</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
+    <span class="c1"># During testing, scitokens won&#39;t be installed, so requiring it will fail</span>
+    <span class="c1"># Instead, fake it</span>
+    <span class="n">PKG_VERSION</span> <span class="o">=</span> <span class="s1">&#39;1.0.0&#39;</span>
 
 <span class="kn">import</span> <span class="nn">cryptography.utils</span>
 <span class="kn">import</span> <span class="nn">cryptography.hazmat.primitives.asymmetric.ec</span> <span class="k">as</span> <span class="nn">ec</span>
@@ -207,8 +214,8 @@
             <span class="n">issuer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_claims</span><span class="p">[</span><span class="s1">&#39;iss&#39;</span><span class="p">]</span>
         
         <span class="c1"># Set the issue and expiration time of the token</span>
-        <span class="n">issue_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
-        <span class="n">exp_time</span> <span class="o">=</span> <span class="n">issue_time</span> <span class="o">+</span> <span class="n">lifetime</span>
+        <span class="n">issue_time</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">())</span>
+        <span class="n">exp_time</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">issue_time</span> <span class="o">+</span> <span class="n">lifetime</span><span class="p">)</span>
         
         <span class="n">payload</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_claims</span><span class="p">)</span>
         
@@ -262,6 +269,9 @@
         <span class="c1"># Get the issuer</span>
         <span class="n">issuer</span> <span class="o">=</span> <span class="n">payload</span><span class="p">[</span><span class="s1">&#39;iss&#39;</span><span class="p">]</span>
         
+        <span class="c1"># Set the user agent so Cloudflare isn&#39;t mad at us</span>
+        <span class="n">headers</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;User-Agent&#39;</span><span class="p">:</span> <span class="s1">&#39;SciTokens/</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">PKG_VERSION</span><span class="p">)}</span>
+        
         <span class="c1"># Go to the issuer&#39;s website, and download the OAuth well known bits</span>
         <span class="c1"># https://tools.ietf.org/html/draft-ietf-oauth-discovery-07</span>
         <span class="n">well_known_uri</span> <span class="o">=</span> <span class="s2">&quot;/.well-known/openid-configuration&quot;</span>
@@ -269,10 +279,10 @@
         
         <span class="c1"># Make sure the protocol is https</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">insecure</span><span class="p">:</span>
-            <span class="n">parsed_url</span> <span class="o">=</span> <span class="n">urlparse</span><span class="p">(</span><span class="n">meta_uri</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">parsed_url</span><span class="o">.</span><span class="n">scheme</span> <span class="ow">is</span> <span class="ow">not</span> <span class="s2">&quot;https&quot;</span><span class="p">:</span>
+            <span class="n">parsed_url</span> <span class="o">=</span> <span class="n">urlparse</span><span class="o">.</span><span class="n">urlparse</span><span class="p">(</span><span class="n">meta_uri</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">parsed_url</span><span class="o">.</span><span class="n">scheme</span> <span class="o">!=</span> <span class="s2">&quot;https&quot;</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="n">NonHTTPSIssuer</span><span class="p">(</span><span class="s2">&quot;Issuer is not over HTTPS.  RFC requires it to be over HTTPS&quot;</span><span class="p">)</span>
-        <span class="n">response</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="n">meta_uri</span><span class="p">)</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">Request</span><span class="p">(</span><span class="n">meta_uri</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">))</span>
         <span class="n">data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">))</span>
         
         <span class="c1"># Get the keys URL from the openid-configuration</span>
@@ -280,10 +290,10 @@
         
         <span class="c1"># Now, get the keys</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">insecure</span><span class="p">:</span>
-            <span class="n">parsed_url</span> <span class="o">=</span> <span class="n">urlparse</span><span class="p">(</span><span class="n">jwks_uri</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">parse_url</span><span class="o">.</span><span class="n">scheme</span> <span class="ow">is</span> <span class="ow">not</span> <span class="s2">&quot;https&quot;</span><span class="p">:</span>
+            <span class="n">parsed_url</span> <span class="o">=</span> <span class="n">urlparse</span><span class="o">.</span><span class="n">urlparse</span><span class="p">(</span><span class="n">jwks_uri</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">parsed_url</span><span class="o">.</span><span class="n">scheme</span> <span class="o">!=</span> <span class="s2">&quot;https&quot;</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="n">NonHTTPSIssuer</span><span class="p">(</span><span class="s2">&quot;jwks_uri is not over HTTPS, insecure!&quot;</span><span class="p">)</span>
-        <span class="n">response</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="n">jwks_uri</span><span class="p">)</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">Request</span><span class="p">(</span><span class="n">jwks_uri</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">))</span>
         <span class="n">keys_data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">))</span>
         <span class="c1"># Loop through each key, looking for the right key id</span>
         <span class="n">public_key</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
