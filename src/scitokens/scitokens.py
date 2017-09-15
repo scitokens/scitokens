@@ -167,8 +167,8 @@ class SciToken(object):
             issuer = self._claims['iss']
         
         # Set the issue and expiration time of the token
-        issue_time = time.time()
-        exp_time = issue_time + lifetime
+        issue_time = int(time.time())
+        exp_time = int(issue_time + lifetime)
         
         payload = dict(self._claims)
         
