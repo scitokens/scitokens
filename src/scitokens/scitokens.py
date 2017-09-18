@@ -142,7 +142,7 @@ class SciToken(object):
         raise NotImplementedError()
 
 
-    def serialize(self, include_key=False, issuer=None, lifetime=600):
+    def serialize(self, include_key=False, issuer=None, lifetime=600, kid=None):
         """
         Serialize the existing SciToken.
         
@@ -150,6 +150,7 @@ class SciToken(object):
         :param str issuer: A string indicating the issuer for the token.  It should be an HTTPS address,
                            as specified in https://tools.ietf.org/html/draft-ietf-oauth-discovery-07
         :param int lifetime: Number of seconds that the token should be valid
+        :param str kid: The Key Identifier to be used at the issuer
         :return str: base64 encoded token
         """
         
@@ -170,15 +171,21 @@ class SciToken(object):
         issue_time = int(time.time())
         exp_time = int(issue_time + lifetime)
         
-        payload = dict(self._claims)
+        # Add to validated and other claims
+        payload = dict(self._verified_claims)
+        payload.update(dict(self._claims))
+
         
         # Anything below will override what is in the claims
         payload.update({
             "iss": issuer,
             "exp": exp_time,
             "iat": issue_time,
+            "nbf": issue_time
         })
         
+        if kid != None:
+            encoded = jwt.encode(payload, self._key, algorithm = "RS256", headers={'kid': kid})
         encoded = jwt.encode(payload, self._key, algorithm = "RS256")
         self._serialized_token = encoded
         
