@@ -174,7 +174,7 @@ class SciToken(object):
         
         # Add to validated and other claims
         payload = dict(self._verified_claims)
-        payload.update(dict(self._claims))
+        payload.update(self._claims)
 
         
         # Anything below will override what is in the claims
