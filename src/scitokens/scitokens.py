@@ -101,7 +101,7 @@ class SciToken(object):
     An object representing the contents of a SciToken.
     """
 
-    def __init__(self, key=None, key_id=None, parent=None, claims=None,  ):
+    def __init__(self, key=None, key_id=None, parent=None, claims=None):
         """
         Construct a SciToken object.
         
