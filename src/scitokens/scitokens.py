@@ -186,7 +186,8 @@ class SciToken(object):
         
         if kid != None:
             encoded = jwt.encode(payload, self._key, algorithm = "RS256", headers={'kid': kid})
-        encoded = jwt.encode(payload, self._key, algorithm = "RS256")
+        else:
+            encoded = jwt.encode(payload, self._key, algorithm = "RS256")
         self._serialized_token = encoded
         
         # Move claims over to verified claims
