@@ -185,7 +185,7 @@ class SciToken(object):
             "nbf": issue_time
         })
         
-        if kid != None:
+        if self._key_id != None:
             encoded = jwt.encode(payload, self._key, algorithm = "RS256", headers={'kid': self._key_id})
         else:
             encoded = jwt.encode(payload, self._key, algorithm = "RS256")
