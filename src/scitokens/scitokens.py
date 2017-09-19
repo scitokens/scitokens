@@ -236,8 +236,14 @@ class SciToken(object):
         
         # Go to the issuer's website, and download the OAuth well known bits
         # https://tools.ietf.org/html/draft-ietf-oauth-discovery-07
-        well_known_uri = "/.well-known/openid-configuration"
-        meta_uri = urlparse.urljoin(issuer, well_known_uri)
+        well_known_uri = ".well-known/openid-configuration"
+        if not issuer.endswith("/"):
+            issuer = issuer + "/"
+        parsed_url = urlparse.urlparse(issuer)
+        updated_url = urlparse.urljoin(parsed_url.path, well_known_uri)
+        parsed_url_list = list(parsed_url)
+        parsed_url_list[2] = updated_url
+        meta_uri = urlparse.urlunparse(parsed_url_list)
         
         # Make sure the protocol is https
         if not insecure:
