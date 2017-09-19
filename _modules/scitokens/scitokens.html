@@ -283,8 +283,14 @@
         
         <span class="c1"># Go to the issuer&#39;s website, and download the OAuth well known bits</span>
         <span class="c1"># https://tools.ietf.org/html/draft-ietf-oauth-discovery-07</span>
-        <span class="n">well_known_uri</span> <span class="o">=</span> <span class="s2">&quot;/.well-known/openid-configuration&quot;</span>
-        <span class="n">meta_uri</span> <span class="o">=</span> <span class="n">urlparse</span><span class="o">.</span><span class="n">urljoin</span><span class="p">(</span><span class="n">issuer</span><span class="p">,</span> <span class="n">well_known_uri</span><span class="p">)</span>
+        <span class="n">well_known_uri</span> <span class="o">=</span> <span class="s2">&quot;.well-known/openid-configuration&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">issuer</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">):</span>
+            <span class="n">issuer</span> <span class="o">=</span> <span class="n">issuer</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span>
+        <span class="n">parsed_url</span> <span class="o">=</span> <span class="n">urlparse</span><span class="o">.</span><span class="n">urlparse</span><span class="p">(</span><span class="n">issuer</span><span class="p">)</span>
+        <span class="n">updated_url</span> <span class="o">=</span> <span class="n">urlparse</span><span class="o">.</span><span class="n">urljoin</span><span class="p">(</span><span class="n">parsed_url</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">well_known_uri</span><span class="p">)</span>
+        <span class="n">parsed_url_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">parsed_url</span><span class="p">)</span>
+        <span class="n">parsed_url_list</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">updated_url</span>
+        <span class="n">meta_uri</span> <span class="o">=</span> <span class="n">urlparse</span><span class="o">.</span><span class="n">urlunparse</span><span class="p">(</span><span class="n">parsed_url_list</span><span class="p">)</span>
         
         <span class="c1"># Make sure the protocol is https</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">insecure</span><span class="p">:</span>
