@@ -101,11 +101,12 @@ class SciToken(object):
     An object representing the contents of a SciToken.
     """
 
-    def __init__(self, key=None, parent=None, claims=None):
+    def __init__(self, key=None, key_id=None, parent=None, claims=None):
         """
         Construct a SciToken object.
         
         :param key: Private key to sign the SciToken with.  It should be the PEM contents.
+        :param str key_id: A string representing the Key ID that is used at the issuer
         :param parent: Parent SciToken that will be chained
         """
         
@@ -113,6 +114,7 @@ class SciToken(object):
             raise NotImplementedError()
     
         self._key = key
+        self._key_id = key_id
         self._parent = parent
         self._claims = {}
         self._verified_claims = {}
@@ -170,16 +172,23 @@ class SciToken(object):
         issue_time = int(time.time())
         exp_time = int(issue_time + lifetime)
         
-        payload = dict(self._claims)
+        # Add to validated and other claims
+        payload = dict(self._verified_claims)
+        payload.update(self._claims)
+
         
         # Anything below will override what is in the claims
         payload.update({
             "iss": issuer,
             "exp": exp_time,
             "iat": issue_time,
+            "nbf": issue_time
         })
         
-        encoded = jwt.encode(payload, self._key, algorithm = "RS256")
+        if self._key_id != None:
+            encoded = jwt.encode(payload, self._key, algorithm = "RS256", headers={'kid': self._key_id})
+        else:
+            encoded = jwt.encode(payload, self._key, algorithm = "RS256")
         self._serialized_token = encoded
         
         # Move claims over to verified claims
