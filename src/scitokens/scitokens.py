@@ -302,8 +302,11 @@ class SciToken(object):
             raise NotImplementedError()
         
         info = serialized_token.decode('utf8').split(".")
-        
+
         if len(info) != 3 and len(info) != 4: # header, format, signature[, key]
+            raise InvalidTokenFormat("Serialized token is not a readable format.")
+
+        if (len(info) != 4) and require_key:
             raise MissingKeyException("No key present in serialized token")
 
         serialized_jwt = info[0] + "." + info[1] + "." + info[2]
