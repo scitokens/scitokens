@@ -72,13 +72,7 @@ class KeyCache(object):
                 return load_pem_public_key(row['keydata'].encode(), backend=backends.default_backend())
             else:
                 # Delete the row
-                print(row)
-                print("DELETE FROM keycache WHERE rowid = '{}'".format(row['rowid']))
-                curs.execute("DELETE FROM keycache WHERE rowid = '{}'".format(row['rowid']))
-        
-        for row in curs.execute("SELECT * FROM keycache"):
-            print(row)
-        #raise NonHTTPSIssuer("blah")
+                curs.execute("DELETE FROM keycache WHERE issuer = '{}' AND key_id = '{}'".format(row['issuer'], row['key_id']))
         
         # If it reaches here, then no key was found in the SQL
         # Try checking the issuer (negative cache?)
@@ -87,7 +81,7 @@ class KeyCache(object):
         # Add the key to the cache
         insert_key_statement = "INSERT INTO keycache VALUES('{issuer}', '{expiration}', '{key_id}', '{keydata}')"
         keydata = public_key.public_bytes(Encoding.PEM, PublicFormat.PKCS1).decode('ascii')
-        print(insert_key_statement.format(issuer=issuer, expiration=time.time()+60, key_id=key_id, keydata=keydata))
+
         curs.execute(insert_key_statement.format(issuer=issuer, expiration=time.time()+60, key_id=key_id, keydata=keydata))
         if curs.rowcount != 1:
             raise UnableToWriteKeyCache("Unable to insert into key cache")
@@ -100,7 +94,7 @@ class KeyCache(object):
     
     def _checkValidity(self, key_info):
         """
-        Check the key info
+        Check the key to see if it has expired
         """
         # Make sure the key hasn't expired
         if key_info['expiration'] <= time.time():
