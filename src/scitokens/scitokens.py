@@ -21,7 +21,7 @@ import json
 import time
 
 import jwt
-import urltools
+from . import urltools
 import pkg_resources  # part of setuptools
 try:
     PKG_VERSION = pkg_resources.require("scitokens")[0].version
@@ -584,9 +584,9 @@ class Enforcer(object):
     def _validate_path(self, value):
         if not isinstance(value, list):
             value = [value]
-        norm_requested_path = urltools.normalize(self._test_path)
+        norm_requested_path = urltools.normalize_path(self._test_path)
         for path in value:
-            norm_path = urltools.normalize(path)
+            norm_path = urltools.normalize_path(path)
             if norm_requested_path.startswith(norm_path):
                 return True
         return False
