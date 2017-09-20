@@ -131,12 +131,12 @@ class TestDeserialization(unittest.TestCase):
         scitoken = scitokens.SciToken.deserialize(serialized_token, insecure=True)
 
         self.assertIsInstance(scitoken, scitokens.SciToken)
-        
+
         token = scitokens.SciToken(key=private_key, key_id="doesnotexist")
         serialized_token = token.serialize(issuer="http://localhost:8080/")
         with self.assertRaises(scitokens.scitokens.MissingKeyException):
             scitoken = scitokens.SciToken.deserialize(serialized_token, insecure=True)
-        
+
 
 
 
