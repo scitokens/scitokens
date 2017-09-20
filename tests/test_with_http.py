@@ -65,7 +65,7 @@ class OauthRequestHandler(BaseHTTPRequestHandler):
         if self.path == "/.well-known/openid-configuration":
             to_write = json.dumps({"jwks_uri": "http://localhost:8080/oauth2/certs"})
         elif self.path == "/oauth2/certs":
-            
+
             # Dummy Key
             dummy_key = {
                 'kid': 'dummykey',
@@ -74,14 +74,14 @@ class OauthRequestHandler(BaseHTTPRequestHandler):
                 'alg': "RS256",
                 'kty': "RSA"
             }
-            
+
             key_info = {}
             key_info['kid'] = TEST_ID
             key_info['n'] = bytes_from_long(TEST_N)
             key_info['e'] = bytes_from_long(TEST_E)
             key_info['kty'] = "RSA"
             key_info['alg'] = "RS256"
-            
+
             to_write = json.dumps({'keys': [dummy_key, key_info]})
         self.wfile.write(to_write.encode())
 
