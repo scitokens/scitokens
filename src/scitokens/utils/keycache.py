@@ -1,8 +1,36 @@
 import os
 import sqlite3
 import time
+import pkg_resources  # part of setuptools
+try:
+    PKG_VERSION = pkg_resources.require("scitokens")[0].version
+except pkg_resources.DistributionNotFound as error:
+    # During testing, scitokens won't be installed, so requiring it will fail
+    # Instead, fake it
+    PKG_VERSION = '1.0.0'
+    
+try:
+    import urllib.request as request
+except ImportError:
+    import urllib2 as request
+    
+try:
+    import urlparse
+except ImportError:
+    import urllib.parse as urlparse
 
-from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat
+import json
+
+from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat, load_pem_public_key
+import cryptography.hazmat.backends as backends
+import cryptography.hazmat.primitives.asymmetric.ec as ec
+import cryptography.hazmat.primitives.asymmetric.rsa as rsa
+import cryptography.hazmat.backends as backends
+from scitokens.utils.errors import MissingKeyException, NonHTTPSIssuer
+from scitokens.utils import long_from_bytes
+
+
+
 
 CACHE_FILENAME = "scitokens_keycache.sqllite"
 
@@ -18,7 +46,7 @@ class KeyCache(object):
         # Check for the cache
         self.cache_location = self._get_cache_file()
         
-    def getKeyInfo(issuer, key_id=None, insecure=False):
+    def getKeyInfo(self, issuer, key_id=None, insecure=False):
         """
         Get the key information
         
@@ -28,32 +56,59 @@ class KeyCache(object):
         """
         # Check the sql database 
         key_query = ("SELECT * FROM keycache WHERE "
-                     "issuer = {issuer}")
+                     "issuer = '{issuer}'")
         if key_id != None:
-            key_query += "AND key_id = {key_id}"
+            key_query += " AND key_id = '{key_id}'"
         conn = sqlite3.connect(self.cache_location)
+        conn.row_factory = sqlite3.Row
         curs = conn.cursor()
-        curs.execute(key_query.format(issuer=issuer, key_id=key_id)):
+        curs.execute(key_query.format(issuer=issuer, key_id=key_id))
         
         row = curs.fetchone()
         if row != None:
-            return self.checkValidity(row)
+            if self._checkValidity(row):
+                # Convert the PEM formatted public key to a public key object
+                conn.close()
+                return load_pem_public_key(row['keydata'].encode(), backend=backends.default_backend())
+            else:
+                # Delete the row
+                print(row)
+                print("DELETE FROM keycache WHERE rowid = '{}'".format(row['rowid']))
+                curs.execute("DELETE FROM keycache WHERE rowid = '{}'".format(row['rowid']))
+        
+        for row in curs.execute("SELECT * FROM keycache"):
+            print(row)
+        #raise NonHTTPSIssuer("blah")
         
         # If it reaches here, then no key was found in the SQL
         # Try checking the issuer (negative cache?)
         public_key = self._get_issuer_publickey(issuer, key_id, insecure)
         
         # Add the key to the cache
-        insert_key_statement = "INSERT INTO keycache VALUES({issuer}, {expiration}, {key_id}, {keydata})"
+        insert_key_statement = "INSERT INTO keycache VALUES('{issuer}', '{expiration}', '{key_id}', '{keydata}')"
         keydata = public_key.public_bytes(Encoding.PEM, PublicFormat.PKCS1).decode('ascii')
+        print(insert_key_statement.format(issuer=issuer, expiration=time.time()+60, key_id=key_id, keydata=keydata))
         curs.execute(insert_key_statement.format(issuer=issuer, expiration=time.time()+60, key_id=key_id, keydata=keydata))
         if curs.rowcount != 1:
-            throw UnableToWriteKeyCache("Unable to insert into key cache")
-        
+            raise UnableToWriteKeyCache("Unable to insert into key cache")
+
+        # Save (commit) the changes
+        conn.commit()
+        conn.close()
         return public_key
         
     
-    def _get_issuer_publickey(issuer, key_id=None, insecure=False):
+    def _checkValidity(self, key_info):
+        """
+        Check the key info
+        """
+        # Make sure the key hasn't expired
+        if key_info['expiration'] <= time.time():
+            return False
+        else:
+            return True
+    
+    def _get_issuer_publickey(self, issuer, key_id=None, insecure=False):
         
         # Set the user agent so Cloudflare isn't mad at us
         headers={'User-Agent': 'SciTokens/{}'.format(PKG_VERSION)}
@@ -160,7 +215,7 @@ class KeyCache(object):
         """
         Create a simple flat sqllite cache
         """
-        conn = sqlite3.connect(self.cache_location)
+        conn = sqlite3.connect(sql_file)
         curs = conn.cursor()
         
         # Create cache table

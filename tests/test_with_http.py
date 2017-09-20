@@ -20,6 +20,7 @@ import scitokens.scitokens
 import cryptography.utils
 from cryptography.hazmat.primitives.asymmetric.rsa import generate_private_key
 from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import serialization
 
 try:
     from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
@@ -111,9 +112,10 @@ class TestDeserialization(unittest.TestCase):
         global TEST_N
         global TEST_E
         global TEST_ID
-        private_key = generate_private_key(
-            public_exponent=65537,
-            key_size=2048,
+        with open('tests/simple_private_key.pem', 'rb') as key_file:
+            private_key = serialization.load_pem_private_key(
+            key_file.read(),
+            password=None,
             backend=default_backend()
         )
         TEST_ID = "stuffblah"
@@ -134,7 +136,7 @@ class TestDeserialization(unittest.TestCase):
 
         token = scitokens.SciToken(key=private_key, key_id="doesnotexist")
         serialized_token = token.serialize(issuer="http://localhost:8080/")
-        with self.assertRaises(scitokens.scitokens.MissingKeyException):
+        with self.assertRaises(scitokens.utils.errors.MissingKeyException):
             scitoken = scitokens.SciToken.deserialize(serialized_token, insecure=True)
 
 
