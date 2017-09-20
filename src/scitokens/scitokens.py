@@ -181,8 +181,8 @@ class SciToken(object):
         
         # Get the public key from the issuer
         keycache = KeyCache.KeyCache()
-        issuer_public_key = keycache.getkeyinfo(unverified_payload['iss'], 
-                            key_id=unverified_headers['kid'], 
+        issuer_public_key = keycache.getkeyinfo(unverified_payload['iss'],
+                            key_id=unverified_headers['kid'],
                             insecure=insecure)
         
         claims = jwt.decode(serialized_token, issuer_public_key)
