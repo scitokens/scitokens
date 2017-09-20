@@ -366,8 +366,11 @@
             <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span>
         
         <span class="n">info</span> <span class="o">=</span> <span class="n">serialized_token</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;utf8&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)</span>
-        
+
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">info</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">3</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">info</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">4</span><span class="p">:</span> <span class="c1"># header, format, signature[, key]</span>
+            <span class="k">raise</span> <span class="n">InvalidTokenFormat</span><span class="p">(</span><span class="s2">&quot;Serialized token is not a readable format.&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">info</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">4</span><span class="p">)</span> <span class="ow">and</span> <span class="n">require_key</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">MissingKeyException</span><span class="p">(</span><span class="s2">&quot;No key present in serialized token&quot;</span><span class="p">)</span>
 
         <span class="n">serialized_jwt</span> <span class="o">=</span> <span class="n">info</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;.&quot;</span> <span class="o">+</span> <span class="n">info</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;.&quot;</span> <span class="o">+</span> <span class="n">info</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
