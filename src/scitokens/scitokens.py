@@ -58,7 +58,6 @@ def decode_base64(data):
     
     return base64.urlsafe_b64decode(data)
 
-
 class MissingKeyException(Exception):
     """
     No private key is present.
@@ -265,7 +264,7 @@ class SciToken(object):
         keys_data = json.loads(response.read().decode('utf-8'))
         # Loop through each key, looking for the right key id
         public_key = ""
-        raw_key = {}
+        raw_key = None
         
         # If there is no kid in the header, then just take the first key?
         if 'kid' not in header:
@@ -280,7 +279,10 @@ class SciToken(object):
                 if key['kid'] == header['kid']:
                     raw_key = key
                     break
-                
+
+        if raw_key == None:
+            raise MissingKeyException("Unable to find key at issuer {}".format(jwks_uri))
+
         if raw_key['kty'] == "RSA":
             public_key_numbers = rsa.RSAPublicNumbers(
                 long_from_bytes(raw_key['e']),
