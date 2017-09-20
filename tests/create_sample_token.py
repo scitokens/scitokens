@@ -39,7 +39,7 @@ def main():
         encoding=serialization.Encoding.PEM,
         format=serialization.PublicFormat.SubjectPublicKeyInfo
     )
-    print "My public key:\n", serialized_public
+    print("My public key:\n", serialized_public)
 
     loaded_private_key = serialization.load_pem_private_key(
         serialized_pair,
@@ -52,11 +52,11 @@ def main():
         format=serialization.PrivateFormat.PKCS8,
         encryption_algorithm=serialization.NoEncryption()
     )
-    print "My private key:\n", serialized_private
+    print("My private key:\n", serialized_private)
 
     public_jwk, private_jwk, child_private_key = gen_jwk()
 
-    print "Instance JWK keypair:", public_jwk, private_jwk
+    print("Instance JWK keypair:", public_jwk, private_jwk)
 
     # Ok, now generate a token and verify it.
     token_encoded = jwt.encode({"read": "/ligo"}, serialized_private, algorithm="ES256", headers={"x5u": "https://vo.example.com/JWS", "cwk": public_jwk})
@@ -70,15 +70,15 @@ def main():
     flattened['protected'] = jwt.get_unverified_header(token_encoded)
     flattened['signature'] = token_encoded.split(".")[-1]
 
-    print "My encoded token:\n", token_encoded
+    print("My encoded token:\n", token_encoded)
 
-    print "Plain-text token:\n", flattened
+    print("Plain-text token:\n", flattened)
 
     header = jwt.get_unverified_header(token_encoded)
-    print "Non-validated header:\n", header
+    print("Non-validated header:\n", header)
 
     token_decoded = jwt.decode(token_encoded, serialized_public, algorithm="ES256")
-    print "Validated token:\n", token_decoded
+    print("Validated token:\n", token_decoded)
 
     # Let's generate the child token
     pwt = {"payload": token_decoded, "protected": header, "signature": signature}
@@ -95,10 +95,10 @@ def main():
     flattened['signature'] = child_token_encoded.split(".")[-1]
     flattened['key'] = private_jwk
 
-    print "Child token, encoded:\n", child_token_encoded
-    print "Child token with key:\n", child_token_encoded+"."+base64.urlsafe_b64encode(json.dumps(private_jwk))
-    print "Child token headers:\n", jwt.get_unverified_header(child_token_encoded)
-    print "Child token, flattened:\n", flattened
+    print("Child token, encoded:\n", child_token_encoded)
+    print("Child token with key:\n", child_token_encoded+"."+base64.urlsafe_b64encode(json.dumps(private_jwk)))
+    print("Child token headers:\n", jwt.get_unverified_header(child_token_encoded))
+    print("Child token, flattened:\n", flattened)
 
 if __name__ == '__main__':
     main()
