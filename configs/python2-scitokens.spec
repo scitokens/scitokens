@@ -1,16 +1,20 @@
 %global srcname scitokens
 
 Name: python2-%{srcname}
-Version: 0.1.5
+Version: 0.1.6
 Release: 1%{?dist}
 Summary: SciToken reference implementation library
 
 License: Apache 2.0
 URL: https://pypi.python.org/pypi/%{srcname}
-Source0: https://pypi.python.org/packages/1d/95/977c83da81b3d8b7259f53290f82a9368157889bd0b6b0037463b6fd2ea2/scitokens-0.1.5.tar.gz
+
+# Generated from:
+# git archive v%{version} --prefix=scitokens-%{version}/ | gzip -7 > ~/rpmbuild/SOURCES/scitokens-%{version}.tar.gz
+Source0: %{srcname}-%{version}.tar.gz
 
 BuildArch: noarch
-Requires: python-jwt, python2-cryptography, python2-urltools
+Requires: python-jwt
+Requires: python2-cryptography
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
 Prefix: %{_prefix}
@@ -19,7 +23,7 @@ Prefix: %{_prefix}
 SciToken reference implementation library
 
 %prep
-%setup -q -n scitokens-%{version}
+%setup -q -n %{srcname}-%{version}
 
 %build
 python setup.py build
