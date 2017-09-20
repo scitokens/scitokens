@@ -11,7 +11,7 @@ import base64
 import time
 
 import jwt
-import urltools
+from . import urltools
 
 import cryptography.utils
 import cryptography.hazmat.primitives.asymmetric.ec as ec
@@ -168,8 +168,11 @@ class SciToken(object):
             raise NotImplementedError()
         
         info = serialized_token.decode('utf8').split(".")
-        
+
         if len(info) != 3 and len(info) != 4: # header, format, signature[, key]
+            raise InvalidTokenFormat("Serialized token is not a readable format.")
+
+        if (len(info) != 4) and require_key:
             raise MissingKeyException("No key present in serialized token")
 
         serialized_jwt = info[0] + "." + info[1] + "." + info[2]
@@ -431,9 +434,9 @@ class Enforcer(object):
     def _validate_path(self, value):
         if not isinstance(value, list):
             value = [value]
-        norm_requested_path = urltools.normalize(self._test_path)
+        norm_requested_path = urltools.normalize_path(self._test_path)
         for path in value:
-            norm_path = urltools.normalize(path)
+            norm_path = urltools.normalize_path(path)
             if norm_requested_path.startswith(norm_path):
                 return True
         return False
