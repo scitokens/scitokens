@@ -58,7 +58,6 @@ def decode_base64(data):
     
     return base64.urlsafe_b64decode(data)
 
-
 class MissingKeyException(Exception):
     """
     No private key is present.
@@ -101,11 +100,12 @@ class SciToken(object):
     An object representing the contents of a SciToken.
     """
 
-    def __init__(self, key=None, parent=None, claims=None):
+    def __init__(self, key=None, key_id=None, parent=None, claims=None):
         """
         Construct a SciToken object.
         
         :param key: Private key to sign the SciToken with.  It should be the PEM contents.
+        :param str key_id: A string representing the Key ID that is used at the issuer
         :param parent: Parent SciToken that will be chained
         """
         
@@ -113,6 +113,7 @@ class SciToken(object):
             raise NotImplementedError()
     
         self._key = key
+        self._key_id = key_id
         self._parent = parent
         self._claims = {}
         self._verified_claims = {}
@@ -170,16 +171,23 @@ class SciToken(object):
         issue_time = int(time.time())
         exp_time = int(issue_time + lifetime)
         
-        payload = dict(self._claims)
+        # Add to validated and other claims
+        payload = dict(self._verified_claims)
+        payload.update(self._claims)
+
         
         # Anything below will override what is in the claims
         payload.update({
             "iss": issuer,
             "exp": exp_time,
             "iat": issue_time,
+            "nbf": issue_time
         })
         
-        encoded = jwt.encode(payload, self._key, algorithm = "RS256")
+        if self._key_id != None:
+            encoded = jwt.encode(payload, self._key, algorithm = "RS256", headers={'kid': self._key_id})
+        else:
+            encoded = jwt.encode(payload, self._key, algorithm = "RS256")
         self._serialized_token = encoded
         
         # Move claims over to verified claims
@@ -227,8 +235,14 @@ class SciToken(object):
         
         # Go to the issuer's website, and download the OAuth well known bits
         # https://tools.ietf.org/html/draft-ietf-oauth-discovery-07
-        well_known_uri = "/.well-known/openid-configuration"
-        meta_uri = urlparse.urljoin(issuer, well_known_uri)
+        well_known_uri = ".well-known/openid-configuration"
+        if not issuer.endswith("/"):
+            issuer = issuer + "/"
+        parsed_url = urlparse.urlparse(issuer)
+        updated_url = urlparse.urljoin(parsed_url.path, well_known_uri)
+        parsed_url_list = list(parsed_url)
+        parsed_url_list[2] = updated_url
+        meta_uri = urlparse.urlunparse(parsed_url_list)
         
         # Make sure the protocol is https
         if not insecure:
@@ -250,7 +264,7 @@ class SciToken(object):
         keys_data = json.loads(response.read().decode('utf-8'))
         # Loop through each key, looking for the right key id
         public_key = ""
-        raw_key = {}
+        raw_key = None
         
         # If there is no kid in the header, then just take the first key?
         if 'kid' not in header:
@@ -265,7 +279,10 @@ class SciToken(object):
                 if key['kid'] == header['kid']:
                     raw_key = key
                     break
-                
+
+        if raw_key == None:
+            raise MissingKeyException("Unable to find key at issuer {}".format(jwks_uri))
+
         if raw_key['kty'] == "RSA":
             public_key_numbers = rsa.RSAPublicNumbers(
                 long_from_bytes(raw_key['e']),
