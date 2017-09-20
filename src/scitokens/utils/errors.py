@@ -1,3 +1,7 @@
+"""
+Error and Exceptions in the SciTokens library
+"""
+
 class MissingKeyException(Exception):
     """
     No private key is present.
@@ -15,21 +19,22 @@ class UnsupportedKeyException(Exception):
     could not be handled by this library.
     """
     pass
-    
+
 class MissingIssuerException(Exception):
     """
     Missing the issuer in the SciToken, unable to verify token
     """
     pass
-    
+
 class NonHTTPSIssuer(Exception):
     """
     Non HTTPs issuer, as required by draft-ietf-oauth-discovery-07
     https://tools.ietf.org/html/draft-ietf-oauth-discovery-07
     """
     pass
-    
+
 class InvalidTokenFormat(Exception):
     """
     Encoded token has an invalid format.
     """
+    pass

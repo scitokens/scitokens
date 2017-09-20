@@ -8,7 +8,7 @@ except pkg_resources.DistributionNotFound as error:
     # During testing, scitokens won't be installed, so requiring it will fail
     # Instead, fake it
     PKG_VERSION = '1.0.0'
-    
+
 try:
     import urllib.request as request
 except ImportError:
@@ -25,7 +25,6 @@ from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat,
 import cryptography.hazmat.backends as backends
 import cryptography.hazmat.primitives.asymmetric.ec as ec
 import cryptography.hazmat.primitives.asymmetric.rsa as rsa
-import cryptography.hazmat.backends as backends
 from scitokens.utils.errors import MissingKeyException, NonHTTPSIssuer
 from scitokens.utils import long_from_bytes
 
@@ -46,7 +45,7 @@ class KeyCache(object):
         # Check for the cache
         self.cache_location = self._get_cache_file()
         
-    def getKeyInfo(self, issuer, key_id=None, insecure=False):
+    def getkeyinfo(self, issuer, key_id=None, insecure=False):
         """
         Get the key information
         
@@ -66,7 +65,7 @@ class KeyCache(object):
         
         row = curs.fetchone()
         if row != None:
-            if self._checkValidity(row):
+            if self._check_validity(row):
                 # Convert the PEM formatted public key to a public key object
                 conn.close()
                 return load_pem_public_key(row['keydata'].encode(), backend=backends.default_backend())
@@ -91,8 +90,8 @@ class KeyCache(object):
         conn.close()
         return public_key
         
-    
-    def _checkValidity(self, key_info):
+    @classmethod
+    def _check_validity(cls, key_info):
         """
         Check the key to see if it has expired
         """
