@@ -8,93 +8,17 @@ authorization tokens.
 
 import base64
 
-try:
-    import urllib.request as request
-except ImportError:
-    import urllib2 as request
-    
-try:
-    import urlparse
-except ImportError:
-    import urllib.parse as urlparse
-import json
 import time
 
 import jwt
-import urltools
-import pkg_resources  # part of setuptools
-try:
-    PKG_VERSION = pkg_resources.require("scitokens")[0].version
-except pkg_resources.DistributionNotFound as error:
-    # During testing, scitokens won't be installed, so requiring it will fail
-    # Instead, fake it
-    PKG_VERSION = '1.0.0'
+from . import urltools
 
 import cryptography.utils
 import cryptography.hazmat.primitives.asymmetric.ec as ec
 import cryptography.hazmat.primitives.asymmetric.rsa as rsa
 import cryptography.hazmat.backends as backends
-
-def long_from_bytes(data):
-    """
-    Return an integer from base64-encoded string.
-
-    :param data: UTF-8 string containing base64-encoded data.
-    :returns: Corresponding decoded integer.
-    """
-    return cryptography.utils.int_from_bytes(decode_base64(data.encode("ascii")), 'big')
-
-
-def decode_base64(data):
-    """Decode base64, padding being optional.
-
-    :param data: Base64 data as an ASCII byte string
-    :returns: The decoded byte string.
-
-    """
-    missing_padding = len(data) % 4
-    if missing_padding != 0:
-        data += b'='* (4 - missing_padding)
-    
-    return base64.urlsafe_b64decode(data)
-
-
-class MissingKeyException(Exception):
-    """
-    No private key is present.
-
-    The SciToken required the use of a public or private key, but
-    it was not provided by the caller.
-    """
-    pass
-
-class UnsupportedKeyException(Exception):
-    """
-    Key is present but is of an unsupported format.
-
-    A public or private key was provided to the SciToken, but
-    could not be handled by this library.
-    """
-    pass
-    
-class MissingIssuerException(Exception):
-    """
-    Missing the issuer in the SciToken, unable to verify token
-    """
-    pass
-    
-class NonHTTPSIssuer(Exception):
-    """
-    Non HTTPs issuer, as required by draft-ietf-oauth-discovery-07
-    https://tools.ietf.org/html/draft-ietf-oauth-discovery-07
-    """
-    pass
-    
-class InvalidTokenFormat(Exception):
-    """
-    Encoded token has an invalid format.
-    """
-
+from .utils import keycache as KeyCache, long_from_bytes
+from .utils.errors import UnsupportedKeyException, MissingIssuerException, InvalidTokenFormat
 
 class SciToken(object):
     """
@@ -225,80 +149,6 @@ class SciToken(object):
         a corresponding private key object.
         """
         
-    @staticmethod
-    def _get_issuer_publickey(header, payload, insecure=False):
-        
-        # Get the issuer
-        issuer = payload['iss']
-        
-        # Set the user agent so Cloudflare isn't mad at us
-        headers={'User-Agent': 'SciTokens/{}'.format(PKG_VERSION)}
-        
-        # Go to the issuer's website, and download the OAuth well known bits
-        # https://tools.ietf.org/html/draft-ietf-oauth-discovery-07
-        well_known_uri = ".well-known/openid-configuration"
-        if not issuer.endswith("/"):
-            issuer = issuer + "/"
-        parsed_url = urlparse.urlparse(issuer)
-        updated_url = urlparse.urljoin(parsed_url.path, well_known_uri)
-        parsed_url_list = list(parsed_url)
-        parsed_url_list[2] = updated_url
-        meta_uri = urlparse.urlunparse(parsed_url_list)
-        
-        # Make sure the protocol is https
-        if not insecure:
-            parsed_url = urlparse.urlparse(meta_uri)
-            if parsed_url.scheme != "https":
-                raise NonHTTPSIssuer("Issuer is not over HTTPS.  RFC requires it to be over HTTPS")
-        response = request.urlopen(request.Request(meta_uri, headers=headers))
-        data = json.loads(response.read().decode('utf-8'))
-        
-        # Get the keys URL from the openid-configuration
-        jwks_uri = data['jwks_uri']
-        
-        # Now, get the keys
-        if not insecure:
-            parsed_url = urlparse.urlparse(jwks_uri)
-            if parsed_url.scheme != "https":
-                raise NonHTTPSIssuer("jwks_uri is not over HTTPS, insecure!")
-        response = request.urlopen(request.Request(jwks_uri, headers=headers))
-        keys_data = json.loads(response.read().decode('utf-8'))
-        # Loop through each key, looking for the right key id
-        public_key = ""
-        raw_key = {}
-        
-        # If there is no kid in the header, then just take the first key?
-        if 'kid' not in header:
-            if len(keys_data['keys']) != 1:
-                raise NotImplementedError("No kid in header, but multiple keys in "
-                                          "response from certs server.  Don't know which key to use!")
-            else:
-                raw_key = keys_data['keys'][0]
-        else:
-            # Find the right key
-            for key in keys_data['keys']:
-                if key['kid'] == header['kid']:
-                    raw_key = key
-                    break
-                
-        if raw_key['kty'] == "RSA":
-            public_key_numbers = rsa.RSAPublicNumbers(
-                long_from_bytes(raw_key['e']),
-                long_from_bytes(raw_key['n'])
-            )
-            public_key = public_key_numbers.public_key(backends.default_backend())
-        elif raw_key['kty'] == 'EC':
-            public_key_numbers = ec.EllipticCurvePublicNumbers(
-                   long_from_bytes(raw_key['x']),
-                   long_from_bytes(raw_key['y']),
-                   ec.SECP256R1
-               )
-            public_key = public_key_numbers.public_key(backends.default_backend())
-        else:
-            raise UnsupportedKeyException("SciToken signed with an unsupported key type")
-        
-        return public_key
-        
         
     @staticmethod
     def deserialize(serialized_token, require_key=False, insecure=False):
@@ -317,8 +167,11 @@ class SciToken(object):
             raise NotImplementedError()
         
         info = serialized_token.decode('utf8').split(".")
-        
+
         if len(info) != 3 and len(info) != 4: # header, format, signature[, key]
+            raise InvalidTokenFormat("Serialized token is not a readable format.")
+
+        if (len(info) != 4) and require_key:
             raise MissingKeyException("No key present in serialized token")
 
         serialized_jwt = info[0] + "." + info[1] + "." + info[2]
@@ -327,7 +180,10 @@ class SciToken(object):
         unverified_payload = jwt.decode(serialized_jwt, verify=False)
         
         # Get the public key from the issuer
-        issuer_public_key = SciToken._get_issuer_publickey(unverified_headers, unverified_payload, insecure=insecure)
+        keycache = KeyCache.KeyCache()
+        issuer_public_key = keycache.getkeyinfo(unverified_payload['iss'],
+                            key_id=unverified_headers['kid'],
+                            insecure=insecure)
         
         claims = jwt.decode(serialized_token, issuer_public_key)
         # Do we have the private key?
@@ -579,9 +435,9 @@ class Enforcer(object):
     def _validate_path(self, value):
         if not isinstance(value, list):
             value = [value]
-        norm_requested_path = urltools.normalize(self._test_path)
+        norm_requested_path = urltools.normalize_path(self._test_path)
         for path in value:
-            norm_path = urltools.normalize(path)
+            norm_path = urltools.normalize_path(path)
             if norm_requested_path.startswith(norm_path):
                 return True
         return False
