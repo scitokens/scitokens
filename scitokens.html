@@ -96,13 +96,6 @@ current enforcer context.</p>
 </dd></dl>
 
 <dl class="exception">
-<dt id="scitokens.scitokens.InvalidTokenFormat">
-<em class="property">exception </em><code class="descclassname">scitokens.scitokens.</code><code class="descname">InvalidTokenFormat</code><a class="reference internal" href="_modules/scitokens/scitokens.html#InvalidTokenFormat"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scitokens.scitokens.InvalidTokenFormat" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/exceptions.html#exceptions.Exception" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></code></a></p>
-<p>Encoded token has an invalid format.</p>
-</dd></dl>
-
-<dl class="exception">
 <dt id="scitokens.scitokens.MissingClaims">
 <em class="property">exception </em><code class="descclassname">scitokens.scitokens.</code><code class="descname">MissingClaims</code><a class="reference internal" href="_modules/scitokens/scitokens.html#MissingClaims"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scitokens.scitokens.MissingClaims" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#scitokens.scitokens.ValidationFailure" title="scitokens.scitokens.ValidationFailure"><code class="xref py py-class docutils literal"><span class="pre">scitokens.scitokens.ValidationFailure</span></code></a></p>
@@ -111,35 +104,11 @@ from the token.</p>
 </dd></dl>
 
 <dl class="exception">
-<dt id="scitokens.scitokens.MissingIssuerException">
-<em class="property">exception </em><code class="descclassname">scitokens.scitokens.</code><code class="descname">MissingIssuerException</code><a class="reference internal" href="_modules/scitokens/scitokens.html#MissingIssuerException"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scitokens.scitokens.MissingIssuerException" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/exceptions.html#exceptions.Exception" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></code></a></p>
-<p>Missing the issuer in the SciToken, unable to verify token</p>
-</dd></dl>
-
-<dl class="exception">
-<dt id="scitokens.scitokens.MissingKeyException">
-<em class="property">exception </em><code class="descclassname">scitokens.scitokens.</code><code class="descname">MissingKeyException</code><a class="reference internal" href="_modules/scitokens/scitokens.html#MissingKeyException"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scitokens.scitokens.MissingKeyException" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/exceptions.html#exceptions.Exception" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></code></a></p>
-<p>No private key is present.</p>
-<p>The SciToken required the use of a public or private key, but
-it was not provided by the caller.</p>
-</dd></dl>
-
-<dl class="exception">
 <dt id="scitokens.scitokens.NoRegisteredValidator">
 <em class="property">exception </em><code class="descclassname">scitokens.scitokens.</code><code class="descname">NoRegisteredValidator</code><a class="reference internal" href="_modules/scitokens/scitokens.html#NoRegisteredValidator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scitokens.scitokens.NoRegisteredValidator" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#scitokens.scitokens.ValidationFailure" title="scitokens.scitokens.ValidationFailure"><code class="xref py py-class docutils literal"><span class="pre">scitokens.scitokens.ValidationFailure</span></code></a></p>
 <p>The Validator object attempted validation of a token, but encountered a
 claim with no registered validator.</p>
-</dd></dl>
-
-<dl class="exception">
-<dt id="scitokens.scitokens.NonHTTPSIssuer">
-<em class="property">exception </em><code class="descclassname">scitokens.scitokens.</code><code class="descname">NonHTTPSIssuer</code><a class="reference internal" href="_modules/scitokens/scitokens.html#NonHTTPSIssuer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scitokens.scitokens.NonHTTPSIssuer" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/exceptions.html#exceptions.Exception" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></code></a></p>
-<p>Non HTTPs issuer, as required by draft-ietf-oauth-discovery-07
-<a class="reference external" href="https://tools.ietf.org/html/draft-ietf-oauth-discovery-07">https://tools.ietf.org/html/draft-ietf-oauth-discovery-07</a></p>
 </dd></dl>
 
 <dl class="class">
@@ -228,15 +197,6 @@ as specified in <a class="reference external" href="https://tools.ietf.org/html/
 </dd></dl>
 
 <dl class="exception">
-<dt id="scitokens.scitokens.UnsupportedKeyException">
-<em class="property">exception </em><code class="descclassname">scitokens.scitokens.</code><code class="descname">UnsupportedKeyException</code><a class="reference internal" href="_modules/scitokens/scitokens.html#UnsupportedKeyException"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scitokens.scitokens.UnsupportedKeyException" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/exceptions.html#exceptions.Exception" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></code></a></p>
-<p>Key is present but is of an unsupported format.</p>
-<p>A public or private key was provided to the SciToken, but
-could not be handled by this library.</p>
-</dd></dl>
-
-<dl class="exception">
 <dt id="scitokens.scitokens.ValidationFailure">
 <em class="property">exception </em><code class="descclassname">scitokens.scitokens.</code><code class="descname">ValidationFailure</code><a class="reference internal" href="_modules/scitokens/scitokens.html#ValidationFailure"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scitokens.scitokens.ValidationFailure" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/exceptions.html#exceptions.Exception" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></code></a></p>
@@ -279,38 +239,6 @@ or more claim in this list is not present in the token.</p>
 if the token is valid.</p>
 </dd></dl>
 
-</dd></dl>
-
-<dl class="function">
-<dt id="scitokens.scitokens.decode_base64">
-<code class="descclassname">scitokens.scitokens.</code><code class="descname">decode_base64</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scitokens/scitokens.html#decode_base64"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scitokens.scitokens.decode_base64" title="Permalink to this definition">¶</a></dt>
-<dd><p>Decode base64, padding being optional.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>data</strong> – Base64 data as an ASCII byte string</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The decoded byte string.</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="scitokens.scitokens.long_from_bytes">
-<code class="descclassname">scitokens.scitokens.</code><code class="descname">long_from_bytes</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scitokens/scitokens.html#long_from_bytes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scitokens.scitokens.long_from_bytes" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return an integer from base64-encoded string.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>data</strong> – UTF-8 string containing base64-encoded data.</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Corresponding decoded integer.</td>
-</tr>
-</tbody>
-</table>
 </dd></dl>
 
 </div>

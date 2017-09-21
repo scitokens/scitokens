@@ -55,92 +55,17 @@
 
 <span class="kn">import</span> <span class="nn">base64</span>
 
-<span class="k">try</span><span class="p">:</span>
-    <span class="kn">import</span> <span class="nn">urllib.request</span> <span class="k">as</span> <span class="nn">request</span>
-<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
-    <span class="kn">import</span> <span class="nn">urllib2</span> <span class="k">as</span> <span class="nn">request</span>
-    
-<span class="k">try</span><span class="p">:</span>
-    <span class="kn">import</span> <span class="nn">urlparse</span>
-<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
-    <span class="kn">import</span> <span class="nn">urllib.parse</span> <span class="k">as</span> <span class="nn">urlparse</span>
-<span class="kn">import</span> <span class="nn">json</span>
 <span class="kn">import</span> <span class="nn">time</span>
 
 <span class="kn">import</span> <span class="nn">jwt</span>
 <span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">urltools</span>
-<span class="kn">import</span> <span class="nn">pkg_resources</span>  <span class="c1"># part of setuptools</span>
-<span class="k">try</span><span class="p">:</span>
-    <span class="n">PKG_VERSION</span> <span class="o">=</span> <span class="n">pkg_resources</span><span class="o">.</span><span class="n">require</span><span class="p">(</span><span class="s2">&quot;scitokens&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">version</span>
-<span class="k">except</span> <span class="n">pkg_resources</span><span class="o">.</span><span class="n">DistributionNotFound</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
-    <span class="c1"># During testing, scitokens won&#39;t be installed, so requiring it will fail</span>
-    <span class="c1"># Instead, fake it</span>
-    <span class="n">PKG_VERSION</span> <span class="o">=</span> <span class="s1">&#39;1.0.0&#39;</span>
 
 <span class="kn">import</span> <span class="nn">cryptography.utils</span>
 <span class="kn">import</span> <span class="nn">cryptography.hazmat.primitives.asymmetric.ec</span> <span class="k">as</span> <span class="nn">ec</span>
 <span class="kn">import</span> <span class="nn">cryptography.hazmat.primitives.asymmetric.rsa</span> <span class="k">as</span> <span class="nn">rsa</span>
 <span class="kn">import</span> <span class="nn">cryptography.hazmat.backends</span> <span class="k">as</span> <span class="nn">backends</span>
-
-<div class="viewcode-block" id="long_from_bytes"><a class="viewcode-back" href="../../scitokens.html#scitokens.scitokens.long_from_bytes">[docs]</a><span class="k">def</span> <span class="nf">long_from_bytes</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Return an integer from base64-encoded string.</span>
-
-<span class="sd">    :param data: UTF-8 string containing base64-encoded data.</span>
-<span class="sd">    :returns: Corresponding decoded integer.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">cryptography</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">int_from_bytes</span><span class="p">(</span><span class="n">decode_base64</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">&quot;ascii&quot;</span><span class="p">)),</span> <span class="s1">&#39;big&#39;</span><span class="p">)</span></div>
-
-
-<div class="viewcode-block" id="decode_base64"><a class="viewcode-back" href="../../scitokens.html#scitokens.scitokens.decode_base64">[docs]</a><span class="k">def</span> <span class="nf">decode_base64</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Decode base64, padding being optional.</span>
-
-<span class="sd">    :param data: Base64 data as an ASCII byte string</span>
-<span class="sd">    :returns: The decoded byte string.</span>
-
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">missing_padding</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="o">%</span> <span class="mi">4</span>
-    <span class="k">if</span> <span class="n">missing_padding</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="n">data</span> <span class="o">+=</span> <span class="sa">b</span><span class="s1">&#39;=&#39;</span><span class="o">*</span> <span class="p">(</span><span class="mi">4</span> <span class="o">-</span> <span class="n">missing_padding</span><span class="p">)</span>
-    
-    <span class="k">return</span> <span class="n">base64</span><span class="o">.</span><span class="n">urlsafe_b64decode</span><span class="p">(</span><span class="n">data</span><span class="p">)</span></div>
-
-<div class="viewcode-block" id="MissingKeyException"><a class="viewcode-back" href="../../scitokens.html#scitokens.scitokens.MissingKeyException">[docs]</a><span class="k">class</span> <span class="nc">MissingKeyException</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    No private key is present.</span>
-
-<span class="sd">    The SciToken required the use of a public or private key, but</span>
-<span class="sd">    it was not provided by the caller.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">pass</span></div>
-
-<div class="viewcode-block" id="UnsupportedKeyException"><a class="viewcode-back" href="../../scitokens.html#scitokens.scitokens.UnsupportedKeyException">[docs]</a><span class="k">class</span> <span class="nc">UnsupportedKeyException</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Key is present but is of an unsupported format.</span>
-
-<span class="sd">    A public or private key was provided to the SciToken, but</span>
-<span class="sd">    could not be handled by this library.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">pass</span></div>
-    
-<div class="viewcode-block" id="MissingIssuerException"><a class="viewcode-back" href="../../scitokens.html#scitokens.scitokens.MissingIssuerException">[docs]</a><span class="k">class</span> <span class="nc">MissingIssuerException</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Missing the issuer in the SciToken, unable to verify token</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">pass</span></div>
-    
-<div class="viewcode-block" id="NonHTTPSIssuer"><a class="viewcode-back" href="../../scitokens.html#scitokens.scitokens.NonHTTPSIssuer">[docs]</a><span class="k">class</span> <span class="nc">NonHTTPSIssuer</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Non HTTPs issuer, as required by draft-ietf-oauth-discovery-07</span>
-<span class="sd">    https://tools.ietf.org/html/draft-ietf-oauth-discovery-07</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">pass</span></div>
-    
-<div class="viewcode-block" id="InvalidTokenFormat"><a class="viewcode-back" href="../../scitokens.html#scitokens.scitokens.InvalidTokenFormat">[docs]</a><span class="k">class</span> <span class="nc">InvalidTokenFormat</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Encoded token has an invalid format.</span>
-<span class="sd">    &quot;&quot;&quot;</span></div>
-
+<span class="kn">from</span> <span class="nn">.utils</span> <span class="k">import</span> <span class="n">keycache</span> <span class="k">as</span> <span class="n">KeyCache</span><span class="p">,</span> <span class="n">long_from_bytes</span>
+<span class="kn">from</span> <span class="nn">.utils.errors</span> <span class="k">import</span> <span class="n">UnsupportedKeyException</span><span class="p">,</span> <span class="n">MissingIssuerException</span><span class="p">,</span> <span class="n">InvalidTokenFormat</span>
 
 <div class="viewcode-block" id="SciToken"><a class="viewcode-back" href="../../scitokens.html#scitokens.scitokens.SciToken">[docs]</a><span class="k">class</span> <span class="nc">SciToken</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -271,83 +196,6 @@
 <span class="sd">        a corresponding private key object.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         
-    <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">_get_issuer_publickey</span><span class="p">(</span><span class="n">header</span><span class="p">,</span> <span class="n">payload</span><span class="p">,</span> <span class="n">insecure</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-        
-        <span class="c1"># Get the issuer</span>
-        <span class="n">issuer</span> <span class="o">=</span> <span class="n">payload</span><span class="p">[</span><span class="s1">&#39;iss&#39;</span><span class="p">]</span>
-        
-        <span class="c1"># Set the user agent so Cloudflare isn&#39;t mad at us</span>
-        <span class="n">headers</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;User-Agent&#39;</span><span class="p">:</span> <span class="s1">&#39;SciTokens/</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">PKG_VERSION</span><span class="p">)}</span>
-        
-        <span class="c1"># Go to the issuer&#39;s website, and download the OAuth well known bits</span>
-        <span class="c1"># https://tools.ietf.org/html/draft-ietf-oauth-discovery-07</span>
-        <span class="n">well_known_uri</span> <span class="o">=</span> <span class="s2">&quot;.well-known/openid-configuration&quot;</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">issuer</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">):</span>
-            <span class="n">issuer</span> <span class="o">=</span> <span class="n">issuer</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span>
-        <span class="n">parsed_url</span> <span class="o">=</span> <span class="n">urlparse</span><span class="o">.</span><span class="n">urlparse</span><span class="p">(</span><span class="n">issuer</span><span class="p">)</span>
-        <span class="n">updated_url</span> <span class="o">=</span> <span class="n">urlparse</span><span class="o">.</span><span class="n">urljoin</span><span class="p">(</span><span class="n">parsed_url</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">well_known_uri</span><span class="p">)</span>
-        <span class="n">parsed_url_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">parsed_url</span><span class="p">)</span>
-        <span class="n">parsed_url_list</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">updated_url</span>
-        <span class="n">meta_uri</span> <span class="o">=</span> <span class="n">urlparse</span><span class="o">.</span><span class="n">urlunparse</span><span class="p">(</span><span class="n">parsed_url_list</span><span class="p">)</span>
-        
-        <span class="c1"># Make sure the protocol is https</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">insecure</span><span class="p">:</span>
-            <span class="n">parsed_url</span> <span class="o">=</span> <span class="n">urlparse</span><span class="o">.</span><span class="n">urlparse</span><span class="p">(</span><span class="n">meta_uri</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">parsed_url</span><span class="o">.</span><span class="n">scheme</span> <span class="o">!=</span> <span class="s2">&quot;https&quot;</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="n">NonHTTPSIssuer</span><span class="p">(</span><span class="s2">&quot;Issuer is not over HTTPS.  RFC requires it to be over HTTPS&quot;</span><span class="p">)</span>
-        <span class="n">response</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">Request</span><span class="p">(</span><span class="n">meta_uri</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">))</span>
-        <span class="n">data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">))</span>
-        
-        <span class="c1"># Get the keys URL from the openid-configuration</span>
-        <span class="n">jwks_uri</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;jwks_uri&#39;</span><span class="p">]</span>
-        
-        <span class="c1"># Now, get the keys</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">insecure</span><span class="p">:</span>
-            <span class="n">parsed_url</span> <span class="o">=</span> <span class="n">urlparse</span><span class="o">.</span><span class="n">urlparse</span><span class="p">(</span><span class="n">jwks_uri</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">parsed_url</span><span class="o">.</span><span class="n">scheme</span> <span class="o">!=</span> <span class="s2">&quot;https&quot;</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="n">NonHTTPSIssuer</span><span class="p">(</span><span class="s2">&quot;jwks_uri is not over HTTPS, insecure!&quot;</span><span class="p">)</span>
-        <span class="n">response</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">Request</span><span class="p">(</span><span class="n">jwks_uri</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">))</span>
-        <span class="n">keys_data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">))</span>
-        <span class="c1"># Loop through each key, looking for the right key id</span>
-        <span class="n">public_key</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
-        <span class="n">raw_key</span> <span class="o">=</span> <span class="kc">None</span>
-        
-        <span class="c1"># If there is no kid in the header, then just take the first key?</span>
-        <span class="k">if</span> <span class="s1">&#39;kid&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">header</span><span class="p">:</span>
-            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">keys_data</span><span class="p">[</span><span class="s1">&#39;keys&#39;</span><span class="p">])</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;No kid in header, but multiple keys in &quot;</span>
-                                          <span class="s2">&quot;response from certs server.  Don&#39;t know which key to use!&quot;</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">raw_key</span> <span class="o">=</span> <span class="n">keys_data</span><span class="p">[</span><span class="s1">&#39;keys&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="c1"># Find the right key</span>
-            <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">keys_data</span><span class="p">[</span><span class="s1">&#39;keys&#39;</span><span class="p">]:</span>
-                <span class="k">if</span> <span class="n">key</span><span class="p">[</span><span class="s1">&#39;kid&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">header</span><span class="p">[</span><span class="s1">&#39;kid&#39;</span><span class="p">]:</span>
-                    <span class="n">raw_key</span> <span class="o">=</span> <span class="n">key</span>
-                    <span class="k">break</span>
-
-        <span class="k">if</span> <span class="n">raw_key</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">MissingKeyException</span><span class="p">(</span><span class="s2">&quot;Unable to find key at issuer </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">jwks_uri</span><span class="p">))</span>
-
-        <span class="k">if</span> <span class="n">raw_key</span><span class="p">[</span><span class="s1">&#39;kty&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;RSA&quot;</span><span class="p">:</span>
-            <span class="n">public_key_numbers</span> <span class="o">=</span> <span class="n">rsa</span><span class="o">.</span><span class="n">RSAPublicNumbers</span><span class="p">(</span>
-                <span class="n">long_from_bytes</span><span class="p">(</span><span class="n">raw_key</span><span class="p">[</span><span class="s1">&#39;e&#39;</span><span class="p">]),</span>
-                <span class="n">long_from_bytes</span><span class="p">(</span><span class="n">raw_key</span><span class="p">[</span><span class="s1">&#39;n&#39;</span><span class="p">])</span>
-            <span class="p">)</span>
-            <span class="n">public_key</span> <span class="o">=</span> <span class="n">public_key_numbers</span><span class="o">.</span><span class="n">public_key</span><span class="p">(</span><span class="n">backends</span><span class="o">.</span><span class="n">default_backend</span><span class="p">())</span>
-        <span class="k">elif</span> <span class="n">raw_key</span><span class="p">[</span><span class="s1">&#39;kty&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;EC&#39;</span><span class="p">:</span>
-            <span class="n">public_key_numbers</span> <span class="o">=</span> <span class="n">ec</span><span class="o">.</span><span class="n">EllipticCurvePublicNumbers</span><span class="p">(</span>
-                   <span class="n">long_from_bytes</span><span class="p">(</span><span class="n">raw_key</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">]),</span>
-                   <span class="n">long_from_bytes</span><span class="p">(</span><span class="n">raw_key</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">]),</span>
-                   <span class="n">ec</span><span class="o">.</span><span class="n">SECP256R1</span>
-               <span class="p">)</span>
-            <span class="n">public_key</span> <span class="o">=</span> <span class="n">public_key_numbers</span><span class="o">.</span><span class="n">public_key</span><span class="p">(</span><span class="n">backends</span><span class="o">.</span><span class="n">default_backend</span><span class="p">())</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">UnsupportedKeyException</span><span class="p">(</span><span class="s2">&quot;SciToken signed with an unsupported key type&quot;</span><span class="p">)</span>
-        
-        <span class="k">return</span> <span class="n">public_key</span>
-        
         
 <div class="viewcode-block" id="SciToken.deserialize"><a class="viewcode-back" href="../../scitokens.html#scitokens.scitokens.SciToken.deserialize">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">deserialize</span><span class="p">(</span><span class="n">serialized_token</span><span class="p">,</span> <span class="n">require_key</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">insecure</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
@@ -379,7 +227,10 @@
         <span class="n">unverified_payload</span> <span class="o">=</span> <span class="n">jwt</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="n">serialized_jwt</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
         
         <span class="c1"># Get the public key from the issuer</span>
-        <span class="n">issuer_public_key</span> <span class="o">=</span> <span class="n">SciToken</span><span class="o">.</span><span class="n">_get_issuer_publickey</span><span class="p">(</span><span class="n">unverified_headers</span><span class="p">,</span> <span class="n">unverified_payload</span><span class="p">,</span> <span class="n">insecure</span><span class="o">=</span><span class="n">insecure</span><span class="p">)</span>
+        <span class="n">keycache</span> <span class="o">=</span> <span class="n">KeyCache</span><span class="o">.</span><span class="n">KeyCache</span><span class="p">()</span>
+        <span class="n">issuer_public_key</span> <span class="o">=</span> <span class="n">keycache</span><span class="o">.</span><span class="n">getkeyinfo</span><span class="p">(</span><span class="n">unverified_payload</span><span class="p">[</span><span class="s1">&#39;iss&#39;</span><span class="p">],</span>
+                            <span class="n">key_id</span><span class="o">=</span><span class="n">unverified_headers</span><span class="p">[</span><span class="s1">&#39;kid&#39;</span><span class="p">],</span>
+                            <span class="n">insecure</span><span class="o">=</span><span class="n">insecure</span><span class="p">)</span>
         
         <span class="n">claims</span> <span class="o">=</span> <span class="n">jwt</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="n">serialized_token</span><span class="p">,</span> <span class="n">issuer_public_key</span><span class="p">)</span>
         <span class="c1"># Do we have the private key?</span>
