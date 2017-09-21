@@ -13,6 +13,7 @@ setuptools.setup(name="scitokens",
                  url="https://scitokens.org",
                  package_dir={"": "src"},
                  packages=["scitokens"],
+                 scripts=['tools/scitokens-admin-create'],
                  install_requires=['cryptography',
                                    'PyJWT'],
                 )
