@@ -1,0 +1,105 @@
+#!/usr/bin/env python
+"""
+Create the oauth2 certs file from a given private or public key.  The resulting format
+should be something like:
+
+{
+    "keys": [
+        {
+            "alg": "RS256",
+            "e": "AQAB",
+            "kid": "ca78d4d8011b0442025c05885efba3f83764b436961d5cf09cec408ac6c675f2",
+            "kty": "RSA",
+            "n": "07llFSVsW8cXjy0kG2jHYm084QaSEZcrtw02fHbo30gxgdp6h-maIwNkj_xB-N29kUAe0McoJaL_P4P29rZfh_gh06f9fu60g_GPfVXBuKI61k1FfseaHLtwk2l20WOYHnx92v69UeylJEyNVVYNEhPUHEZdWWqzOjMUIC7XBnQ_GRiGu_9y7JFY-sIS28Iv36r7HKxv1k_i_B5LpOcZ0wUVxmk2WsflgSLg94iUAs8EU2ugI0ea8HG8hP6lPvcWdz4xIQlPYaovrLV_PgTOxVouye979BGIiWgkC7v0hYn5TV7xoIu_3ytm-MKFfas3MZ0cnGBWjlBqVNf-wNguSQ==",
+            "use": "sig"
+        }
+    ]
+}
+
+"""
+
+import sys
+import cryptography.utils
+from cryptography.hazmat.primitives import serialization, hashes
+from cryptography.hazmat.backends import default_backend
+import base64
+import binascii
+import json
+import argparse
+
+def string_from_long(data):
+    """
+    Create a base64 encoded string for an integer
+    """
+    return base64.urlsafe_b64encode(cryptography.utils.int_to_bytes(data)).decode('ascii')
+
+def bytes_from_long(data):
+    """
+    Create a base64 encoded bytes for an integer
+    """
+    return base64.urlsafe_b64encode(cryptography.utils.int_to_bytes(data))
+
+
+def add_args():
+    """
+    Generate the ArgumentParser object for the CLI.
+    """
+    parser = argparse.ArgumentParser(description='Create a public key for the oauth certs file')
+    
+    # Mutual exclude.  Either give the private keyfile, or public, but not both, and at least 1
+    group = parser.add_mutually_exclusive_group(required=True)
+    group.add_argument('--private-keyfile',
+                        help='Location of the unencrypted private key file')
+    group.add_argument('--public-keyfile',
+                        help='Location of a public key file')
+
+    args = parser.parse_args()
+    return args
+
+
+def main():
+    """
+    Given a set of command line parameters, generate a corresponding oauth2 certs file.
+    """
+    args = add_args()
+    
+    if args.private_keyfile != None:
+        with open(args.private_keyfile, 'rb') as key_file:
+            private_key = serialization.load_pem_private_key(
+                key_file.read(),
+                password=None,
+                backend=default_backend()
+            )
+            public_key = private_key.public_key()
+    else:
+        with open(args.public_keyfile, "rb") as key_file:
+            public_key = serialization.load_pem_public_key(
+                key_file.read(),
+                backend=default_backend()
+            )
+
+    # Get the public numbers
+    #public_key = private_key.public_key()
+    numbers = public_key.public_numbers()
+
+    # Hash the public "n", and use it for the Key ID (kid)
+    digest = hashes.Hash(hashes.SHA256(), backend=default_backend())
+    digest.update(bytes_from_long(numbers.n))
+    kid = binascii.hexlify(digest.finalize())
+
+    keys = {'keys': [
+        {
+            "alg": "RS256",
+            "n": string_from_long(numbers.n),
+            "e": string_from_long(numbers.e),
+            "kty": "RSA",
+            "use": "sig",
+            "kid": kid.decode('utf-8')
+        }
+    ]}
+
+    print(json.dumps(keys, sort_keys=True,
+                    indent=4, separators=(',', ': ')))
+
+if __name__ == "__main__":
+    main()
