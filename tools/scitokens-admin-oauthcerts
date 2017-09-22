@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python
 """
 Create the oauth2 certs file from a given private or public key.  The resulting format
 should be something like:
@@ -26,25 +26,16 @@ import base64
 import binascii
 import json
 import argparse
+from scitokens.utils import string_from_long, bytes_from_long
 
-def string_from_long(data):
-    """
-    Create a base64 encoded string for an integer
-    """
-    return base64.urlsafe_b64encode(cryptography.utils.int_to_bytes(data)).decode('ascii')
 
-def bytes_from_long(data):
-    """
-    Create a base64 encoded bytes for an integer
-    """
-    return base64.urlsafe_b64encode(cryptography.utils.int_to_bytes(data))
 
 
 def add_args():
     """
     Generate the ArgumentParser object for the CLI.
     """
-    parser = argparse.ArgumentParser(description='Create a public key for the oauth certs file')
+    parser = argparse.ArgumentParser(description='Format a given public key (or create one from a private key) in the format needed for OAuth2 issuer')
     
     # Mutual exclude.  Either give the private keyfile, or public, but not both, and at least 1
     group = parser.add_mutually_exclusive_group(required=True)
@@ -63,7 +54,7 @@ def main():
     """
     args = add_args()
     
-    if args.private_keyfile != None:
+    if args.private_keyfile:
         with open(args.private_keyfile, 'rb') as key_file:
             private_key = serialization.load_pem_private_key(
                 key_file.read(),
@@ -79,7 +70,6 @@ def main():
             )
 
     # Get the public numbers
-    #public_key = private_key.public_key()
     numbers = public_key.public_numbers()
 
     # Hash the public "n", and use it for the Key ID (kid)
