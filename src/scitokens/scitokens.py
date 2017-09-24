@@ -138,10 +138,34 @@ class SciToken(object):
         """
         self._claims[claim] = value
 
+    def __getitem__(self, claim):
+        """
+        Access the value corresponding to a particular claim; will
+        return claims from both the verified and unverified claims.
+
+        If a claim is not present, then a KeyError is thrown.
+        """
+        if claim in self._claims:
+            return self._claims[claim]
+        if claim in self._verified_claims:
+            return self._verified_claims[claim]
+        raise KeyError(claim)
+
+    def get(self, claim, default=None, verified_only=False):
+        """
+        Return the value associated with a claim, returning the
+        default if the claim is not present.  If `verified_only` is
+        True, then a claim is returned only if it is in the verified claims
+        """
+        if verified_only:
+            return self._verified_claims.get(claim, default)
+        return self._claims.get(claim, self._verified_claims.get(claim, default))
+
     def clone_chain(self):
         """
         Return a new, empty SciToken
         """
+        raise NotImplementedError()
 
     def _deserialize_key(self, key_serialized, unverified_headers):
         """
