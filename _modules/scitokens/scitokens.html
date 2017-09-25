@@ -185,10 +185,34 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_claims</span><span class="p">[</span><span class="n">claim</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
 
+    <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">claim</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Access the value corresponding to a particular claim; will</span>
+<span class="sd">        return claims from both the verified and unverified claims.</span>
+
+<span class="sd">        If a claim is not present, then a KeyError is thrown.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">claim</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_claims</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_claims</span><span class="p">[</span><span class="n">claim</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">claim</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_verified_claims</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_verified_claims</span><span class="p">[</span><span class="n">claim</span><span class="p">]</span>
+        <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="n">claim</span><span class="p">)</span>
+
+<div class="viewcode-block" id="SciToken.get"><a class="viewcode-back" href="../../scitokens.html#scitokens.scitokens.SciToken.get">[docs]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">claim</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verified_only</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the value associated with a claim, returning the</span>
+<span class="sd">        default if the claim is not present.  If `verified_only` is</span>
+<span class="sd">        True, then a claim is returned only if it is in the verified claims</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">verified_only</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_verified_claims</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">claim</span><span class="p">,</span> <span class="n">default</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_claims</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">claim</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_verified_claims</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">claim</span><span class="p">,</span> <span class="n">default</span><span class="p">))</span></div>
+
 <div class="viewcode-block" id="SciToken.clone_chain"><a class="viewcode-back" href="../../scitokens.html#scitokens.scitokens.SciToken.clone_chain">[docs]</a>    <span class="k">def</span> <span class="nf">clone_chain</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return a new, empty SciToken</span>
-<span class="sd">        &quot;&quot;&quot;</span></div>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span></div>
 
     <span class="k">def</span> <span class="nf">_deserialize_key</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key_serialized</span><span class="p">,</span> <span class="n">unverified_headers</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>

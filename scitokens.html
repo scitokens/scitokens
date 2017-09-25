@@ -151,6 +151,14 @@ including allowing “localhost” issuer (useful in testing).  Default=False</l
 </dd></dl>
 
 <dl class="method">
+<dt id="scitokens.scitokens.SciToken.get">
+<code class="descname">get</code><span class="sig-paren">(</span><em>claim</em>, <em>default=None</em>, <em>verified_only=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scitokens/scitokens.html#SciToken.get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scitokens.scitokens.SciToken.get" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the value associated with a claim, returning the
+default if the claim is not present.  If <cite>verified_only</cite> is
+True, then a claim is returned only if it is in the verified claims</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="scitokens.scitokens.SciToken.serialize">
 <code class="descname">serialize</code><span class="sig-paren">(</span><em>include_key=False</em>, <em>issuer=None</em>, <em>lifetime=600</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scitokens/scitokens.html#SciToken.serialize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scitokens.scitokens.SciToken.serialize" title="Permalink to this definition">¶</a></dt>
 <dd><p>Serialize the existing SciToken.</p>
