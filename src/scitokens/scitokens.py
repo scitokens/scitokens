@@ -402,6 +402,11 @@ class Enforcer(object):
             raise EnforcementError("Issuer must be specified.")
         self._audience = audience
         self._site = site
+        self._test_authz = None
+        self._test_path = None
+        self._token_paths = set()
+        self._token_authzs = set()
+        self._now = 0
         self._validator = Validator()
         self._validator.add_validator("exp", self._validate_exp)
         self._validator.add_validator("nbf", self._validate_nbf)
