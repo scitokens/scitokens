@@ -189,8 +189,10 @@ class SciToken(object):
         
         if require_key is not False:
             raise NotImplementedError()
-        
-        info = serialized_token.decode('utf8').split(".")
+
+        if isinstance(serialized_token, bytes):
+            serialized_token = serialized_token.decode('utf8')
+        info = serialized_token.split(".")
 
         if len(info) != 3 and len(info) != 4: # header, format, signature[, key]
             raise InvalidTokenFormat("Serialized token is not a readable format.")
@@ -201,7 +203,7 @@ class SciToken(object):
         serialized_jwt = info[0] + "." + info[1] + "." + info[2]
 
         unverified_headers = jwt.get_unverified_header(serialized_jwt)
-        unverified_payload = jwt.decode(serialized_jwt, verify=False)
+        unverified_payload = jwt.decode(serialized_jwt, verify=False, algorithms=['RS256'])
         
         # Get the public key from the issuer
         keycache = KeyCache.KeyCache.getinstance()
@@ -209,7 +211,7 @@ class SciToken(object):
                             key_id=unverified_headers['kid'],
                             insecure=insecure)
         
-        claims = jwt.decode(serialized_token, issuer_public_key)
+        claims = jwt.decode(serialized_token, issuer_public_key, algorithms=['RS256'])
         # Do we have the private key?
         if len(info) == 4:
             to_return = SciToken(key = key)
