@@ -49,6 +49,9 @@ class TestCreation(unittest.TestCase):
         print(serialized_token)
 
     def test_serialize(self):
+        """
+        Test various edge cases of serialization, particularly around failures.
+        """
         with self.assertRaises(NotImplementedError):
             print(self._token.serialize(issuer="local", include_key=True))
 
@@ -72,6 +75,9 @@ class TestCreation(unittest.TestCase):
             print(scitokens.SciToken.deserialize("asdf1234"))
 
     def test_create_to_validate(self):
+        """
+        End-to-end test of SciToken creation, verification, and validation.
+        """
         self._token['authz'] = 'write'
         self._token['path'] = '/home/example'
         serialized_token = self._token.serialize(issuer="local")

@@ -6,19 +6,13 @@ This library provides the primitives necessary for working with SciTokens
 authorization tokens.
 """
 
-import base64
-
 import time
 
 import jwt
 from . import urltools
 
-import cryptography.utils
-import cryptography.hazmat.primitives.asymmetric.ec as ec
-import cryptography.hazmat.primitives.asymmetric.rsa as rsa
-import cryptography.hazmat.backends as backends
-from .utils import keycache as KeyCache, long_from_bytes
-from .utils.errors import UnsupportedKeyException, MissingIssuerException, InvalidTokenFormat, MissingKeyException
+from .utils import keycache as KeyCache
+from .utils.errors import MissingIssuerException, InvalidTokenFormat, MissingKeyException
 
 class SciToken(object):
     """

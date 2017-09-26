@@ -30,7 +30,7 @@ from scitokens.utils import long_from_bytes
 
 
 CACHE_FILENAME = "scitokens_keycache.sqllite"
-g_keycache = None
+KEYCACHE_INSTANCE = None
 
 class UnableToWriteKeyCache(Exception):
     """
@@ -49,10 +49,10 @@ class KeyCache(object):
         """
         Return the singleton instance of the KeyCache.
         """
-        global g_keycache
-        if g_keycache is None:
-            g_keycache = KeyCache()
-        return g_keycache
+        global KEYCACHE_INSTANCE
+        if KEYCACHE_INSTANCE is None:
+            KEYCACHE_INSTANCE = KeyCache()
+        return KEYCACHE_INSTANCE
 
     def addkeyinfo(self, issuer, key_id, public_key):
         """
@@ -62,11 +62,12 @@ class KeyCache(object):
         conn.row_factory = sqlite3.Row
         curs = conn.cursor()
         curs.execute("DELETE FROM keycache WHERE issuer = '{}' AND key_id = '{}'".format(issuer, key_id))
-        self._addkeyinfo(curs, issuer, key_id, public_key)
+        KeyCache._addkeyinfo(curs, issuer, key_id, public_key)
         conn.commit()
         conn.close()
 
-    def _addkeyinfo(self, curs, issuer, key_id, public_key):
+    @staticmethod
+    def _addkeyinfo(curs, issuer, key_id, public_key):
         """
         Given an open database cursor to a key cache, insert a key.
         """
