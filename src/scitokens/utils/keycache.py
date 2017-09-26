@@ -29,9 +29,8 @@ from scitokens.utils.errors import MissingKeyException, NonHTTPSIssuer
 from scitokens.utils import long_from_bytes
 
 
-
-
 CACHE_FILENAME = "scitokens_keycache.sqllite"
+g_keycache = None
 
 class UnableToWriteKeyCache(Exception):
     """
@@ -40,11 +39,45 @@ class UnableToWriteKeyCache(Exception):
     pass
 
 class KeyCache(object):
+
     def __init__(self):
-        
         # Check for the cache
         self.cache_location = self._get_cache_file()
-        
+
+    @staticmethod
+    def getinstance():
+        """
+        Return the singleton instance of the KeyCache.
+        """
+        global g_keycache
+        if g_keycache is None:
+            g_keycache = KeyCache()
+        return g_keycache
+
+    def addkeyinfo(self, issuer, key_id, public_key):
+        """
+        Add a single, known public key to the cache.
+        """
+        conn = sqlite3.connect(self.cache_location)
+        conn.row_factory = sqlite3.Row
+        curs = conn.cursor()
+        curs.execute("DELETE FROM keycache WHERE issuer = '{}' AND key_id = '{}'".format(issuer, key_id))
+        self._addkeyinfo(curs, issuer, key_id, public_key)
+        conn.commit()
+        conn.close()
+
+    def _addkeyinfo(self, curs, issuer, key_id, public_key):
+        """
+        Given an open database cursor to a key cache, insert a key.
+        """
+        # Add the key to the cache
+        insert_key_statement = "INSERT INTO keycache VALUES('{issuer}', '{expiration}', '{key_id}', '{keydata}')"
+        keydata = public_key.public_bytes(Encoding.PEM, PublicFormat.PKCS1).decode('ascii')
+
+        curs.execute(insert_key_statement.format(issuer=issuer, expiration=time.time()+60, key_id=key_id, keydata=keydata))
+        if curs.rowcount != 1:
+            raise UnableToWriteKeyCache("Unable to insert into key cache")
+
     def getkeyinfo(self, issuer, key_id=None, insecure=False):
         """
         Get the key information
@@ -76,14 +109,8 @@ class KeyCache(object):
         # If it reaches here, then no key was found in the SQL
         # Try checking the issuer (negative cache?)
         public_key = self._get_issuer_publickey(issuer, key_id, insecure)
-        
-        # Add the key to the cache
-        insert_key_statement = "INSERT INTO keycache VALUES('{issuer}', '{expiration}', '{key_id}', '{keydata}')"
-        keydata = public_key.public_bytes(Encoding.PEM, PublicFormat.PKCS1).decode('ascii')
 
-        curs.execute(insert_key_statement.format(issuer=issuer, expiration=time.time()+60, key_id=key_id, keydata=keydata))
-        if curs.rowcount != 1:
-            raise UnableToWriteKeyCache("Unable to insert into key cache")
+        self._addkeyinfo(curs, issuer, key_id, public_key)
 
         # Save (commit) the changes
         conn.commit()
@@ -224,4 +251,3 @@ class KeyCache(object):
         # We can also close the connection if we are done with it.
         # Just be sure any changes have been committed or they will be lost.
         conn.close()
-        

@@ -18,7 +18,7 @@ import cryptography.hazmat.primitives.asymmetric.ec as ec
 import cryptography.hazmat.primitives.asymmetric.rsa as rsa
 import cryptography.hazmat.backends as backends
 from .utils import keycache as KeyCache, long_from_bytes
-from .utils.errors import UnsupportedKeyException, MissingIssuerException, InvalidTokenFormat
+from .utils.errors import UnsupportedKeyException, MissingIssuerException, InvalidTokenFormat, MissingKeyException
 
 class SciToken(object):
     """
@@ -204,7 +204,7 @@ class SciToken(object):
         unverified_payload = jwt.decode(serialized_jwt, verify=False)
         
         # Get the public key from the issuer
-        keycache = KeyCache.KeyCache()
+        keycache = KeyCache.KeyCache.getinstance()
         issuer_public_key = keycache.getkeyinfo(unverified_payload['iss'],
                             key_id=unverified_headers['kid'],
                             insecure=insecure)
