@@ -376,6 +376,13 @@ class EnforcementError(Exception):
     A generic error during the enforcement of a SciToken.
     """
 
+class InvalidPathError(EnforcementError):
+    """
+    An invalid test path was provided to the Enforcer object.
+
+    Test paths must be absolute paths (start with '/')
+    """
+
 class Enforcer(object):
 
     """
@@ -393,9 +400,6 @@ class Enforcer(object):
         self.last_failure = None
         if not self._issuer:
             raise EnforcementError("Issuer must be specified.")
-        self._now = 0
-        self._test_authz = None
-        self._test_path = None
         self._audience = audience
         self._site = site
         self._validator = Validator()
@@ -408,6 +412,18 @@ class Enforcer(object):
         self._validator.add_validator("path", self._validate_path)
         self._validator.add_validator("authz", self._validate_authz)
 
+    def _reset_state(self):
+        """
+        Reset the internal state variables of the Enforcer object.  Automatically
+        invoked each time the Enforcer is used to test or generate_acls
+        """
+        self._test_authz = None
+        self._test_path = None
+        self._token_paths = set()
+        self._token_authzs = set()
+        self._now = time.time()
+        self.last_failure = None
+
     def add_validator(self, claim, validator):
         """
         Add a user-defined validator in addition to the default enforcer logic.
@@ -419,18 +435,51 @@ class Enforcer(object):
         Test whether a given token has the requested permission within the
         current enforcer context.
         """
+        self._reset_state()
+
         critical_claims = set(["authz"])
         if authz in self._authz_requiring_path:
             critical_claims.add("path")
-        self._now = time.time()
+        if not path:
+            raise InvalidPathError("Enforcer provided with an empty path.")
+        if not path.startswith("/"):
+            raise InvalidPathError("Enforcer was given an invalid relative path to test; absolute path required.")
+
         self._test_path = path
         self._test_authz = authz
+        self.last_failure = None
         try:
             self._validator.validate(token, critical_claims=critical_claims)
         except ValidationFailure as vf:
             self.last_failure = str(vf)
             return False
         return True
+
+    def generate_acls(self, token):
+        """
+        Given a SciToken object and the expected issuer, return the valid ACLs.
+        """
+        self._reset_state()
+
+        critical_claims = set(["authz"])
+        if not isinstance(token.get('authz', []), list):
+            authz_list = [token.get('authz')]
+        else:
+            authz_list = token.get('authz', [])
+        for authz in authz_list:
+            if authz in self._authz_requiring_path:
+                critical_claims.add("path")
+
+        try:
+            self._validator.validate(token, critical_claims=critical_claims)
+        except ValidationFailure as vf:
+            self.last_failure = str(vf)
+            raise
+        acls = []
+        for authz in self._token_authzs:
+            for path in self._token_paths:
+                acls.append((authz, path))
+        return acls
 
     def _validate_exp(self, value):
         exp = float(value)
@@ -459,18 +508,28 @@ class Enforcer(object):
     def _validate_path(self, value):
         if not isinstance(value, list):
             value = [value]
-        norm_requested_path = urltools.normalize_path(self._test_path)
-        for path in value:
-            norm_path = urltools.normalize_path(path)
-            if norm_requested_path.startswith(norm_path):
-                return True
-        return False
+        if self._test_path:
+            norm_requested_path = urltools.normalize_path(self._test_path)
+            for path in value:
+                norm_path = urltools.normalize_path(path)
+                if norm_requested_path.startswith(norm_path):
+                    return True
+            return False
+        else:
+            for path in value:
+                if not path.startswith("/"):
+                    raise InvalidPathError("Token contains a relative path")
+                self._token_paths.add(urltools.normalize_path(path))
+            return True
 
     def _validate_authz(self, value):
         if not isinstance(value, list):
             value = [value]
         for authz in value:
-            if self._test_authz == authz:
-                return True
-        return False
+            if self._test_authz:
+                if self._test_authz == authz:
+                    return True
+            else:
+                self._token_authzs.add(authz)
+        return not self._test_authz
 
