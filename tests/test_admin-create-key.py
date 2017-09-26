@@ -1,6 +1,9 @@
+"""
+Test the admin-create-key tool
+"""
+
 import os
 import sys
-import time
 import unittest
 import subprocess
 from cryptography.hazmat.backends import default_backend
@@ -14,30 +17,33 @@ if os.path.exists("src"):
     sys.path.append("src")
 if os.path.exists("../src"):
     sys.path.append("../src")
-    
+
 from scitokens.utils import long_from_bytes
 
 class TestKeyCreate(unittest.TestCase):
-    
-    toDelete = []
-    
+
+    to_delete = []
+
     def setUp(self):
         os.environ['PYTHONPATH'] = ":".join(sys.path)
-    
-    def _test_private(self, key):
+
+    @staticmethod
+    def _test_private(key):
         return serialization.load_pem_private_key(
             key,
             password=None,
             backend=default_backend()
         )
-        
-    def _test_public(self, key):
+
+    @staticmethod
+    def _test_public(key):
         return serialization.load_pem_public_key(
             key,
             backend=default_backend()
         )
-        
-    def _test_public_jwk(self, key):
+
+    @staticmethod
+    def _test_public_jwk(key):
         """
         Attempt to read in the key into a key object
         """
@@ -47,10 +53,11 @@ class TestKeyCreate(unittest.TestCase):
             long_from_bytes(keys['keys'][0]['n'])
         )
         return public_key_numbers.public_key(default_backend())
-        
-    def _test_private_jwk(self, key):
+
+    @staticmethod
+    def _test_private_jwk(key):
         """
-        Attempt to read in the key into the 
+        Attempt to read in the key into a private key object
         """
         keys = json.loads(key)
         public_key_numbers = rsa.RSAPublicNumbers(
@@ -78,58 +85,67 @@ class TestKeyCreate(unittest.TestCase):
             print(stderr)
             self.assertEqual(command_run.returncode, 0)
         return stdout
-        
-    
+
+
     def test_create(self):
+        """
+        Test the key creation
+        """
         command = "python tools/scitokens-admin-create-key --create-keys --pem-private"
         output = self._run_command(command)
         private_key = self._test_private(output)
         self.assertIsNotNone(private_key)
-        
+
         # Test public key
         command = "python tools/scitokens-admin-create-key --create-keys --pem-public"
         output = self._run_command(command)
         public_key = self._test_public(output)
         self.assertIsNotNone(public_key)
-        
+
         # Test public key
         command = "python tools/scitokens-admin-create-key --create-keys --jwks-private"
         output = self._run_command(command)
         private_key = self._test_private_jwk(output)
         self.assertIsNotNone(public_key)
-        
+
         # Test public key
         command = "python tools/scitokens-admin-create-key --create-keys --jwks-public"
         output = self._run_command(command)
         public_key = self._test_public_jwk(output)
         self.assertIsNotNone(public_key)
-        
-    
+
+
     def test_parse_private(self):
+        """
+        Test reading in the private key
+        """
         command = "python tools/scitokens-admin-create-key --private-key=tests/simple_private_key.pem --pem-private"
         output = self._run_command(command)
         private_key = self._test_private(output)
         self.assertIsNotNone(private_key)
-        
+
         # Test public key
         command = "python tools/scitokens-admin-create-key --private-key=tests/simple_private_key.pem --pem-public"
         output = self._run_command(command)
         public_key = self._test_public(output)
         self.assertIsNotNone(public_key)
-        
+
         # Test public key
         command = "python tools/scitokens-admin-create-key --private-key=tests/simple_private_key.pem --jwks-private"
         output = self._run_command(command)
         private_key = self._test_private_jwk(output)
         self.assertIsNotNone(public_key)
-        
+
         # Test public key
         command = "python tools/scitokens-admin-create-key --private-key=tests/simple_private_key.pem --jwks-public"
         output = self._run_command(command)
         public_key = self._test_public_jwk(output)
         self.assertIsNotNone(public_key)
-    
+
     def test_parse_public(self):
+        """
+        Test reading in the public key
+        """
         # Create a temporary public key from the private key
         private_key = rsa.generate_private_key(
             public_exponent=65537,
@@ -137,30 +153,30 @@ class TestKeyCreate(unittest.TestCase):
             backend=default_backend()
         )
         public_key = private_key.public_key()
-        
+
         pem = public_key.public_bytes(
             encoding=serialization.Encoding.PEM,
             format=serialization.PublicFormat.SubjectPublicKeyInfo
         )
         tmpfile = tempfile.NamedTemporaryFile(delete=False)
-        
+
         tmpfile.write(pem)
         tmpfile.close()
         self.toDelete.append(tmpfile.name)
-        
+
         # Test public key
         command = "python tools/scitokens-admin-create-key --public-key={} --pem-public".format(tmpfile.name)
         output = self._run_command(command)
         public_key = self._test_public(output)
         self.assertIsNotNone(public_key)
-        
+
         # Test public key
         command = "python tools/scitokens-admin-create-key --public-key={} --jwks-public".format(tmpfile.name)
         output = self._run_command(command)
         public_key = self._test_public_jwk(output)
         self.assertIsNotNone(public_key)
-        
+
     def tearDown(self):
-        for file_delete in self.toDelete:
+        for file_delete in self.to_delete:
             os.remove(file_delete)
-        self.toDelete = []
+        self.to_delete = []
