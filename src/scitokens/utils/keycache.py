@@ -1,3 +1,8 @@
+
+"""
+A module for effectively caching the public keys of various token issuer endpoints.
+"""
+
 import os
 import sqlite3
 import time
@@ -13,7 +18,7 @@ try:
     import urllib.request as request
 except ImportError:
     import urllib2 as request
-    
+
 try:
     import urlparse
 except ImportError:
@@ -75,7 +80,8 @@ class KeyCache(object):
         insert_key_statement = "INSERT INTO keycache VALUES('{issuer}', '{expiration}', '{key_id}', '{keydata}')"
         keydata = public_key.public_bytes(Encoding.PEM, PublicFormat.PKCS1).decode('ascii')
 
-        curs.execute(insert_key_statement.format(issuer=issuer, expiration=time.time()+60, key_id=key_id, keydata=keydata))
+        curs.execute(insert_key_statement.format(issuer=issuer, expiration=time.time()+60, key_id=key_id,
+                                                 keydata=keydata))
         if curs.rowcount != 1:
             raise UnableToWriteKeyCache("Unable to insert into key cache")
 
@@ -105,8 +111,9 @@ class KeyCache(object):
                 return load_pem_public_key(row['keydata'].encode(), backend=backends.default_backend())
             else:
                 # Delete the row
-                curs.execute("DELETE FROM keycache WHERE issuer = '{}' AND key_id = '{}'".format(row['issuer'], row['key_id']))
-        
+                curs.execute("DELETE FROM keycache WHERE issuer = '{}' AND key_id = '{}'".format(row['issuer'],
+                             row['key_id']))
+
         # If it reaches here, then no key was found in the SQL
         # Try checking the issuer (negative cache?)
         public_key = self._get_issuer_publickey(issuer, key_id, insecure)
@@ -117,7 +124,7 @@ class KeyCache(object):
         conn.commit()
         conn.close()
         return public_key
-        
+
     @classmethod
     def _check_validity(cls, key_info):
         """
@@ -128,8 +135,9 @@ class KeyCache(object):
             return False
         else:
             return True
-    
-    def _get_issuer_publickey(self, issuer, key_id=None, insecure=False):
+
+    @staticmethod
+    def _get_issuer_publickey(issuer, key_id=None, insecure=False):
         
         # Set the user agent so Cloudflare isn't mad at us
         headers={'User-Agent': 'SciTokens/{}'.format(PKG_VERSION)}
@@ -144,7 +152,7 @@ class KeyCache(object):
         parsed_url_list = list(parsed_url)
         parsed_url_list[2] = updated_url
         meta_uri = urlparse.urlunparse(parsed_url_list)
-        
+
         # Make sure the protocol is https
         if not insecure:
             parsed_url = urlparse.urlparse(meta_uri)
@@ -152,10 +160,10 @@ class KeyCache(object):
                 raise NonHTTPSIssuer("Issuer is not over HTTPS.  RFC requires it to be over HTTPS")
         response = request.urlopen(request.Request(meta_uri, headers=headers))
         data = json.loads(response.read().decode('utf-8'))
-        
+
         # Get the keys URL from the openid-configuration
         jwks_uri = data['jwks_uri']
-        
+
         # Now, get the keys
         if not insecure:
             parsed_url = urlparse.urlparse(jwks_uri)
@@ -166,7 +174,7 @@ class KeyCache(object):
         # Loop through each key, looking for the right key id
         public_key = ""
         raw_key = None
-        
+
         # If there is no kid in the header, then just take the first key?
         if key_id == None:
             if len(keys_data['keys']) != 1:
@@ -199,10 +207,10 @@ class KeyCache(object):
             public_key = public_key_numbers.public_key(backends.default_backend())
         else:
             raise UnsupportedKeyException("SciToken signed with an unsupported key type")
-        
+
         return public_key
-    
-    
+
+
     def _get_cache_file(self):
         """
         Get the Cache file location
@@ -210,35 +218,36 @@ class KeyCache(object):
         1. $XDG_CACHE_HOME
         2. $HOME/.cache
         """
-        
+
         xdg_cache_home = os.environ.get("XDG_CACHE_HOME", None)
         home_dir = os.environ.get("HOME", None)
-        
+
         if xdg_cache_home != None:
             cache_dir = xdg_cache_dir
         elif home_dir != None:
             cache_dir = os.path.join(home_dir, ".cache")
-        
+
         if not os.path.exists(cache_dir):
             os.makedirs(cache_dir)
-            
+
         keycache_dir = os.path.join(cache_dir, "scitokens")
         if not os.path.exists(keycache_dir):
             os.makedirs(keycache_dir)
-            
+
         keycache_file = os.path.join(keycache_dir, CACHE_FILENAME)
         if not os.path.exists(keycache_file):
             self._initialize_cachedb(keycache_file)
-            
+
         return keycache_file
-    
-    def _initialize_cachedb(self, sql_file):
+
+    @staticmethod
+    def _initialize_cachedb(sql_file):
         """
         Create a simple flat sqllite cache
         """
         conn = sqlite3.connect(sql_file)
         curs = conn.cursor()
-        
+
         # Create cache table
         curs.execute ("CREATE TABLE keycache ("
                       "issuer text NOT NULL,"
@@ -248,7 +257,7 @@ class KeyCache(object):
                       "PRIMARY KEY (issuer, key_id))")
         # Save (commit) the changes
         conn.commit()
-        
+
         # We can also close the connection if we are done with it.
         # Just be sure any changes have been committed or they will be lost.
         conn.close()
