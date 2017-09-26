@@ -53,19 +53,13 @@
 <span class="sd">authorization tokens.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="kn">import</span> <span class="nn">base64</span>
-
 <span class="kn">import</span> <span class="nn">time</span>
 
 <span class="kn">import</span> <span class="nn">jwt</span>
 <span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">urltools</span>
 
-<span class="kn">import</span> <span class="nn">cryptography.utils</span>
-<span class="kn">import</span> <span class="nn">cryptography.hazmat.primitives.asymmetric.ec</span> <span class="k">as</span> <span class="nn">ec</span>
-<span class="kn">import</span> <span class="nn">cryptography.hazmat.primitives.asymmetric.rsa</span> <span class="k">as</span> <span class="nn">rsa</span>
-<span class="kn">import</span> <span class="nn">cryptography.hazmat.backends</span> <span class="k">as</span> <span class="nn">backends</span>
-<span class="kn">from</span> <span class="nn">.utils</span> <span class="k">import</span> <span class="n">keycache</span> <span class="k">as</span> <span class="n">KeyCache</span><span class="p">,</span> <span class="n">long_from_bytes</span>
-<span class="kn">from</span> <span class="nn">.utils.errors</span> <span class="k">import</span> <span class="n">UnsupportedKeyException</span><span class="p">,</span> <span class="n">MissingIssuerException</span><span class="p">,</span> <span class="n">InvalidTokenFormat</span><span class="p">,</span> <span class="n">MissingKeyException</span>
+<span class="kn">from</span> <span class="nn">.utils</span> <span class="k">import</span> <span class="n">keycache</span> <span class="k">as</span> <span class="n">KeyCache</span>
+<span class="kn">from</span> <span class="nn">.utils.errors</span> <span class="k">import</span> <span class="n">MissingIssuerException</span><span class="p">,</span> <span class="n">InvalidTokenFormat</span><span class="p">,</span> <span class="n">MissingKeyException</span>
 
 <div class="viewcode-block" id="SciToken"><a class="viewcode-back" href="../../scitokens.html#scitokens.scitokens.SciToken">[docs]</a><span class="k">class</span> <span class="nc">SciToken</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
