@@ -162,7 +162,7 @@ class TestKeyCreate(unittest.TestCase):
 
         tmpfile.write(pem)
         tmpfile.close()
-        self.toDelete.append(tmpfile.name)
+        self.to_delete.append(tmpfile.name)
 
         # Test public key
         command = "python tools/scitokens-admin-create-key --public-key={} --pem-public".format(tmpfile.name)
