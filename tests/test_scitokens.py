@@ -61,7 +61,7 @@ class TestEnforcer(unittest.TestCase):
                 return True
 
         with self.assertRaises(scitokens.scitokens.EnforcementError):
-            print scitokens.Enforcer(None)
+            print(scitokens.Enforcer(None))
 
         enf = scitokens.Enforcer(self._test_issuer)
         enf.add_validator("foo", always_accept)
@@ -106,7 +106,7 @@ class TestEnforcer(unittest.TestCase):
         """
         self.assertEqual(self._token['foo'], 'bar')
         with self.assertRaises(KeyError):
-            print self._token['bar']
+            print(self._token['bar'])
         self.assertEqual(self._token.get('baz'), None)
         self.assertEqual(self._token.get('foo', 'baz'), 'bar')
         self.assertEqual(self._token.get('foo', 'baz', verified_only=True), 'baz')
@@ -134,7 +134,7 @@ class TestEnforcer(unittest.TestCase):
         self._token['path'] = '/'
         acls = enf.generate_acls(self._token)
         self.assertTrue(len(acls), 1)
-        self.assertEquals(acls[0], ('read', '/'))
+        self.assertEqual(acls[0], ('read', '/'))
 
         self._token['authz'] = ['read', 'write']
         acls = enf.generate_acls(self._token)
@@ -152,13 +152,13 @@ class TestEnforcer(unittest.TestCase):
 
         self._token['exp'] = time.time() - 600
         with self.assertRaises(scitokens.scitokens.ClaimInvalid):
-            print enf.generate_acls(self._token)
+            print(enf.generate_acls(self._token))
         self.assertTrue(enf.last_failure)
         self._token['exp'] = time.time() + 600
 
         self._token['path'] = 'foo'
         with self.assertRaises(scitokens.scitokens.InvalidPathError):
-            print enf.generate_acls(self._token)
+            print(enf.generate_acls(self._token))
 
 
 if __name__ == '__main__':
