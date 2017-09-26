@@ -21,6 +21,9 @@ if os.path.exists("../src"):
 from scitokens.utils import long_from_bytes
 
 class TestKeyCreate(unittest.TestCase):
+    """
+    Test the admin-create-key tool
+    """
 
     to_delete = []
 
@@ -72,7 +75,6 @@ class TestKeyCreate(unittest.TestCase):
             long_from_bytes(keys['keys'][0]['dq']),
             long_from_bytes(keys['keys'][0]['qi']),
             public_key_numbers
-            
         )
         return private_key_numbers.private_key(default_backend())
         
