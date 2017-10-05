@@ -58,8 +58,12 @@
 <span class="kn">import</span> <span class="nn">jwt</span>
 <span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">urltools</span>
 
+<span class="kn">import</span> <span class="nn">cryptography.utils</span>
+<span class="kn">import</span> <span class="nn">cryptography.hazmat.primitives.asymmetric.rsa</span> <span class="k">as</span> <span class="nn">rsa</span>
+<span class="kn">import</span> <span class="nn">cryptography.hazmat.backends</span> <span class="k">as</span> <span class="nn">backends</span>
 <span class="kn">from</span> <span class="nn">.utils</span> <span class="k">import</span> <span class="n">keycache</span> <span class="k">as</span> <span class="n">KeyCache</span>
 <span class="kn">from</span> <span class="nn">.utils.errors</span> <span class="k">import</span> <span class="n">MissingIssuerException</span><span class="p">,</span> <span class="n">InvalidTokenFormat</span><span class="p">,</span> <span class="n">MissingKeyException</span>
+<span class="kn">from</span> <span class="nn">cryptography.hazmat.primitives.serialization</span> <span class="k">import</span> <span class="n">load_pem_public_key</span>
 
 <div class="viewcode-block" id="SciToken"><a class="viewcode-back" href="../../scitokens.html#scitokens.scitokens.SciToken">[docs]</a><span class="k">class</span> <span class="nc">SciToken</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -211,16 +215,18 @@
 <span class="sd">        &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="SciToken.deserialize"><a class="viewcode-back" href="../../scitokens.html#scitokens.scitokens.SciToken.deserialize">[docs]</a>    <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">deserialize</span><span class="p">(</span><span class="n">serialized_token</span><span class="p">,</span> <span class="n">require_key</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">insecure</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">deserialize</span><span class="p">(</span><span class="n">serialized_token</span><span class="p">,</span> <span class="n">audience</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">require_key</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">insecure</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">public_key</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Given a serialized SciToken, load it into a SciTokens object.</span>
 
 <span class="sd">        Verifies the claims pass the current set of validation scripts.</span>
 <span class="sd">        </span>
 <span class="sd">        :param str serialized_token: The serialized token.</span>
+<span class="sd">        :param str audience: The audience URI that this principle is claiming.  Default: None</span>
 <span class="sd">        :param bool require_key: When True, require the key</span>
 <span class="sd">        :param bool insecure: When True, allow insecure methods to verify the issuer,</span>
 <span class="sd">                              including allowing &quot;localhost&quot; issuer (useful in testing).  Default=False</span>
+<span class="sd">        :param str public_key: A PEM formatted public key string to be used to validate the token</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">if</span> <span class="n">require_key</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">False</span><span class="p">:</span>
@@ -242,12 +248,18 @@
         <span class="n">unverified_payload</span> <span class="o">=</span> <span class="n">jwt</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="n">serialized_jwt</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">algorithms</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;RS256&#39;</span><span class="p">])</span>
         
         <span class="c1"># Get the public key from the issuer</span>
-        <span class="n">keycache</span> <span class="o">=</span> <span class="n">KeyCache</span><span class="o">.</span><span class="n">KeyCache</span><span class="o">.</span><span class="n">getinstance</span><span class="p">()</span>
-        <span class="n">issuer_public_key</span> <span class="o">=</span> <span class="n">keycache</span><span class="o">.</span><span class="n">getkeyinfo</span><span class="p">(</span><span class="n">unverified_payload</span><span class="p">[</span><span class="s1">&#39;iss&#39;</span><span class="p">],</span>
-                            <span class="n">key_id</span><span class="o">=</span><span class="n">unverified_headers</span><span class="p">[</span><span class="s1">&#39;kid&#39;</span><span class="p">],</span>
-                            <span class="n">insecure</span><span class="o">=</span><span class="n">insecure</span><span class="p">)</span>
+        <span class="n">keycache</span> <span class="o">=</span> <span class="n">KeyCache</span><span class="o">.</span><span class="n">KeyCache</span><span class="p">()</span><span class="o">.</span><span class="n">getinstance</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">public_key</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">issuer_public_key</span> <span class="o">=</span> <span class="n">keycache</span><span class="o">.</span><span class="n">getkeyinfo</span><span class="p">(</span><span class="n">unverified_payload</span><span class="p">[</span><span class="s1">&#39;iss&#39;</span><span class="p">],</span>
+                                <span class="n">key_id</span><span class="o">=</span><span class="n">unverified_headers</span><span class="p">[</span><span class="s1">&#39;kid&#39;</span><span class="p">],</span>
+                                <span class="n">insecure</span><span class="o">=</span><span class="n">insecure</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">issuer_public_key</span> <span class="o">=</span> <span class="n">load_pem_public_key</span><span class="p">(</span><span class="n">public_key</span><span class="p">,</span> <span class="n">backend</span><span class="o">=</span><span class="n">backends</span><span class="o">.</span><span class="n">default_backend</span><span class="p">())</span>
         
-        <span class="n">claims</span> <span class="o">=</span> <span class="n">jwt</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="n">serialized_token</span><span class="p">,</span> <span class="n">issuer_public_key</span><span class="p">,</span> <span class="n">algorithms</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;RS256&#39;</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">audience</span><span class="p">:</span>
+            <span class="n">claims</span> <span class="o">=</span> <span class="n">jwt</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="n">serialized_token</span><span class="p">,</span> <span class="n">issuer_public_key</span><span class="p">,</span> <span class="n">audience</span> <span class="o">=</span> <span class="n">audience</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">claims</span> <span class="o">=</span> <span class="n">jwt</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="n">serialized_token</span><span class="p">,</span> <span class="n">issuer_public_key</span><span class="p">)</span>
         <span class="c1"># Do we have the private key?</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">info</span><span class="p">)</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
             <span class="n">to_return</span> <span class="o">=</span> <span class="n">SciToken</span><span class="p">(</span><span class="n">key</span> <span class="o">=</span> <span class="n">key</span><span class="p">)</span>

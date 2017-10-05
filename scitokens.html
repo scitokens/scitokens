@@ -131,7 +131,7 @@ with the claims from the first token in the chain.</p>
 
 <dl class="staticmethod">
 <dt id="scitokens.scitokens.SciToken.deserialize">
-<em class="property">static </em><code class="descname">deserialize</code><span class="sig-paren">(</span><em>serialized_token</em>, <em>require_key=False</em>, <em>insecure=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scitokens/scitokens.html#SciToken.deserialize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scitokens.scitokens.SciToken.deserialize" title="Permalink to this definition">¶</a></dt>
+<em class="property">static </em><code class="descname">deserialize</code><span class="sig-paren">(</span><em>serialized_token</em>, <em>audience=None</em>, <em>require_key=False</em>, <em>insecure=False</em>, <em>public_key=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scitokens/scitokens.html#SciToken.deserialize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scitokens.scitokens.SciToken.deserialize" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given a serialized SciToken, load it into a SciTokens object.</p>
 <p>Verifies the claims pass the current set of validation scripts.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -140,9 +140,11 @@ with the claims from the first token in the chain.</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>serialized_token</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – The serialized token.</li>
+<li><strong>audience</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – The audience URI that this principle is claiming.  Default: None</li>
 <li><strong>require_key</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) – When True, require the key</li>
 <li><strong>insecure</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) – When True, allow insecure methods to verify the issuer,
 including allowing “localhost” issuer (useful in testing).  Default=False</li>
+<li><strong>public_key</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – A PEM formatted public key string to be used to validate the token</li>
 </ul>
 </td>
 </tr>
