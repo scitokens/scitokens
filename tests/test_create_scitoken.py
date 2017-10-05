@@ -23,7 +23,7 @@ class TestCreation(unittest.TestCase):
     """
     Test the creation of a simple SciToken
     """
-    
+
     def setUp(self):
         self.private_key = generate_private_key(
             public_exponent=65537,
@@ -52,17 +52,17 @@ class TestCreation(unittest.TestCase):
         """
         Test when the public key is provided to deserialize
         """
-        
+
         token = scitokens.SciToken(key = self.private_key)
         serialized_token = token.serialize(issuer = "local")
-        
+
         new_token = scitokens.SciToken.deserialize(serialized_token, public_key = self.public_pem, insecure = True)
         self.assertIsInstance(new_token, scitokens.SciToken)
-        
+
         # With invalid key
         with self.assertRaises(ValueError):
-            scitoken = scitokens.SciToken.deserialize(serialized_token, insecure=True, public_key = "asdf".encode())
-            
+            scitokens.SciToken.deserialize(serialized_token, insecure=True, public_key = "asdf".encode())
+
         # With a proper key, but not the right one
         private_key = generate_private_key(
             public_exponent=65537,
@@ -76,22 +76,26 @@ class TestCreation(unittest.TestCase):
         )
         with self.assertRaises(DecodeError):
             scitoken = scitokens.SciToken.deserialize(serialized_token, insecure=True, public_key = pem)
-            
-    
+
+
     def test_aud(self):
+        """
+        Test the audience argument to deserialize
+        """
         token = scitokens.SciToken(key = self.private_key)
         token.update_claims({'aud': 'local'})
-        
+
         serialized_token = token.serialize(issuer = 'local')
-        
+
         with self.assertRaises(InvalidAudienceError):
-            new_token = scitokens.SciToken.deserialize(serialized_token, public_key = self.public_pem, insecure = True)
-            
-        new_token = scitokens.SciToken.deserialize(serialized_token, public_key = self.public_pem, insecure = True, audience = 'local')
+            scitokens.SciToken.deserialize(serialized_token, public_key = self.public_pem, insecure = True)
+
+        new_token = scitokens.SciToken.deserialize(serialized_token, 
+                                                   public_key = self.public_pem, 
+                                                   insecure = True, 
+                                                   audience = 'local')
         self.assertIsInstance(new_token, scitokens.SciToken)
 
-        
-        
 
 
 if __name__ == '__main__':
