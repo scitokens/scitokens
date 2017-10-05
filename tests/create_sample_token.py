@@ -1,5 +1,9 @@
 #!/usr/bin/python
 
+"""
+Create a sample scitoken, signed with elliptic curve cryptography, from a well-known private key.
+"""
+
 import jwt
 import json
 import base64
@@ -10,6 +14,9 @@ from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.utils import int_to_bytes
 
 def long_to_base64(data, size=None):
+    """
+    base64-encode a large integer.
+    """
     return base64.urlsafe_b64encode(int_to_bytes(data, size)).strip(b'=')
 
 def gen_jwk():
@@ -22,7 +29,8 @@ def gen_jwk():
     )
     numbers = private_key.private_numbers()
     private_jwk = {"kty": "EC", "crv": "P-256", "d": long_to_base64(numbers.private_value)}
-    public_jwk = {"kty": "EC", "crv": "P-256", "x": long_to_base64(numbers.public_numbers.x), "y": long_to_base64(numbers.public_numbers.y)}
+    public_jwk = {"kty": "EC", "crv": "P-256", "x": long_to_base64(numbers.public_numbers.x),
+                  "y": long_to_base64(numbers.public_numbers.y)}
     return public_jwk, private_jwk, private_key
 
 
@@ -59,8 +67,10 @@ def main():
     print("Instance JWK keypair:", public_jwk, private_jwk)
 
     # Ok, now generate a token and verify it.
-    token_encoded = jwt.encode({"read": "/ligo"}, serialized_private, algorithm="ES256", headers={"x5u": "https://vo.example.com/JWS", "cwk": public_jwk})
-    #child_token_encoded = jwt.encode({"read": "/ligo/brian"}, serialized_child_private, algorithm="ES256", headers={"pwt": pwt})
+    token_encoded = jwt.encode({"read": "/ligo"}, serialized_private, algorithm="ES256",
+        headers={"x5u": "https://vo.example.com/JWS", "cwk": public_jwk})
+    #child_token_encoded = jwt.encode({"read": "/ligo/brian"}, serialized_child_private, algorithm="ES256",
+    #                                 headers={"pwt": pwt})
     signature = token_encoded.split(".")[-1]
 
     #numbers = loaded_private_key.private_numbers()
@@ -88,7 +98,8 @@ def main():
         format=serialization.PrivateFormat.PKCS8,
         encryption_algorithm=serialization.NoEncryption()
     )
-    child_token_encoded = jwt.encode({"read": "/ligo/brian"}, serialized_child_private, algorithm="ES256", headers={"pwt": pwt})
+    child_token_encoded = jwt.encode({"read": "/ligo/brian"}, serialized_child_private, algorithm="ES256",
+                                     headers={"pwt": pwt})
     flattened = {}
     flattened['payload'] = jwt.decode(child_token_encoded, verify=False)
     flattened['protected'] = jwt.get_unverified_header(child_token_encoded)

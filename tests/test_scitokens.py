@@ -1,4 +1,8 @@
 
+"""
+Test cases for the Validator and Enforcer classes from the scitokens module.
+"""
+
 import os
 import sys
 import time
@@ -19,6 +23,9 @@ import scitokens
 class TestValidation(unittest.TestCase):
 
     def test_valid(self):
+        """
+        Basic unit test coverage of the Validator object.
+        """
 
         def always_accept(value):
             if value or not value:
@@ -39,6 +46,9 @@ class TestEnforcer(unittest.TestCase):
     _test_issuer = "https://scitokens.org/unittest"
 
     def setUp(self):
+        """
+        Setup a sample token for testing the enforcer.
+        """
         now = time.time()
         private_key = cryptography.hazmat.primitives.asymmetric.rsa.generate_private_key(
             public_exponent=65537,
@@ -57,6 +67,9 @@ class TestEnforcer(unittest.TestCase):
         Test the Enforcer object.
         """
         def always_accept(value):
+            """
+            A validator function that always accepts a given value.
+            """
             if value or not value:
                 return True
 
