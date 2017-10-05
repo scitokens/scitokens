@@ -215,7 +215,10 @@ class SciToken(object):
         else:
             issuer_public_key = load_pem_public_key(public_key, backend=backends.default_backend())
         
-        claims = jwt.decode(serialized_token, issuer_public_key)
+        if audience:
+            claims = jwt.decode(serialized_token, issuer_public_key, audience = audience)
+        else:
+            claims = jwt.decode(serialized_token, issuer_public_key)
         # Do we have the private key?
         if len(info) == 4:
             to_return = SciToken(key = key)

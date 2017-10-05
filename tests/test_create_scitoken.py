@@ -16,7 +16,7 @@ import scitokens
 from cryptography.hazmat.primitives.asymmetric.rsa import generate_private_key
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
-from jwt import DecodeError
+from jwt import DecodeError, InvalidAudienceError
 
 
 class TestCreation(unittest.TestCase):
@@ -79,7 +79,17 @@ class TestCreation(unittest.TestCase):
             
     
     def test_aud(self):
-        pass
+        token = scitokens.SciToken(key = self.private_key)
+        token.update_claims({'aud': 'local'})
+        
+        serialized_token = token.serialize(issuer = 'local')
+        
+        with self.assertRaises(InvalidAudienceError):
+            new_token = scitokens.SciToken.deserialize(serialized_token, public_key = self.public_pem, insecure = True)
+            
+        new_token = scitokens.SciToken.deserialize(serialized_token, public_key = self.public_pem, insecure = True, audience = 'local')
+        self.assertIsInstance(new_token, scitokens.SciToken)
+
         
         
 
