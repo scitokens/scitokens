@@ -19,6 +19,7 @@ import cryptography.hazmat.primitives.asymmetric.rsa as rsa
 import cryptography.hazmat.backends as backends
 from .utils import keycache as KeyCache, long_from_bytes
 from .utils.errors import UnsupportedKeyException, MissingIssuerException, InvalidTokenFormat
+from cryptography.hazmat.primitives.serialization import load_pem_public_key
 
 class SciToken(object):
     """
@@ -175,16 +176,18 @@ class SciToken(object):
         
         
     @staticmethod
-    def deserialize(serialized_token, require_key=False, insecure=False):
+    def deserialize(serialized_token, audience=None, require_key=False, insecure=False, public_key=None):
         """
         Given a serialized SciToken, load it into a SciTokens object.
 
         Verifies the claims pass the current set of validation scripts.
         
         :param str serialized_token: The serialized token.
+        :param str audience: The audience URI that this principle is claiming.  Default: None
         :param bool require_key: When True, require the key
         :param bool insecure: When True, allow insecure methods to verify the issuer,
                               including allowing "localhost" issuer (useful in testing).  Default=False
+        :param str public_key: A PEM formatted public key string to be used to validate the token
         """
         
         if require_key is not False:
@@ -205,9 +208,12 @@ class SciToken(object):
         
         # Get the public key from the issuer
         keycache = KeyCache.KeyCache()
-        issuer_public_key = keycache.getkeyinfo(unverified_payload['iss'],
-                            key_id=unverified_headers['kid'],
-                            insecure=insecure)
+        if public_key == None:
+            issuer_public_key = keycache.getkeyinfo(unverified_payload['iss'],
+                                key_id=unverified_headers['kid'],
+                                insecure=insecure)
+        else:
+            issuer_public_key = load_pem_public_key(public_key, backend=backends.default_backend())
         
         claims = jwt.decode(serialized_token, issuer_public_key)
         # Do we have the private key?

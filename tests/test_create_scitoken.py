@@ -16,34 +16,72 @@ import scitokens
 from cryptography.hazmat.primitives.asymmetric.rsa import generate_private_key
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
+from jwt import DecodeError
 
 
 class TestCreation(unittest.TestCase):
     """
     Test the creation of a simple SciToken
     """
+    
+    def setUp(self):
+        self.private_key = generate_private_key(
+            public_exponent=65537,
+            key_size=2048,
+            backend=default_backend()
+        )
+        self.public_key = self.private_key.public_key()
+        self.public_pem = self.public_key.public_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PublicFormat.SubjectPublicKeyInfo
+        )
 
     def test_create(self):
         """
         Test the creation of a simple SciToken.
         """
-        private_key = generate_private_key(
-            public_exponent=65537,
-            key_size=2048,
-            backend=default_backend()
-        )
-        print(private_key.public_key().public_bytes(
-            encoding=serialization.Encoding.PEM,
-            format=serialization.PublicFormat.SubjectPublicKeyInfo
-        ))
 
-        token = scitokens.SciToken(key = private_key)
+        token = scitokens.SciToken(key = self.private_key)
         token.update_claims({"test": "true"})
         serialized_token = token.serialize(issuer = "local")
 
         self.assertEqual(len(serialized_token.decode('utf8').split(".")), 3)
         print(serialized_token)
 
+    def test_public_key(self):
+        """
+        Test when the public key is provided to deserialize
+        """
+        
+        token = scitokens.SciToken(key = self.private_key)
+        serialized_token = token.serialize(issuer = "local")
+        
+        new_token = scitokens.SciToken.deserialize(serialized_token, public_key = self.public_pem, insecure = True)
+        self.assertIsInstance(new_token, scitokens.SciToken)
+        
+        # With invalid key
+        with self.assertRaises(ValueError):
+            scitoken = scitokens.SciToken.deserialize(serialized_token, insecure=True, public_key = "asdf".encode())
+            
+        # With a proper key, but not the right one
+        private_key = generate_private_key(
+            public_exponent=65537,
+            key_size=2048,
+            backend=default_backend()
+        )
+        public_key = private_key.public_key()
+        pem = public_key.public_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PublicFormat.SubjectPublicKeyInfo
+        )
+        with self.assertRaises(DecodeError):
+            scitoken = scitokens.SciToken.deserialize(serialized_token, insecure=True, public_key = pem)
+            
+    
+    def test_aud(self):
+        pass
+        
+        
 
 
 if __name__ == '__main__':
