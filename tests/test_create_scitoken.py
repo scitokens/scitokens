@@ -75,7 +75,7 @@ class TestCreation(unittest.TestCase):
             format=serialization.PublicFormat.SubjectPublicKeyInfo
         )
         with self.assertRaises(DecodeError):
-            scitoken = scitokens.SciToken.deserialize(serialized_token, insecure=True, public_key = pem)
+            scitokens.SciToken.deserialize(serialized_token, insecure=True, public_key = pem)
 
 
     def test_aud(self):
@@ -90,9 +90,9 @@ class TestCreation(unittest.TestCase):
         with self.assertRaises(InvalidAudienceError):
             scitokens.SciToken.deserialize(serialized_token, public_key = self.public_pem, insecure = True)
 
-        new_token = scitokens.SciToken.deserialize(serialized_token, 
-                                                   public_key = self.public_pem, 
-                                                   insecure = True, 
+        new_token = scitokens.SciToken.deserialize(serialized_token,
+                                                   public_key = self.public_pem,
+                                                   insecure = True,
                                                    audience = 'local')
         self.assertIsInstance(new_token, scitokens.SciToken)
 
