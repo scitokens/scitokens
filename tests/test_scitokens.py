@@ -77,16 +77,15 @@ class TestEnforcer(unittest.TestCase):
         enf.add_validator("foo", always_accept)
 
         self.assertFalse(enf.test(self._token, "read", "/"), msg=enf.last_failure)
-
-        self._token["authz"] = "read"
-        self._token["path"] = "/"
+        
+        self._token["scp"] = "read:/"
         self.assertTrue(enf.test(self._token, "read", "/"), msg=enf.last_failure)
 
         enf = scitokens.Enforcer(self._test_issuer, audience = "https://example.unl.edu")
         enf.add_validator("foo", always_accept)
         self.assertTrue(enf.test(self._token, "read", "/"), msg=enf.last_failure)
 
-        self._token["path"] = "/foo/bar"
+        self._token["scp"] = "read:/foo/bar"
         self.assertFalse(enf.test(self._token, "read", "/foo"), msg=enf.last_failure)
 
         self._token["site"] = "T2_US_Example"

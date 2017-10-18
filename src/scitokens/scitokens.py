@@ -352,8 +352,8 @@ class Enforcer(object):
         self._validator.add_validator("iat", self._validate_iat)
         self._validator.add_validator("site", self._validate_site)
         self._validator.add_validator("aud", self._validate_aud)
-        self._validator.add_validator("path", self._validate_path)
-        self._validator.add_validator("authz", self._validate_authz)
+        self._validator.add_validator("scp", self._validate_scp)
+        self._validator.add_validator("jti", self._validate_jti)
 
     def add_validator(self, claim, validator):
         """
@@ -366,9 +366,7 @@ class Enforcer(object):
         Test whether a given token has the requested permission within the
         current enforcer context.
         """
-        critical_claims = set(["authz"])
-        if authz in self._authz_requiring_path:
-            critical_claims.add("path")
+        critical_claims = set(["scp"])
         self._now = time.time()
         self._test_path = path
         self._test_authz = authz
@@ -402,22 +400,28 @@ class Enforcer(object):
         if not self._audience:
             return False
         return value == self._audience
-
-    def _validate_path(self, value):
+    
+    def _validate_jti(self, value):
+        """
+        JTI, or json token id, should always pass.  It's mostly used for logging 
+        and auditing.
+        """
+        return True
+    
+    def _validate_scp(self, value):
+        """
+        The scope can be in many different forms, but I will validate 
+        paths like:
+        [ 'read:/home/derek', 'write:/home/derek' ]
+        """
         if not isinstance(value, list):
             value = [value]
+            
         norm_requested_path = urltools.normalize_path(self._test_path)
-        for path in value:
+        for claim in value:
+            operation, path = claim.split(":", 1)
             norm_path = urltools.normalize_path(path)
-            if norm_requested_path.startswith(norm_path):
-                return True
-        return False
-
-    def _validate_authz(self, value):
-        if not isinstance(value, list):
-            value = [value]
-        for authz in value:
-            if self._test_authz == authz:
+            if self._test_authz == operation and norm_requested_path.startswith(norm_path):
                 return True
         return False
 
