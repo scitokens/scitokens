@@ -77,7 +77,7 @@ class TestEnforcer(unittest.TestCase):
         enf.add_validator("foo", always_accept)
 
         self.assertFalse(enf.test(self._token, "read", "/"), msg=enf.last_failure)
-        
+
         self._token["scp"] = "read:/"
         self.assertTrue(enf.test(self._token, "read", "/"), msg=enf.last_failure)
 
