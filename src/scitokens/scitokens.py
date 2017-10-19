@@ -400,23 +400,26 @@ class Enforcer(object):
         if not self._audience:
             return False
         return value == self._audience
-    
+
+    @classmethod
     def _validate_jti(self, value):
         """
-        JTI, or json token id, should always pass.  It's mostly used for logging 
+        JTI, or json token id, should always pass.  It's mostly used for logging
         and auditing.
         """
+        # Fix for unused argument
+        del value
         return True
-    
+
     def _validate_scp(self, value):
         """
-        The scope can be in many different forms, but I will validate 
+        The scope can be in many different forms, but I will validate
         paths like:
         [ 'read:/home/derek', 'write:/home/derek' ]
         """
         if not isinstance(value, list):
             value = [value]
-            
+
         norm_requested_path = urltools.normalize_path(self._test_path)
         for claim in value:
             operation, path = claim.split(":", 1)
