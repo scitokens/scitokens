@@ -323,6 +323,23 @@ class EnforcementError(Exception):
     A generic error during the enforcement of a SciToken.
     """
 
+class InvalidPathError(EnforcementError):
+    """
+    An invalid test path was provided to the Enforcer object.
+
+    Test paths must be absolute paths (start with '/')
+    """
+
+class InvalidAuthorizationResource(EnforcementError):
+    """
+    A scope was encountered with an invalid authorization.
+
+    Examples include:
+       - Authorizations that require paths (read, write) but none
+         were included.
+       - Scopes that include relative paths (read:~/foo)
+    """
+
 class Enforcer(object):
 
     """
@@ -340,11 +357,13 @@ class Enforcer(object):
         self.last_failure = None
         if not self._issuer:
             raise EnforcementError("Issuer must be specified.")
-        self._now = 0
-        self._test_authz = None
-        self._test_path = None
         self._audience = audience
         self._site = site
+        self._test_access = False
+        self._test_authz = None
+        self._test_path = None
+        self._token_scopes = set()
+        self._now = 0
         self._validator = Validator()
         self._validator.add_validator("exp", self._validate_exp)
         self._validator.add_validator("nbf", self._validate_nbf)
@@ -352,8 +371,19 @@ class Enforcer(object):
         self._validator.add_validator("iat", self._validate_iat)
         self._validator.add_validator("site", self._validate_site)
         self._validator.add_validator("aud", self._validate_aud)
-        self._validator.add_validator("path", self._validate_path)
-        self._validator.add_validator("authz", self._validate_authz)
+        self._validator.add_validator("scp", self._validate_scp)
+
+    def _reset_state(self):
+        """
+        Reset the internal state variables of the Enforcer object.  Automatically
+        invoked each time the Enforcer is used to test or generate_acls
+        """
+        self._test_authz = None
+        self._test_path = None
+        self._test_access = False
+        self._token_scopes = set()
+        self._now = time.time()
+        self.last_failure = None
 
     def add_validator(self, claim, validator):
         """
@@ -366,18 +396,39 @@ class Enforcer(object):
         Test whether a given token has the requested permission within the
         current enforcer context.
         """
-        critical_claims = set(["authz"])
-        if authz in self._authz_requiring_path:
-            critical_claims.add("path")
-        self._now = time.time()
+        self._reset_state()
+        self._test_access = True
+
+        critical_claims = set(["scp"])
+        if not path and (authz in self._authz_requiring_path):
+            raise InvalidPathError("Enforcer provided with an empty path.")
+        if path and not path.startswith("/"):
+            raise InvalidPathError("Enforcer was given an invalid relative path to test; absolute path required.")
+
         self._test_path = path
         self._test_authz = authz
+        self.last_failure = None
         try:
             self._validator.validate(token, critical_claims=critical_claims)
         except ValidationFailure as validation_failure:
             self.last_failure = str(validation_failure)
             return False
         return True
+
+    def generate_acls(self, token):
+        """
+        Given a SciToken object and the expected issuer, return the valid ACLs.
+        """
+        self._reset_state()
+
+        critical_claims = set(["scp"])
+
+        try:
+            self._validator.validate(token, critical_claims=critical_claims)
+        except ValidationFailure as vf:
+            self.last_failure = str(vf)
+            raise
+        return list(self._token_scopes)
 
     def _validate_exp(self, value):
         exp = float(value)
@@ -403,21 +454,45 @@ class Enforcer(object):
             return False
         return value == self._audience
 
-    def _validate_path(self, value):
-        if not isinstance(value, list):
-            value = [value]
-        norm_requested_path = urltools.normalize_path(self._test_path)
-        for path in value:
-            norm_path = urltools.normalize_path(path)
-            if norm_requested_path.startswith(norm_path):
-                return True
-        return False
+    def _check_scope(self, scope):
+        """
+        Given a scope, make sure it contains a resource
+        for scope types that require resources.
 
-    def _validate_authz(self, value):
+        Returns a tuple of the (authz, path).  If path is
+        not in the scope (and is not required to be explicitly inside
+        the scope), it will default to '/'.
+        """
+        info = scope.split(":", 1)
+        authz = info[0]
+        if authz in self._authz_requiring_path and (len(info) == 1):
+            raise InvalidAuthorizationResource("Token contains an authorization requiring a resource"
+                                               "(path), but no path is present")
+        if len(info) == 2:
+            path = info[1]
+            if not path.startswith("/"):
+                raise InvalidAuthorizationResource("Token contains a relative path in scope")
+            norm_path = urltools.normalize_path(path)
+        else:
+            norm_path = '/'
+        return (authz, norm_path)
+
+    def _validate_scp(self, value):
         if not isinstance(value, list):
             value = [value]
-        for authz in value:
-            if self._test_authz == authz:
-                return True
-        return False
+        if self._test_access:
+            if not self._test_path:
+                norm_requested_path = '/'
+            else:
+                norm_requested_path = urltools.normalize_path(self._test_path)
+            for scope in value:
+                authz, norm_path = self._check_scope(scope)
+                if (self._test_authz == authz) and norm_requested_path.startswith(norm_path):
+                    return True
+            return False
+        else:
+            for scope in value:
+                authz, norm_path = self._check_scope(scope)
+                self._token_scopes.add((authz, norm_path))
+            return True
 
