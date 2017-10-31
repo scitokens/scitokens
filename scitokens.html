@@ -87,12 +87,42 @@ callbacks marked the claim as invalid.</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="scitokens.scitokens.Enforcer.generate_acls">
+<code class="descname">generate_acls</code><span class="sig-paren">(</span><em>token</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scitokens/scitokens.html#Enforcer.generate_acls"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scitokens.scitokens.Enforcer.generate_acls" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a SciToken object and the expected issuer, return the valid ACLs.</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="scitokens.scitokens.Enforcer.test">
 <code class="descname">test</code><span class="sig-paren">(</span><em>token</em>, <em>authz</em>, <em>path=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scitokens/scitokens.html#Enforcer.test"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scitokens.scitokens.Enforcer.test" title="Permalink to this definition">¶</a></dt>
 <dd><p>Test whether a given token has the requested permission within the
 current enforcer context.</p>
 </dd></dl>
 
+</dd></dl>
+
+<dl class="exception">
+<dt id="scitokens.scitokens.InvalidAuthorizationResource">
+<em class="property">exception </em><code class="descclassname">scitokens.scitokens.</code><code class="descname">InvalidAuthorizationResource</code><a class="reference internal" href="_modules/scitokens/scitokens.html#InvalidAuthorizationResource"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scitokens.scitokens.InvalidAuthorizationResource" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#scitokens.scitokens.EnforcementError" title="scitokens.scitokens.EnforcementError"><code class="xref py py-class docutils literal"><span class="pre">scitokens.scitokens.EnforcementError</span></code></a></p>
+<p>A scope was encountered with an invalid authorization.</p>
+<dl class="docutils">
+<dt>Examples include:</dt>
+<dd><ul class="first last simple">
+<li>Authorizations that require paths (read, write) but none
+were included.</li>
+<li>Scopes that include relative paths (read:~/foo)</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="exception">
+<dt id="scitokens.scitokens.InvalidPathError">
+<em class="property">exception </em><code class="descclassname">scitokens.scitokens.</code><code class="descname">InvalidPathError</code><a class="reference internal" href="_modules/scitokens/scitokens.html#InvalidPathError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scitokens.scitokens.InvalidPathError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#scitokens.scitokens.EnforcementError" title="scitokens.scitokens.EnforcementError"><code class="xref py py-class docutils literal"><span class="pre">scitokens.scitokens.EnforcementError</span></code></a></p>
+<p>An invalid test path was provided to the Enforcer object.</p>
+<p>Test paths must be absolute paths (start with ‘/’)</p>
 </dd></dl>
 
 <dl class="exception">
@@ -310,7 +340,7 @@ if the token is valid.</p>
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2017, Brian Bockelman and Derek Weitzel.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.4.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.
     </div>
   </body>
 </html>
