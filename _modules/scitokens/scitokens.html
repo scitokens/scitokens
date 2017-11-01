@@ -419,6 +419,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_validator</span><span class="o">.</span><span class="n">add_validator</span><span class="p">(</span><span class="s2">&quot;site&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_validate_site</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_validator</span><span class="o">.</span><span class="n">add_validator</span><span class="p">(</span><span class="s2">&quot;aud&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_validate_aud</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_validator</span><span class="o">.</span><span class="n">add_validator</span><span class="p">(</span><span class="s2">&quot;scp&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_validate_scp</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_validator</span><span class="o">.</span><span class="n">add_validator</span><span class="p">(</span><span class="s2">&quot;jti&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_validate_jti</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_reset_state</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -501,6 +502,16 @@
             <span class="k">return</span> <span class="kc">False</span>
         <span class="k">return</span> <span class="n">value</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_audience</span>
 
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">_validate_jti</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        JTI, or json token id, should always pass.  It&#39;s mostly used for logging</span>
+<span class="sd">        and auditing.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Fix for unused argument</span>
+        <span class="k">del</span> <span class="n">value</span>
+        <span class="k">return</span> <span class="kc">True</span>
+
     <span class="k">def</span> <span class="nf">_check_scope</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scope</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Given a scope, make sure it contains a resource</span>
@@ -542,6 +553,7 @@
                 <span class="n">authz</span><span class="p">,</span> <span class="n">norm_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check_scope</span><span class="p">(</span><span class="n">scope</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_token_scopes</span><span class="o">.</span><span class="n">add</span><span class="p">((</span><span class="n">authz</span><span class="p">,</span> <span class="n">norm_path</span><span class="p">))</span>
             <span class="k">return</span> <span class="kc">True</span></div>
+
 
 </pre></div>
 
