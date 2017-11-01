@@ -62,7 +62,7 @@ class TestKeyCreate(unittest.TestCase):
         """
         Attempt to read in the key into a private key object
         """
-        keys = json.loads(key)
+        keys = json.loads(key.decode())
         public_key_numbers = rsa.RSAPublicNumbers(
             long_from_bytes(keys['keys'][0]['e']),
             long_from_bytes(keys['keys'][0]['n'])
