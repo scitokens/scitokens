@@ -372,6 +372,7 @@ class Enforcer(object):
         self._validator.add_validator("site", self._validate_site)
         self._validator.add_validator("aud", self._validate_aud)
         self._validator.add_validator("scp", self._validate_scp)
+        self._validator.add_validator("jti", self._validate_jti)
 
     def _reset_state(self):
         """
@@ -454,6 +455,16 @@ class Enforcer(object):
             return False
         return value == self._audience
 
+    @classmethod
+    def _validate_jti(self, value):
+        """
+        JTI, or json token id, should always pass.  It's mostly used for logging
+        and auditing.
+        """
+        # Fix for unused argument
+        del value
+        return True
+
     def _check_scope(self, scope):
         """
         Given a scope, make sure it contains a resource
@@ -495,4 +506,5 @@ class Enforcer(object):
                 authz, norm_path = self._check_scope(scope)
                 self._token_scopes.add((authz, norm_path))
             return True
+
 

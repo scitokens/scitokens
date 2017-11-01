@@ -132,7 +132,7 @@ class TestCreation(unittest.TestCase):
         """
         End-to-end test of SciToken creation, verification, and validation.
         """
-        self._token['scp'] = 'write:/home/example'
+        self._token['scp'] = "write:/home/example"
         serialized_token = self._token.serialize(issuer="local")
         token = scitokens.SciToken.deserialize(serialized_token)
         enf = scitokens.Enforcer(issuer="local")
