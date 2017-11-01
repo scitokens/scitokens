@@ -136,7 +136,7 @@ class TestCreation(unittest.TestCase):
         serialized_token = self._token.serialize(issuer="local")
         token = scitokens.SciToken.deserialize(serialized_token)
         enf = scitokens.Enforcer(issuer="local")
-        self.assertTrue(enf.test(token, "write", "/home/example/test_file"))
+        self.assertTrue(enf.test(token, "write", "/home/example/test_file"), msg=enf.last_failure)
         self.assertFalse(enf.test(token, "read", "/home/example/test_file"))
         self.assertFalse(enf.test(token, "write", "/home/other/test_file"))
 
