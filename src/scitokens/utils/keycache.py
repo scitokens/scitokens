@@ -223,7 +223,7 @@ class KeyCache(object):
         home_dir = os.environ.get("HOME", None)
 
         if xdg_cache_home != None:
-            cache_dir = xdg_cache_dir
+            cache_dir = xdg_cache_home
         elif home_dir != None:
             cache_dir = os.path.join(home_dir, ".cache")
 
