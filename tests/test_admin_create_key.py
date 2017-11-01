@@ -7,7 +7,7 @@ import sys
 import unittest
 
 # Codacy has issues with subprocess, but this is only in the tests!
-import subprocess # nosec 
+import subprocess # nosec
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
@@ -80,7 +80,7 @@ class TestKeyCreate(unittest.TestCase):
         )
         return private_key_numbers.private_key(default_backend())
 
-        
+
     def _run_command(self, command):
         # Bandit tests in codacy doesn't like shell=True, but this is suppose to
         # test the user actually running the command from the shell, so keep
