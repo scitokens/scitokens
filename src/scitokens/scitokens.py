@@ -6,19 +6,17 @@ This library provides the primitives necessary for working with SciTokens
 authorization tokens.
 """
 
-import base64
-
 import time
 
 import jwt
 from . import urltools
 
 import cryptography.utils
-import cryptography.hazmat.primitives.asymmetric.ec as ec
 import cryptography.hazmat.primitives.asymmetric.rsa as rsa
 import cryptography.hazmat.backends as backends
-from .utils import keycache as KeyCache, long_from_bytes
-from .utils.errors import UnsupportedKeyException, MissingIssuerException, InvalidTokenFormat
+from .utils import keycache as KeyCache
+from .utils.errors import MissingIssuerException, InvalidTokenFormat, MissingKeyException
+from cryptography.hazmat.primitives.serialization import load_pem_public_key
 
 class SciToken(object):
     """
@@ -33,10 +31,10 @@ class SciToken(object):
         :param str key_id: A string representing the Key ID that is used at the issuer
         :param parent: Parent SciToken that will be chained
         """
-        
+
         if claims is not None:
             raise NotImplementedError()
-    
+
         self._key = key
         self._key_id = key_id
         self._parent = parent
@@ -78,29 +76,28 @@ class SciToken(object):
         :param int lifetime: Number of seconds that the token should be valid
         :return str: base64 encoded token
         """
-        
+
         if include_key is not False:
             raise NotImplementedError()
-        
+
         if self._key == None:
             raise MissingKeyException("Unable to serialize, missing private key")
-        
+
         # Issuer needs to be available, otherwise throw an error
         if issuer == None and 'iss' not in self._claims:
             raise MissingIssuerException("Issuer not specific in claims or as argument")
-        
+
         if not issuer:
             issuer = self._claims['iss']
-        
+
         # Set the issue and expiration time of the token
         issue_time = int(time.time())
         exp_time = int(issue_time + lifetime)
-        
+
         # Add to validated and other claims
         payload = dict(self._verified_claims)
         payload.update(self._claims)
 
-        
         # Anything below will override what is in the claims
         payload.update({
             "iss": issuer,
@@ -108,20 +105,18 @@ class SciToken(object):
             "iat": issue_time,
             "nbf": issue_time
         })
-        
+
         if self._key_id != None:
             encoded = jwt.encode(payload, self._key, algorithm = "RS256", headers={'kid': self._key_id})
         else:
             encoded = jwt.encode(payload, self._key, algorithm = "RS256")
         self._serialized_token = encoded
-        
+
         # Move claims over to verified claims
         self._verified_claims.update(self._claims)
         self._claims = {}
-        
+
         return encoded
-        
-        
 
     def update_claims(self, claims):
         """
@@ -129,7 +124,6 @@ class SciToken(object):
         
         :param claims: Dictionary of claims to add to the token
         """
-        
         self._claims.update(claims)
 
     def __setitem__(self, claim, value):
@@ -172,25 +166,28 @@ class SciToken(object):
         Given a serialized key and a set of UNVERIFIED headers, return
         a corresponding private key object.
         """
-        
-        
+
     @staticmethod
-    def deserialize(serialized_token, require_key=False, insecure=False):
+    def deserialize(serialized_token, audience=None, require_key=False, insecure=False, public_key=None):
         """
         Given a serialized SciToken, load it into a SciTokens object.
 
         Verifies the claims pass the current set of validation scripts.
         
         :param str serialized_token: The serialized token.
+        :param str audience: The audience URI that this principle is claiming.  Default: None
         :param bool require_key: When True, require the key
         :param bool insecure: When True, allow insecure methods to verify the issuer,
                               including allowing "localhost" issuer (useful in testing).  Default=False
+        :param str public_key: A PEM formatted public key string to be used to validate the token
         """
-        
+
         if require_key is not False:
             raise NotImplementedError()
-        
-        info = serialized_token.decode('utf8').split(".")
+
+        if isinstance(serialized_token, bytes):
+            serialized_token = serialized_token.decode('utf8')
+        info = serialized_token.split(".")
 
         if len(info) != 3 and len(info) != 4: # header, format, signature[, key]
             raise InvalidTokenFormat("Serialized token is not a readable format.")
@@ -201,15 +198,21 @@ class SciToken(object):
         serialized_jwt = info[0] + "." + info[1] + "." + info[2]
 
         unverified_headers = jwt.get_unverified_header(serialized_jwt)
-        unverified_payload = jwt.decode(serialized_jwt, verify=False)
+        unverified_payload = jwt.decode(serialized_jwt, verify=False, algorithms=['RS256'])
         
         # Get the public key from the issuer
-        keycache = KeyCache.KeyCache()
-        issuer_public_key = keycache.getkeyinfo(unverified_payload['iss'],
-                            key_id=unverified_headers['kid'],
-                            insecure=insecure)
+        keycache = KeyCache.KeyCache().getinstance()
+        if public_key == None:
+            issuer_public_key = keycache.getkeyinfo(unverified_payload['iss'],
+                                key_id=unverified_headers['kid'],
+                                insecure=insecure)
+        else:
+            issuer_public_key = load_pem_public_key(public_key, backend=backends.default_backend())
         
-        claims = jwt.decode(serialized_token, issuer_public_key)
+        if audience:
+            claims = jwt.decode(serialized_token, issuer_public_key, audience = audience)
+        else:
+            claims = jwt.decode(serialized_token, issuer_public_key)
         # Do we have the private key?
         if len(info) == 4:
             to_return = SciToken(key = key)
@@ -219,62 +222,6 @@ class SciToken(object):
         to_return._verified_claims = claims
         to_return._serialized_token = serialized_token
         return to_return
-        
-        
-        # Clean up all of the below
-
-        key_decoded = base64.urlsafe_b64decode(key)
-        jwk_dict = json.loads(key_decoded)
-        # TODO: Full range of keytypes and curves from JWK RFC.
-        if (jwk_dict['kty'] != 'EC') or (jwt_dict['crv'] != 'P-256'):
-            raise UnsupportedKeyException("SciToken signed with an unsupported key type")
-        elif 'd' not in jwk_dict:
-            raise UnsupportedKeyException("SciToken key does not contain private number.")
-
-        if 'pwt' in unverified_headers:
-            pwt = unverified_headers['pwt']
-            st = SciToken.clone()
-            st.deserialize(pwt, require_key=False)
-            headers = pwt.headers()
-            if 'cwk' not in headers:
-                raise InvalidParentToken("Parent token MUST specify a child JWK.")
-            # Validate the key type / curve matches.  TODO: what other headers to check?
-            if (jwk_dict['kty'] != headers['kty']) or (jwk_dict['crv'] != headers['crv']):
-                if 'x' not in jwk_dict:
-                    if 'x' in headers:
-                        jwk_dict['x'] = headers['x']
-                    else:
-                        MissingPublicKeyException("JWK public key is missing 'x'")
-                elif jwk_dict['x'] != headers['x']:
-                    raise UnsupportedKeyException("Parent SciToken specifies an incompatible child JWK")
-                if 'y' not in jwk_dict:
-                    if 'y' in headers:
-                        jwk_dict['y'] = headers['y']
-                    else:
-                        MissingPublicKeyException("JWK public key is missing 'y'")
-                elif jwk_dict['y'] != headers['y']:
-                    raise UnsupportedKeyException("Parent SciToken specifies an incompatible child JWK")
-        # TODO: Handle non-chained case.
-        elif 'x5u' in unverified_headers:
-            raise NotImplementedError("Non-chained verification is not implemented.")
-        else:
-            raise UnableToValidate("No token validation method available.")
-
-        public_key_numbers = ec.EllipticCurvePublicNumbers(
-               long_from_bytes(jwk_dict['x']),
-               long_from_bytes(jwk_dict['y']),
-               ec.SECP256R1
-           )
-        private_key_numbers = ec.EllipticCurvePrivateNumbers(
-           long_from_bytes(jwk_dict['d']),
-           public_key_numbers
-        )
-        private_key = private_key_numbers.private_key(backends.default_backend())
-        public_key  = public_key_numbers.public_key(backends.default_backend())
-
-        # TODO: check that public and private key match?
-
-        claims = jwt.decode(serialized_token, public_key, algorithm="EC256")
 
 
 class ValidationFailure(Exception):
@@ -376,6 +323,23 @@ class EnforcementError(Exception):
     A generic error during the enforcement of a SciToken.
     """
 
+class InvalidPathError(EnforcementError):
+    """
+    An invalid test path was provided to the Enforcer object.
+
+    Test paths must be absolute paths (start with '/')
+    """
+
+class InvalidAuthorizationResource(EnforcementError):
+    """
+    A scope was encountered with an invalid authorization.
+
+    Examples include:
+       - Authorizations that require paths (read, write) but none
+         were included.
+       - Scopes that include relative paths (read:~/foo)
+    """
+
 class Enforcer(object):
 
     """
@@ -393,11 +357,13 @@ class Enforcer(object):
         self.last_failure = None
         if not self._issuer:
             raise EnforcementError("Issuer must be specified.")
-        self._now = 0
-        self._test_authz = None
-        self._test_path = None
         self._audience = audience
         self._site = site
+        self._test_access = False
+        self._test_authz = None
+        self._test_path = None
+        self._token_scopes = set()
+        self._now = 0
         self._validator = Validator()
         self._validator.add_validator("exp", self._validate_exp)
         self._validator.add_validator("nbf", self._validate_nbf)
@@ -405,8 +371,19 @@ class Enforcer(object):
         self._validator.add_validator("iat", self._validate_iat)
         self._validator.add_validator("site", self._validate_site)
         self._validator.add_validator("aud", self._validate_aud)
-        self._validator.add_validator("path", self._validate_path)
-        self._validator.add_validator("authz", self._validate_authz)
+        self._validator.add_validator("scp", self._validate_scp)
+
+    def _reset_state(self):
+        """
+        Reset the internal state variables of the Enforcer object.  Automatically
+        invoked each time the Enforcer is used to test or generate_acls
+        """
+        self._test_authz = None
+        self._test_path = None
+        self._test_access = False
+        self._token_scopes = set()
+        self._now = time.time()
+        self.last_failure = None
 
     def add_validator(self, claim, validator):
         """
@@ -419,18 +396,39 @@ class Enforcer(object):
         Test whether a given token has the requested permission within the
         current enforcer context.
         """
-        critical_claims = set(["authz"])
-        if authz in self._authz_requiring_path:
-            critical_claims.add("path")
-        self._now = time.time()
+        self._reset_state()
+        self._test_access = True
+
+        critical_claims = set(["scp"])
+        if not path and (authz in self._authz_requiring_path):
+            raise InvalidPathError("Enforcer provided with an empty path.")
+        if path and not path.startswith("/"):
+            raise InvalidPathError("Enforcer was given an invalid relative path to test; absolute path required.")
+
         self._test_path = path
         self._test_authz = authz
+        self.last_failure = None
+        try:
+            self._validator.validate(token, critical_claims=critical_claims)
+        except ValidationFailure as validation_failure:
+            self.last_failure = str(validation_failure)
+            return False
+        return True
+
+    def generate_acls(self, token):
+        """
+        Given a SciToken object and the expected issuer, return the valid ACLs.
+        """
+        self._reset_state()
+
+        critical_claims = set(["scp"])
+
         try:
             self._validator.validate(token, critical_claims=critical_claims)
         except ValidationFailure as vf:
             self.last_failure = str(vf)
-            return False
-        return True
+            raise
+        return list(self._token_scopes)
 
     def _validate_exp(self, value):
         exp = float(value)
@@ -456,21 +454,45 @@ class Enforcer(object):
             return False
         return value == self._audience
 
-    def _validate_path(self, value):
-        if not isinstance(value, list):
-            value = [value]
-        norm_requested_path = urltools.normalize_path(self._test_path)
-        for path in value:
-            norm_path = urltools.normalize_path(path)
-            if norm_requested_path.startswith(norm_path):
-                return True
-        return False
+    def _check_scope(self, scope):
+        """
+        Given a scope, make sure it contains a resource
+        for scope types that require resources.
 
-    def _validate_authz(self, value):
+        Returns a tuple of the (authz, path).  If path is
+        not in the scope (and is not required to be explicitly inside
+        the scope), it will default to '/'.
+        """
+        info = scope.split(":", 1)
+        authz = info[0]
+        if authz in self._authz_requiring_path and (len(info) == 1):
+            raise InvalidAuthorizationResource("Token contains an authorization requiring a resource"
+                                               "(path), but no path is present")
+        if len(info) == 2:
+            path = info[1]
+            if not path.startswith("/"):
+                raise InvalidAuthorizationResource("Token contains a relative path in scope")
+            norm_path = urltools.normalize_path(path)
+        else:
+            norm_path = '/'
+        return (authz, norm_path)
+
+    def _validate_scp(self, value):
         if not isinstance(value, list):
             value = [value]
-        for authz in value:
-            if self._test_authz == authz:
-                return True
-        return False
+        if self._test_access:
+            if not self._test_path:
+                norm_requested_path = '/'
+            else:
+                norm_requested_path = urltools.normalize_path(self._test_path)
+            for scope in value:
+                authz, norm_path = self._check_scope(scope)
+                if (self._test_authz == authz) and norm_requested_path.startswith(norm_path):
+                    return True
+            return False
+        else:
+            for scope in value:
+                authz, norm_path = self._check_scope(scope)
+                self._token_scopes.add((authz, norm_path))
+            return True
 
