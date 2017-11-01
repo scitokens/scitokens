@@ -5,7 +5,9 @@ Test the admin-create-key tool
 import os
 import sys
 import unittest
-import subprocess
+
+# Codacy has issues with subprocess, but this is only in the tests!
+import subprocess # nosec 
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
@@ -77,10 +79,13 @@ class TestKeyCreate(unittest.TestCase):
             public_key_numbers
         )
         return private_key_numbers.private_key(default_backend())
-        
+
         
     def _run_command(self, command):
-        command_run = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        # Bandit tests in codacy doesn't like shell=True, but this is suppose to
+        # test the user actually running the command from the shell, so keep
+        # shell=True is necessary.
+        command_run = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE) # nosec
         (stdout, stderr) = command_run.communicate()
         if command_run.returncode != 0:
             print(stdout)
