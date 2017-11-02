@@ -15,7 +15,7 @@ BuildRequires:  python2-devel
 BuildRequires:  python2-setuptools
 
 %description
-
+SciToken reference implementation library
 
 %package -n     python2-%{pypi_name}
 Summary:        %{summary}
@@ -24,10 +24,7 @@ Provides:       python-%{pypi_name}
 Requires:       python2-jwt
 Requires:       python2-cryptography
 %description -n python2-%{pypi_name}
-
-
-
-
+SciToken reference implementation library
 
 %prep
 %autosetup -n %{pypi_name}-%{version}
@@ -46,7 +43,6 @@ ln -s %{_bindir}/scitokens-admin-create-key-%{python2_version} %{buildroot}/%{_b
 cp %{buildroot}/%{_bindir}/scitokens-admin-create-token %{buildroot}/%{_bindir}/scitokens-admin-create-token-%{python2_version}
 ln -s %{_bindir}/scitokens-admin-create-token-%{python2_version} %{buildroot}/%{_bindir}/scitokens-admin-create-token-2
 
-
 %files -n python2-%{pypi_name}
 %doc README.rst
 %{_bindir}/scitokens-admin-create-key
@@ -64,7 +60,3 @@ ln -s %{_bindir}/scitokens-admin-create-token-%{python2_version} %{buildroot}/%{
 
 * Wed Nov 01 2017 Derek Weitzel <dweitzel@cse.unl.edu> - 0.3.0-1
 - Initial package.
-
-
-
-
