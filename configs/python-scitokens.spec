@@ -12,7 +12,7 @@ Source0:        https://files.pythonhosted.org/packages/source/s/%{pypi_name}/%{
 BuildArch:      noarch
  
 BuildRequires:  python2-devel
-BuildRequires:  python2-setuptools
+BuildRequires:  python-setuptools
 
 %description
 SciToken reference implementation library
