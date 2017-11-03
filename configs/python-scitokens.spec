@@ -3,7 +3,7 @@
 
 Name:           python-%{pypi_name}
 Version:        0.3.2
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        SciToken reference implementation library
 
 License:        Apache 2.0
@@ -21,7 +21,7 @@ SciToken reference implementation library
 Summary:        %{summary}
 Provides:       python-%{pypi_name}
  
-Requires:       python2-jwt
+Requires:       python-jwt
 Requires:       python2-cryptography
 %description -n python2-%{pypi_name}
 SciToken reference implementation library
@@ -38,23 +38,19 @@ rm -rf %{pypi_name}.egg-info
 # Must do the subpackages' install first because the scripts in /usr/bin are
 # overwritten with every setup.py install.
 %py2_install
-cp %{buildroot}/%{_bindir}/scitokens-admin-create-key %{buildroot}/%{_bindir}/scitokens-admin-create-key-%{python2_version}
-ln -s %{_bindir}/scitokens-admin-create-key-%{python2_version} %{buildroot}/%{_bindir}/scitokens-admin-create-key-2
-cp %{buildroot}/%{_bindir}/scitokens-admin-create-token %{buildroot}/%{_bindir}/scitokens-admin-create-token-%{python2_version}
-ln -s %{_bindir}/scitokens-admin-create-token-%{python2_version} %{buildroot}/%{_bindir}/scitokens-admin-create-token-2
 
 %files -n python2-%{pypi_name}
 %doc README.rst
 %{_bindir}/scitokens-admin-create-key
-%{_bindir}/scitokens-admin-create-key-2
-%{_bindir}/scitokens-admin-create-key-%{python2_version}
 %{_bindir}/scitokens-admin-create-token
-%{_bindir}/scitokens-admin-create-token-2
-%{_bindir}/scitokens-admin-create-token-%{python2_version}
 %{python2_sitelib}/%{pypi_name}
 %{python2_sitelib}/%{pypi_name}-%{version}-py?.?.egg-info
 
 %changelog
+* Fri Nov 03 2017 Derek Weitzel <dweitzel@cse.unl.edu> - 0.3.2-2
+- Update packaging to not include 2 scripts for the admin-create*
+- Include the correct package for python-jwt dependency
+
 * Thu Nov 02 2017 Derek Weitzel <dweitzel@cse.unl.edu> - 0.3.2-1
 - Version bump to include spec in tag
 
