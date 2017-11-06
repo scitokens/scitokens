@@ -373,6 +373,7 @@ class Enforcer(object):
         self._validator.add_validator("aud", self._validate_aud)
         self._validator.add_validator("scp", self._validate_scp)
         self._validator.add_validator("jti", self._validate_jti)
+        self._validator.add_validator("sub", self._validate_sub)
 
     def _reset_state(self):
         """
@@ -454,6 +455,16 @@ class Enforcer(object):
         if not self._audience:
             return False
         return value == self._audience
+
+    @classmethod
+    def _validate_sub(self, value):
+        """
+        SUB, or subject, should always pass.  It's mostly used for identifying
+        a tokens origin.
+        """
+        # Fix for unused argument
+        del value
+        return True
 
     @classmethod
     def _validate_jti(self, value):
