@@ -456,7 +456,14 @@ class Enforcer(object):
             return False
         return value == self._audience
 
+    @classmethod
     def _validate_sub(self, value):
+        """
+        SUB, or subject, should always pass.  It's mostly used for identifying
+        a tokens origin.
+        """
+        # Fix for unused argument
+        del value
         return True
 
     @classmethod
