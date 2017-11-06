@@ -3,7 +3,7 @@
 
 Name:           python-%{pypi_name}
 Version:        0.3.2
-Release:        2%{?dist}
+Release:        3%{?dist}
 Summary:        SciToken reference implementation library
 
 License:        Apache 2.0
@@ -23,6 +23,7 @@ Provides:       python-%{pypi_name}
  
 Requires:       python-jwt
 Requires:       python2-cryptography
+Requires:       python-setuptools
 %description -n python2-%{pypi_name}
 SciToken reference implementation library
 
@@ -47,6 +48,9 @@ rm -rf %{pypi_name}.egg-info
 %{python2_sitelib}/%{pypi_name}-%{version}-py?.?.egg-info
 
 %changelog
+* Mon Nov 06 2017 Derek Weitzel <dweitzel@cse.unl.edu> - 0.3.2-3
+- Include dependency for python-setuptools
+
 * Fri Nov 03 2017 Derek Weitzel <dweitzel@cse.unl.edu> - 0.3.2-2
 - Update packaging to not include 2 scripts for the admin-create*
 - Include the correct package for python-jwt dependency
