@@ -2,8 +2,8 @@
 %global pypi_name scitokens
 
 Name:           python-%{pypi_name}
-Version:        0.3.2
-Release:        3%{?dist}
+Version:        0.3.3
+Release:        1%{?dist}
 Summary:        SciToken reference implementation library
 
 License:        Apache 2.0
@@ -48,6 +48,9 @@ rm -rf %{pypi_name}.egg-info
 %{python2_sitelib}/%{pypi_name}-%{version}-py?.?.egg-info
 
 %changelog
+* Mon Nov 06 2017 Derek Weitzel <dweitzel@cse.unl.edu> - 0.3.3-1
+- Add subject testing in the Enforcer
+
 * Mon Nov 06 2017 Derek Weitzel <dweitzel@cse.unl.edu> - 0.3.2-3
 - Include dependency for python-setuptools
 
