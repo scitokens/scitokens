@@ -12,7 +12,13 @@ from scitokens.utils.errors import UnableToCreateCache
 from cryptography.hazmat.primitives.asymmetric.rsa import generate_private_key
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
-from urllib.error import URLError
+
+# Python 3 vs. Python 2
+try:
+    from urllib.error import URLError
+except ImportError:
+    from urllib2 import URLError
+
 from create_webserver import start_server, shutdown_server
 
 
