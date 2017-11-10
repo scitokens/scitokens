@@ -217,7 +217,7 @@ class KeyCache(object):
         Get the Cache file location
         
         1. $XDG_CACHE_HOME
-        2. $HOME/.cache
+        2. Home directory as returned by the password database
         """
 
         xdg_cache_home = os.environ.get("XDG_CACHE_HOME", None)
