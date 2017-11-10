@@ -1,3 +1,8 @@
+"""
+Utility to create a simple webserver that will answer oauth .well-known
+required requests.  This is so we can test the HTTP requesting part of issuers.
+"""
+
 import threading
 import json
 import base64
@@ -73,6 +78,15 @@ class OauthRequestHandler(BaseHTTPRequestHandler):
         
 
 def start_server(test_n, test_e, test_id):
+    """
+    Man this is ugly.  But you have to set global variables because it's
+    impossible to send arguments to the HTTPServer, since you pas the HTTPServer
+    an type, not an instance.
+    
+    :param long int test_n: N for an RSA key
+    :param long int test_e: E for an RSA key
+    :param str test_id: Key ID for the test key
+    """
     global TEST_N
     global TEST_E
     global TEST_ID
