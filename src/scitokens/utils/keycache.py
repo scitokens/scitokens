@@ -30,7 +30,7 @@ from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat,
 import cryptography.hazmat.backends as backends
 import cryptography.hazmat.primitives.asymmetric.ec as ec
 import cryptography.hazmat.primitives.asymmetric.rsa as rsa
-from scitokens.utils.errors import MissingKeyException, NonHTTPSIssuer
+from scitokens.utils.errors import MissingKeyException, NonHTTPSIssuer, UnableToCreateCache
 from scitokens.utils import long_from_bytes
 
 
@@ -228,7 +228,10 @@ class KeyCache(object):
             cache_dir = os.path.join(home_dir, ".cache")
 
         if not os.path.exists(cache_dir):
-            os.makedirs(cache_dir)
+            try:
+                os.makedirs(cache_dir)
+            except OSError as ose:
+                raise UnableToCreateCache("Unable to create cache: {}".format(str(ose)))
 
         keycache_dir = os.path.join(cache_dir, "scitokens")
         if not os.path.exists(keycache_dir):
