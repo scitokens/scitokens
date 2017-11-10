@@ -73,20 +73,20 @@ class TestKeyCache(unittest.TestCase):
         print(server_address)
         # Now try to get the public key from the server
         pubkey_from_keycache = self.keycache.getkeyinfo("http://localhost:{}/".format(server_address[1]), test_id, insecure=True)
-        
+
         # Now compare the 2 public keys
         public_pem = private_key.public_key().public_bytes(
             encoding=serialization.Encoding.PEM,
             format=serialization.PublicFormat.SubjectPublicKeyInfo
         )
-        
+
         pubkey_pem_from_keycache = pubkey_from_keycache.public_bytes(
             encoding=serialization.Encoding.PEM,
             format=serialization.PublicFormat.SubjectPublicKeyInfo
         )
-        
+
         self.assertEqual(public_pem, pubkey_pem_from_keycache)
-        
+
         shutdown_server()
 
     def test_populated(self):
@@ -120,6 +120,3 @@ class TestKeyCache(unittest.TestCase):
         # Make sure it errors with urlerror when it should not exist
         with self.assertRaises(URLError):
             self.keycache.getkeyinfo("https://doesnotexists.com/", "asdf")
-        
-    
-
