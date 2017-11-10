@@ -12,14 +12,14 @@ except ImportError:
     from http.server import BaseHTTPRequestHandler, HTTPServer
 
 import cryptography.utils
-    
+
 # For use in the HTTP Serve test class
 #test_kid = ""
 TEST_N = 0
 TEST_E = 0
 TEST_ID = ""
-httpd = None
-thread = None
+HTTPD = None
+THREAD = None
 
 
 
@@ -90,8 +90,8 @@ def start_server(test_n, test_e, test_id):
     global TEST_N
     global TEST_E
     global TEST_ID
-    global thread
-    global httpd
+    global THREAD
+    global HTTPD
     
     TEST_N = test_n
     TEST_E = test_e
@@ -105,9 +105,12 @@ def start_server(test_n, test_e, test_id):
     return httpd.server_address
     
 def shutdown_server():
-    global thread
-    global httpd
-    del httpd
-    del thread
+    """
+    Shutdown the web server
+    """
+    global THREAD
+    global HTTPD
+    del THREAD
+    del HTTPD
     
     

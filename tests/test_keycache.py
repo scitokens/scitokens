@@ -7,7 +7,7 @@ import os
 import tempfile
 import shutil
 import unittest
-from scitokens.utils.keycache import KeyCache, KEYCACHE_INSTANCE
+from scitokens.utils.keycache import KeyCache
 from scitokens.utils.errors import UnableToCreateCache
 from cryptography.hazmat.primitives.asymmetric.rsa import generate_private_key
 from cryptography.hazmat.backends import default_backend
@@ -26,8 +26,7 @@ class TestKeyCache(unittest.TestCase):
     """
     Test the creation of a simple SciToken
     """
-    
-    
+
     def setUp(self):
 
 
@@ -59,6 +58,7 @@ class TestKeyCache(unittest.TestCase):
         # Make sure it raises an unable to create cache exception
         with self.assertRaises(UnableToCreateCache):
             keycache = KeyCache()
+            del keycache
 
         if old_xdg:
             os.environ['XDG_CACHE_HOME'] = old_xdg
@@ -78,7 +78,9 @@ class TestKeyCache(unittest.TestCase):
         server_address = start_server(public_numbers.n, public_numbers.e, test_id)
         print(server_address)
         # Now try to get the public key from the server
-        pubkey_from_keycache = self.keycache.getkeyinfo("http://localhost:{}/".format(server_address[1]), test_id, insecure=True)
+        pubkey_from_keycache = self.keycache.getkeyinfo("http://localhost:{}/".format(server_address[1]),
+                                 test_id,
+                                 insecure=True)
 
         # Now compare the 2 public keys
         public_pem = private_key.public_key().public_bytes(

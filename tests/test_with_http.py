@@ -5,8 +5,6 @@ Test the full HTTP to SciToken serialize and deserialize
 import os
 import sys
 import unittest
-import threading
-import base64
 
 # Allow unittests to be run from within the project base.
 if os.path.exists("src"):
@@ -17,7 +15,6 @@ if os.path.exists("../src"):
 import scitokens
 import scitokens.scitokens
 
-import cryptography.utils
 from cryptography.hazmat.primitives.asymmetric.rsa import generate_private_key
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
@@ -44,13 +41,13 @@ class TestDeserialization(unittest.TestCase):
             password=None,
             backend=default_backend()
         )
-        TEST_ID = "stuffblah"
+        test_id = "stuffblah"
 
         public_numbers = private_key.public_key().public_numbers()
-        server_address = start_server(public_numbers.n, public_numbers.e, TEST_ID)
+        server_address = start_server(public_numbers.n, public_numbers.e, test_id)
         print(server_address)
         issuer = "http://localhost:{}/".format(server_address[1])
-        token = scitokens.SciToken(key=private_key, key_id=TEST_ID)
+        token = scitokens.SciToken(key=private_key, key_id=test_id)
         token.update_claims({"test": "true"})
         serialized_token = token.serialize(issuer=issuer)
 
