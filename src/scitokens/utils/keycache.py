@@ -7,6 +7,7 @@ import os
 import sqlite3
 import time
 import pkg_resources  # part of setuptools
+import pwd
 try:
     PKG_VERSION = pkg_resources.require("scitokens")[0].version
 except pkg_resources.DistributionNotFound as error:
@@ -220,7 +221,7 @@ class KeyCache(object):
         """
 
         xdg_cache_home = os.environ.get("XDG_CACHE_HOME", None)
-        home_dir = os.environ.get("HOME", None)
+        home_dir = pwd.getpwuid(os.geteuid()).pw_dir
 
         if xdg_cache_home != None:
             cache_dir = xdg_cache_home
