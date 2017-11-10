@@ -92,18 +92,18 @@ def start_server(test_n, test_e, test_id):
     global TEST_ID
     global THREAD
     global HTTPD
-    
+
     TEST_N = test_n
     TEST_E = test_e
     TEST_ID = test_id
-    
+
     server_address = ('', 0)
     HTTPD = HTTPServer(server_address, OauthRequestHandler)
     THREAD = threading.Thread(target=HTTPD.serve_forever)
     THREAD.daemon = True
     THREAD.start()
     return HTTPD.server_address
-    
+
 def shutdown_server():
     """
     Shutdown the web server
@@ -112,5 +112,4 @@ def shutdown_server():
     global HTTPD
     del THREAD
     del HTTPD
-    
-    
+
