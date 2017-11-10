@@ -54,7 +54,7 @@ class OauthRequestHandler(BaseHTTPRequestHandler):
         self._set_headers()
         to_write = ""
         if self.path == "/.well-known/openid-configuration":
-            to_write = json.dumps({"jwks_uri": "http://localhost:{}/oauth2/certs".format(httpd.server_address[1])})
+            to_write = json.dumps({"jwks_uri": "http://localhost:{}/oauth2/certs".format(HTTPD.server_address[1])})
         elif self.path == "/oauth2/certs":
 
             # Dummy Key
@@ -99,7 +99,7 @@ def start_server(test_n, test_e, test_id):
     
     server_address = ('', 0)
     HTTPD = HTTPServer(server_address, OauthRequestHandler)
-    THREAD = threading.Thread(target=httpd.serve_forever)
+    THREAD = threading.Thread(target=HTTPD.serve_forever)
     THREAD.daemon = True
     THREAD.start()
     return HTTPD.server_address
