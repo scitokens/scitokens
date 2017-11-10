@@ -40,13 +40,13 @@ class TestKeyCache(unittest.TestCase):
         # make sure it made the directory where I wanted it
         self.assertTrue(self.keycache.cache_location.startswith(self.tmp_dir))
         self.assertTrue(os.path.exists(self.keycache.cache_location))
-        
-    
+
+
     def tearDown(self):
         shutil.rmtree(self.tmp_dir)
         if self.old_xdg:
             os.environ['XDG_CACHE_HOME'] = self.old_xdg
-    
+
     def test_cannot_make_cache(self):
         """
         Test when the keycache shouldn't be able to make the cache
@@ -62,7 +62,7 @@ class TestKeyCache(unittest.TestCase):
 
         if old_xdg:
             os.environ['XDG_CACHE_HOME'] = old_xdg
-    
+
     def test_empty(self):
         """
         Test when the keycache should be empty

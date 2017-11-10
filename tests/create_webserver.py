@@ -75,7 +75,7 @@ class OauthRequestHandler(BaseHTTPRequestHandler):
 
             to_write = json.dumps({'keys': [dummy_key, key_info]})
         self.wfile.write(to_write.encode())
-        
+
 
 def start_server(test_n, test_e, test_id):
     """
@@ -98,11 +98,11 @@ def start_server(test_n, test_e, test_id):
     TEST_ID = test_id
     
     server_address = ('', 0)
-    httpd = HTTPServer(server_address, OauthRequestHandler)
-    thread = threading.Thread(target=httpd.serve_forever)
-    thread.daemon = True
-    thread.start()
-    return httpd.server_address
+    HTTPD = HTTPServer(server_address, OauthRequestHandler)
+    THREAD = threading.Thread(target=httpd.serve_forever)
+    THREAD.daemon = True
+    THREAD.start()
+    return HTTPD.server_address
     
 def shutdown_server():
     """
