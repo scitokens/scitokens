@@ -7,6 +7,7 @@ import os
 import sqlite3
 import time
 import pkg_resources  # part of setuptools
+import pwd
 try:
     PKG_VERSION = pkg_resources.require("scitokens")[0].version
 except pkg_resources.DistributionNotFound as error:
@@ -30,7 +31,7 @@ from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat,
 import cryptography.hazmat.backends as backends
 import cryptography.hazmat.primitives.asymmetric.ec as ec
 import cryptography.hazmat.primitives.asymmetric.rsa as rsa
-from scitokens.utils.errors import MissingKeyException, NonHTTPSIssuer
+from scitokens.utils.errors import MissingKeyException, NonHTTPSIssuer, UnableToCreateCache
 from scitokens.utils import long_from_bytes
 
 
@@ -216,11 +217,11 @@ class KeyCache(object):
         Get the Cache file location
         
         1. $XDG_CACHE_HOME
-        2. $HOME/.cache
+        2. Home directory as returned by the password database
         """
 
         xdg_cache_home = os.environ.get("XDG_CACHE_HOME", None)
-        home_dir = os.environ.get("HOME", None)
+        home_dir = pwd.getpwuid(os.geteuid()).pw_dir
 
         if xdg_cache_home != None:
             cache_dir = xdg_cache_home
@@ -228,7 +229,10 @@ class KeyCache(object):
             cache_dir = os.path.join(home_dir, ".cache")
 
         if not os.path.exists(cache_dir):
-            os.makedirs(cache_dir)
+            try:
+                os.makedirs(cache_dir)
+            except OSError as ose:
+                raise UnableToCreateCache("Unable to create cache: {}".format(str(ose)))
 
         keycache_dir = os.path.join(cache_dir, "scitokens")
         if not os.path.exists(keycache_dir):
