@@ -1,6 +1,5 @@
 """
 Test the keycache
-
 """
 
 import os
@@ -19,7 +18,7 @@ try:
 except ImportError:
     from urllib2 import URLError
 
-from create_webserver import start_server, shutdown_server
+import create_webserver
 
 
 class TestKeyCache(unittest.TestCase):
@@ -75,7 +74,7 @@ class TestKeyCache(unittest.TestCase):
         )
         public_numbers = private_key.public_key().public_numbers()
         test_id = "thisisatestid"
-        server_address = start_server(public_numbers.n, public_numbers.e, test_id)
+        server_address = create_webserver.start_server(public_numbers.n, public_numbers.e, test_id)
         print(server_address)
         # Now try to get the public key from the server
         pubkey_from_keycache = self.keycache.getkeyinfo("http://localhost:{}/".format(server_address[1]),
@@ -95,7 +94,7 @@ class TestKeyCache(unittest.TestCase):
 
         self.assertEqual(public_pem, pubkey_pem_from_keycache)
 
-        shutdown_server()
+        create_webserver.shutdown_server()
 
     def test_populated(self):
         """
