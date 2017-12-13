@@ -58,8 +58,6 @@
 <span class="kn">import</span> <span class="nn">jwt</span>
 <span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">urltools</span>
 
-<span class="kn">import</span> <span class="nn">cryptography.utils</span>
-<span class="kn">import</span> <span class="nn">cryptography.hazmat.primitives.asymmetric.rsa</span> <span class="k">as</span> <span class="nn">rsa</span>
 <span class="kn">import</span> <span class="nn">cryptography.hazmat.backends</span> <span class="k">as</span> <span class="nn">backends</span>
 <span class="kn">from</span> <span class="nn">.utils</span> <span class="k">import</span> <span class="n">keycache</span> <span class="k">as</span> <span class="n">KeyCache</span>
 <span class="kn">from</span> <span class="nn">.utils.errors</span> <span class="k">import</span> <span class="n">MissingIssuerException</span><span class="p">,</span> <span class="n">InvalidTokenFormat</span><span class="p">,</span> <span class="n">MissingKeyException</span>
@@ -73,7 +71,7 @@
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">key_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">claims</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Construct a SciToken object.</span>
-<span class="sd">        </span>
+
 <span class="sd">        :param key: Private key to sign the SciToken with.  It should be the PEM contents.</span>
 <span class="sd">        :param str key_id: A string representing the Key ID that is used at the issuer</span>
 <span class="sd">        :param parent: Parent SciToken that will be chained</span>
@@ -474,8 +472,8 @@
 
         <span class="k">try</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_validator</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">token</span><span class="p">,</span> <span class="n">critical_claims</span><span class="o">=</span><span class="n">critical_claims</span><span class="p">)</span>
-        <span class="k">except</span> <span class="n">ValidationFailure</span> <span class="k">as</span> <span class="n">vf</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">last_failure</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">vf</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">ValidationFailure</span> <span class="k">as</span> <span class="n">verify_fail</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">last_failure</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">verify_fail</span><span class="p">)</span>
             <span class="k">raise</span>
         <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_token_scopes</span><span class="p">)</span></div>
 
