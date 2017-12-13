@@ -43,6 +43,3 @@ class UnableToCreateCache(Exception):
     """
     Unable to make the KeyCache
     """
-    pass
-
-

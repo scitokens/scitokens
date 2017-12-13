@@ -15,7 +15,6 @@ if os.path.exists("../src"):
 import scitokens
 import scitokens.scitokens
 
-from cryptography.hazmat.primitives.asymmetric.rsa import generate_private_key
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 from create_webserver import start_server

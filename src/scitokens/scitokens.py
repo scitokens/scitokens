@@ -11,8 +11,6 @@ import time
 import jwt
 from . import urltools
 
-import cryptography.utils
-import cryptography.hazmat.primitives.asymmetric.rsa as rsa
 import cryptography.hazmat.backends as backends
 from .utils import keycache as KeyCache
 from .utils.errors import MissingIssuerException, InvalidTokenFormat, MissingKeyException
@@ -26,7 +24,7 @@ class SciToken(object):
     def __init__(self, key=None, key_id=None, parent=None, claims=None):
         """
         Construct a SciToken object.
-        
+
         :param key: Private key to sign the SciToken with.  It should be the PEM contents.
         :param str key_id: A string representing the Key ID that is used at the issuer
         :param parent: Parent SciToken that will be chained
@@ -427,8 +425,8 @@ class Enforcer(object):
 
         try:
             self._validator.validate(token, critical_claims=critical_claims)
-        except ValidationFailure as vf:
-            self.last_failure = str(vf)
+        except ValidationFailure as verify_fail:
+            self.last_failure = str(verify_fail)
             raise
         return list(self._token_scopes)
 
