@@ -45,6 +45,9 @@ class UnableToWriteKeyCache(Exception):
     pass
 
 class KeyCache(object):
+    """
+    Object that persistently caches signing keys associated with a token issuer endpoint.
+    """
 
     def __init__(self):
         # Check for the cache
@@ -89,12 +92,13 @@ class KeyCache(object):
     def getkeyinfo(self, issuer, key_id=None, insecure=False):
         """
         Get the key information
-        
+
         :param str issuer: The issuer URI
         :param str key_id: Text key id to identify the key
+        :param bool insecure: Whether insecure methods are acceptable (defaults to False).
         :returns: None if no key is found.  Else, returns the public key
         """
-        # Check the sql database 
+        # Check the sql database
         key_query = ("SELECT * FROM keycache WHERE "
                      "issuer = '{issuer}'")
         if key_id != None:
