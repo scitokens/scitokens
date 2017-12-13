@@ -140,7 +140,7 @@ class TestKeyCache(unittest.TestCase):
         )
         public_numbers = private_key.public_key().public_numbers()
         test_id = "thisisatestid"
-        server_address = start_server(public_numbers.n, public_numbers.e, test_id)
+        server_address = create_webserver.start_server(public_numbers.n, public_numbers.e, test_id)
         print(server_address)
 
         _, cache_timer = self.keycache._get_issuer_publickey("http://localhost:{}/".format(server_address[1]),
@@ -148,4 +148,4 @@ class TestKeyCache(unittest.TestCase):
                                             insecure=True)
 
         self.assertEqual(cache_timer, 3600)
-        shutdown_server()
+        create_webserver.shutdown_server()
