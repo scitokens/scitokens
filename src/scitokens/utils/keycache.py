@@ -192,7 +192,7 @@ class KeyCache(object):
                 if match:
                     cache_timer = int(match.group(1))
         # Minimum cache time of 10 minutes, no matter what the remote says
-        cache_timer = min(cache_timer, 600)
+        cache_timer = max(cache_timer, 600)
 
         keys_data = json.loads(response.read().decode('utf-8'))
         # Loop through each key, looking for the right key id
