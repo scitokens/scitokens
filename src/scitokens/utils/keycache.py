@@ -64,6 +64,11 @@ class KeyCache(object):
     def addkeyinfo(self, issuer, key_id, public_key, cache_timer=0):
         """
         Add a single, known public key to the cache.
+        
+        :param str issuer: URI of the issuer
+        :param str key_id: Key Identifier
+        :param public_key: Cryptography public_key object
+        :param int cache_timer: Cache lifetime of the public_key
         """
         conn = sqlite3.connect(self.cache_location)
         conn.row_factory = sqlite3.Row
@@ -140,6 +145,10 @@ class KeyCache(object):
 
     @staticmethod
     def _get_issuer_publickey(issuer, key_id=None, insecure=False):
+        """
+        :return: Tuple containing (public_key, cache_lifetime).  Cache_lifetime how 
+            the public key is valid
+        """
         
         # Set the user agent so Cloudflare isn't mad at us
         headers={'User-Agent': 'SciTokens/{}'.format(PKG_VERSION)}
@@ -176,13 +185,14 @@ class KeyCache(object):
         # Get the cache data from the headers
         cache_timer = 0
         headers = response.info()
-        print(headers)
         if "Cache-Control" in headers:
             # Parse out the max-age, if it's there.
             if "max-age" in headers['Cache-Control']:
                 match = re.search(".*max-age=(\d+)", headers['Cache-Control'])
                 if match:
                     cache_timer = int(match.group(1))
+        # Minimum cache time of 10 minutes, no matter what the remote says
+        cache_timer = min(cache_timer, 600)
 
         keys_data = json.loads(response.read().decode('utf-8'))
         # Loop through each key, looking for the right key id
