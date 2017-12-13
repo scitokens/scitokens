@@ -12,6 +12,7 @@ except ImportError:
     from http.server import BaseHTTPRequestHandler, HTTPServer
 
 import cryptography.utils
+import scitokens.utils
 
 # For use in the HTTP Serve test class
 #test_kid = ""
@@ -20,14 +21,6 @@ TEST_E = 0
 TEST_ID = ""
 HTTPD = None
 THREAD = None
-
-
-
-def bytes_from_long(data):
-    """
-    Create a base64 encoded string for an integer
-    """
-    return base64.urlsafe_b64encode(cryptography.utils.int_to_bytes(data)).decode('ascii')
 
 class OauthRequestHandler(BaseHTTPRequestHandler):
     """
@@ -68,8 +61,8 @@ class OauthRequestHandler(BaseHTTPRequestHandler):
 
             key_info = {}
             key_info['kid'] = TEST_ID
-            key_info['n'] = bytes_from_long(TEST_N)
-            key_info['e'] = bytes_from_long(TEST_E)
+            key_info['n'] = scitokens.utils.bytes_from_long(TEST_N)
+            key_info['e'] = scitokens.utils.bytes_from_long(TEST_E)
             key_info['kty'] = "RSA"
             key_info['alg'] = "RS256"
 
