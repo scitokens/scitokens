@@ -112,7 +112,7 @@ class TestKeyCache(unittest.TestCase):
             format=serialization.PublicFormat.SubjectPublicKeyInfo
         )
 
-        self.keycache.addkeyinfo("https://doesnotexists.com/", "blahstuff", public_key)
+        self.keycache.addkeyinfo("https://doesnotexists.com/", "blahstuff", public_key, cache_timer=60)
 
         # Now extract the just inserted key
         pubkey = self.keycache.getkeyinfo("https://doesnotexists.com/", "blahstuff")
@@ -127,3 +127,25 @@ class TestKeyCache(unittest.TestCase):
         # Make sure it errors with urlerror when it should not exist
         with self.assertRaises(URLError):
             self.keycache.getkeyinfo("https://doesnotexists.com/", "asdf")
+
+
+    def test_cache_timer(self):
+        """
+        Test if the cache max-age is retrieved from the HTTPS resource
+        """
+        private_key = generate_private_key(
+            public_exponent=65537,
+            key_size=2048,
+            backend=default_backend()
+        )
+        public_numbers = private_key.public_key().public_numbers()
+        test_id = "thisisatestid"
+        server_address = create_webserver.start_server(public_numbers.n, public_numbers.e, test_id)
+        print(server_address)
+
+        _, cache_timer = self.keycache._get_issuer_publickey("http://localhost:{}/".format(server_address[1]),
+                                            key_id=test_id,
+                                            insecure=True)
+
+        self.assertEqual(cache_timer, 3600)
+        create_webserver.shutdown_server()

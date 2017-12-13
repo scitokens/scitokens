@@ -119,7 +119,7 @@ class TestCreation(unittest.TestCase):
         serialized_token = self._token.serialize(issuer="local")
         self.assertTrue(serialized_token)
 
-        token = scitokens.SciToken.deserialize(serialized_token, insecure=True)
+        token = scitokens.SciToken.deserialize(serialized_token, public_key = self._public_pem, insecure=True)
         self.assertTrue(isinstance(token, scitokens.SciToken))
 
         with self.assertRaises(NotImplementedError):
@@ -134,7 +134,7 @@ class TestCreation(unittest.TestCase):
         """
         self._token['scp'] = "write:/home/example"
         serialized_token = self._token.serialize(issuer="local")
-        token = scitokens.SciToken.deserialize(serialized_token)
+        token = scitokens.SciToken.deserialize(serialized_token, public_key = self._public_pem, insecure=True)
         enf = scitokens.Enforcer(issuer="local")
         self.assertTrue(enf.test(token, "write", "/home/example/test_file"), msg=enf.last_failure)
         self.assertFalse(enf.test(token, "read", "/home/example/test_file"))

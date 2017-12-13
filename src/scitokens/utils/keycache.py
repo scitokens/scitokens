@@ -8,6 +8,7 @@ import sqlite3
 import time
 import pkg_resources  # part of setuptools
 import pwd
+import re
 try:
     PKG_VERSION = pkg_resources.require("scitokens")[0].version
 except pkg_resources.DistributionNotFound as error:
@@ -63,20 +64,25 @@ class KeyCache(object):
             KEYCACHE_INSTANCE = KeyCache()
         return KEYCACHE_INSTANCE
 
-    def addkeyinfo(self, issuer, key_id, public_key):
+    def addkeyinfo(self, issuer, key_id, public_key, cache_timer=0):
         """
         Add a single, known public key to the cache.
+        
+        :param str issuer: URI of the issuer
+        :param str key_id: Key Identifier
+        :param public_key: Cryptography public_key object
+        :param int cache_timer: Cache lifetime of the public_key
         """
         conn = sqlite3.connect(self.cache_location)
         conn.row_factory = sqlite3.Row
         curs = conn.cursor()
         curs.execute("DELETE FROM keycache WHERE issuer = '{}' AND key_id = '{}'".format(issuer, key_id))
-        KeyCache._addkeyinfo(curs, issuer, key_id, public_key)
+        KeyCache._addkeyinfo(curs, issuer, key_id, public_key, cache_timer=cache_timer)
         conn.commit()
         conn.close()
 
     @staticmethod
-    def _addkeyinfo(curs, issuer, key_id, public_key):
+    def _addkeyinfo(curs, issuer, key_id, public_key, cache_timer=0):
         """
         Given an open database cursor to a key cache, insert a key.
         """
@@ -84,7 +90,7 @@ class KeyCache(object):
         insert_key_statement = "INSERT INTO keycache VALUES('{issuer}', '{expiration}', '{key_id}', '{keydata}')"
         keydata = public_key.public_bytes(Encoding.PEM, PublicFormat.PKCS1).decode('ascii')
 
-        curs.execute(insert_key_statement.format(issuer=issuer, expiration=time.time()+60, key_id=key_id,
+        curs.execute(insert_key_statement.format(issuer=issuer, expiration=time.time()+cache_timer, key_id=key_id,
                                                  keydata=keydata))
         if curs.rowcount != 1:
             raise UnableToWriteKeyCache("Unable to insert into key cache")
@@ -121,9 +127,9 @@ class KeyCache(object):
 
         # If it reaches here, then no key was found in the SQL
         # Try checking the issuer (negative cache?)
-        public_key = self._get_issuer_publickey(issuer, key_id, insecure)
+        public_key, cache_timer = self._get_issuer_publickey(issuer, key_id, insecure)
 
-        self._addkeyinfo(curs, issuer, key_id, public_key)
+        self._addkeyinfo(curs, issuer, key_id, public_key, cache_timer)
 
         # Save (commit) the changes
         conn.commit()
@@ -143,6 +149,10 @@ class KeyCache(object):
 
     @staticmethod
     def _get_issuer_publickey(issuer, key_id=None, insecure=False):
+        """
+        :return: Tuple containing (public_key, cache_lifetime).  Cache_lifetime how 
+            the public key is valid
+        """
         
         # Set the user agent so Cloudflare isn't mad at us
         headers={'User-Agent': 'SciTokens/{}'.format(PKG_VERSION)}
@@ -175,6 +185,19 @@ class KeyCache(object):
             if parsed_url.scheme != "https":
                 raise NonHTTPSIssuer("jwks_uri is not over HTTPS, insecure!")
         response = request.urlopen(request.Request(jwks_uri, headers=headers))
+
+        # Get the cache data from the headers
+        cache_timer = 0
+        headers = response.info()
+        if "Cache-Control" in headers:
+            # Parse out the max-age, if it's there.
+            if "max-age" in headers['Cache-Control']:
+                match = re.search(".*max-age=(\d+)", headers['Cache-Control'])
+                if match:
+                    cache_timer = int(match.group(1))
+        # Minimum cache time of 10 minutes, no matter what the remote says
+        cache_timer = max(cache_timer, 600)
+
         keys_data = json.loads(response.read().decode('utf-8'))
         # Loop through each key, looking for the right key id
         public_key = ""
@@ -213,7 +236,7 @@ class KeyCache(object):
         else:
             raise UnsupportedKeyException("SciToken signed with an unsupported key type")
 
-        return public_key
+        return public_key, cache_timer
 
 
     def _get_cache_file(self):
