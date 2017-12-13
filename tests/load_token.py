@@ -6,5 +6,8 @@ import scitokens
 import sys
 
 
-scitokens.SciToken.deserialize(sys.argv[1])
+token = scitokens.SciToken.deserialize(sys.argv[1].encode())
+
+for claim in token.claims():
+    print(claim)
 

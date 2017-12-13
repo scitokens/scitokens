@@ -29,6 +29,7 @@ class OauthRequestHandler(BaseHTTPRequestHandler):
     def _set_headers(self):
         self.send_response(200)
         self.send_header('Content-type', 'text/json')
+        self.send_header('Cache-Control', 'max-age=3600')
         self.end_headers()
 
     def do_GET(self): # pylint: disable=invalid-name
@@ -61,8 +62,8 @@ class OauthRequestHandler(BaseHTTPRequestHandler):
 
             key_info = {}
             key_info['kid'] = TEST_ID
-            key_info['n'] = scitokens.utils.bytes_from_long(TEST_N)
-            key_info['e'] = scitokens.utils.bytes_from_long(TEST_E)
+            key_info['n'] = scitokens.utils.bytes_from_long(TEST_N).decode('ascii')
+            key_info['e'] = scitokens.utils.bytes_from_long(TEST_E).decode('ascii')
             key_info['kty'] = "RSA"
             key_info['alg'] = "RS256"
 
