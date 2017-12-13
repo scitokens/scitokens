@@ -62,8 +62,8 @@ class OauthRequestHandler(BaseHTTPRequestHandler):
 
             key_info = {}
             key_info['kid'] = TEST_ID
-            key_info['n'] = scitokens.utils.bytes_from_long(TEST_N)
-            key_info['e'] = scitokens.utils.bytes_from_long(TEST_E)
+            key_info['n'] = scitokens.utils.bytes_from_long(TEST_N).decode('ascii')
+            key_info['e'] = scitokens.utils.bytes_from_long(TEST_E).decode('ascii')
             key_info['kty'] = "RSA"
             key_info['alg'] = "RS256"
 
