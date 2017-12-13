@@ -90,7 +90,7 @@ def start_server(test_n, test_e, test_id):
     TEST_E = test_e
     TEST_ID = test_id
 
-    server_address = ('', 0)
+    server_address = ('127.0.0.1', 0)
     HTTPD = HTTPServer(server_address, OauthRequestHandler)
     THREAD = threading.Thread(target=HTTPD.serve_forever)
     THREAD.daemon = True
