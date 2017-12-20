@@ -38,3 +38,8 @@ class InvalidTokenFormat(Exception):
     Encoded token has an invalid format.
     """
     pass
+
+class UnableToCreateCache(Exception):
+    """
+    Unable to make the KeyCache
+    """

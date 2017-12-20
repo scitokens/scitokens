@@ -12,8 +12,6 @@ import jwt
 from . import urltools
 import logging
 
-import cryptography.utils
-import cryptography.hazmat.primitives.asymmetric.rsa as rsa
 import cryptography.hazmat.backends as backends
 from .utils import keycache as KeyCache
 from .utils.errors import MissingIssuerException, InvalidTokenFormat, MissingKeyException
@@ -27,7 +25,7 @@ class SciToken(object):
     def __init__(self, key=None, key_id=None, parent=None, claims=None):
         """
         Construct a SciToken object.
-        
+
         :param key: Private key to sign the SciToken with.  It should be the PEM contents.
         :param str key_id: A string representing the Key ID that is used at the issuer
         :param parent: Parent SciToken that will be chained
@@ -374,6 +372,7 @@ class Enforcer(object):
         self._validator.add_validator("aud", self._validate_aud)
         self._validator.add_validator("scp", self._validate_scp)
         self._validator.add_validator("jti", self._validate_jti)
+        self._validator.add_validator("sub", self._validate_sub)
 
     def _reset_state(self):
         """
@@ -427,8 +426,8 @@ class Enforcer(object):
 
         try:
             self._validator.validate(token, critical_claims=critical_claims)
-        except ValidationFailure as vf:
-            self.last_failure = str(vf)
+        except ValidationFailure as verify_fail:
+            self.last_failure = str(verify_fail)
             raise
         return list(self._token_scopes)
 
@@ -455,6 +454,16 @@ class Enforcer(object):
         if not self._audience:
             return False
         return value == self._audience
+
+    @classmethod
+    def _validate_sub(self, value):
+        """
+        SUB, or subject, should always pass.  It's mostly used for identifying
+        a tokens origin.
+        """
+        # Fix for unused argument
+        del value
+        return True
 
     @classmethod
     def _validate_jti(self, value):

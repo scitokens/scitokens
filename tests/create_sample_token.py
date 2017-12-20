@@ -35,8 +35,12 @@ def gen_jwk():
 
 
 def main():
-    with open("sample_ecdsa_keypair.pem", "r") as fp:
-        serialized_pair = fp.read()
+    """
+    Main method for testing tool for creating a sample SciToken.
+    """
+
+    with open("sample_ecdsa_keypair.pem", "r") as file_pointer:
+        serialized_pair = file_pointer.read()
 
     loaded_public_key = serialization.load_pem_public_key(
         serialized_pair,
