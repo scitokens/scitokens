@@ -463,6 +463,7 @@ class Enforcer(object):
         JTI, or json token id, should always pass.  It's mostly used for logging
         and auditing.
         """
+        global logger
         logger.info("Validating SciToken with jti: {0}".format(value))
         return True
 
