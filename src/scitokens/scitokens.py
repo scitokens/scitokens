@@ -473,7 +473,7 @@ class Enforcer(object):
         and auditing.
         """
         logger = logging.getLogger('scitokens')
-        logging.info("Validating SciToken with jti: {0}".format(value))
+        logger.info("Validating SciToken with jti: {0}".format(value))
         return True
 
     def _check_scope(self, scope):
