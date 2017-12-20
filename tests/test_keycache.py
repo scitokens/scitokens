@@ -149,3 +149,89 @@ class TestKeyCache(unittest.TestCase):
 
         self.assertEqual(cache_timer, 3600)
         create_webserver.shutdown_server()
+
+    def test_cache_update_time(self):
+        """
+        Test if the cache next_update works
+        """
+        # Create a pem encoded public key
+        private_key = generate_private_key(
+            public_exponent=65537,
+            key_size=2048,
+            backend=default_backend()
+        )
+        public_key = private_key.public_key()
+        public_pem = public_key.public_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PublicFormat.SubjectPublicKeyInfo
+        )
+
+        self.keycache.addkeyinfo("https://doesnotexists.com/", "blahstuff", public_key, cache_timer=60, next_update=-1)
+
+        # Even though the cache is still valid, the next update is triggered
+        # We should still get the key, even though the next update fails
+        # (invalid url)
+        pubkey = self.keycache.getkeyinfo("https://doesnotexists.com/", "blahstuff")
+
+        public_pem2 = pubkey.public_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PublicFormat.SubjectPublicKeyInfo
+        )
+
+        self.assertEqual(public_pem, public_pem2)
+
+    def test_cache_update_trigger(self):
+        """
+        Test when the next_update triggers and goes to the webserver
+        """
+        # Stand up an HTTP server
+        private_key = generate_private_key(
+            public_exponent=65537,
+            key_size=2048,
+            backend=default_backend()
+        )
+        public_numbers = private_key.public_key().public_numbers()
+        test_id = "thisisatestid"
+        server_address = create_webserver.start_server(public_numbers.n, public_numbers.e, test_id)
+        print(server_address)
+
+        # Create a pem encoded public key, just to insert, want to make sure
+        # it downloads from the server
+        private_key = generate_private_key(
+            public_exponent=65537,
+            key_size=2048,
+            backend=default_backend()
+        )
+        public_key = private_key.public_key()
+        public_pem = public_key.public_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PublicFormat.SubjectPublicKeyInfo
+        )
+
+        # Now try to get the public key from the server
+        self.keycache.addkeyinfo("http://localhost:{}/".format(server_address[1]),
+                                 test_id,
+                                 public_key,
+                                 cache_timer=60,
+                                 next_update=-1)
+
+        # Next update should trigger now
+        pubkey_from_keycache = self.keycache.getkeyinfo("http://localhost:{}/".format(server_address[1]),
+                                 test_id,
+                                 insecure=True)
+
+        # Now compare the 2 public keys
+        public_pem = private_key.public_key().public_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PublicFormat.SubjectPublicKeyInfo
+        )
+
+        pubkey_pem_from_keycache = pubkey_from_keycache.public_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PublicFormat.SubjectPublicKeyInfo
+        )
+
+        self.assertEqual(public_pem, pubkey_pem_from_keycache)
+
+        create_webserver.shutdown_server()
+
