@@ -128,7 +128,16 @@ class KeyCache(object):
             if int(row['next_update']) < time.time() and self._check_validity(row):
                 # Try to update the key, but if it doesn't work, just return the saved one
                 try:
+                    # Close the sqllite lock
+                    conn.commit()
+                    conn.close()
+
+                    # Get the public key, probably from a webserver
                     public_key, cache_timer = self._get_issuer_publickey(issuer, key_id, insecure)
+
+                    # Get the sqllite connection again
+                    conn = sqlite3.connect(self.cache_location)
+                    curs = conn.cursor()
                     self._addkeyinfo(curs, issuer, key_id, public_key, cache_timer)
                     conn.commit()
                     conn.close()
@@ -153,10 +162,17 @@ class KeyCache(object):
                 curs.execute("DELETE FROM keycache WHERE issuer = '{}' AND key_id = '{}'".format(row['issuer'],
                              row['key_id']))
 
+        # Close the sqllite lock
+        conn.commit()
+        conn.close()
+
         # If it reaches here, then no key was found in the SQL
         # Try checking the issuer (negative cache?)
         public_key, cache_timer = self._get_issuer_publickey(issuer, key_id, insecure)
 
+        # Get the sqllite connection again
+        conn = sqlite3.connect(self.cache_location)
+        curs = conn.cursor()
         self._addkeyinfo(curs, issuer, key_id, public_key, cache_timer)
 
         # Save (commit) the changes
