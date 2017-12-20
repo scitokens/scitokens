@@ -16,11 +16,10 @@ config_defaults = {
 def set_config(config = None):
     """
     Set the configuration of SciTokens library
-    
     :param config: config may be: A full path to a ini configuration file, A ConfigParser instance, or None, which will use all defaults.
     """
     global configuration
-    
+
     if isinstance(config, six.string_types):
         configuration = configparser.SafeConfigParser(config_defaults)
         configuration.read([config])
@@ -32,7 +31,7 @@ def set_config(config = None):
         configuration.add_section("scitokens")
     else:
         pass
-    
+
     logger = logging.getLogger("scitokens")
 
     if configuration.has_option("scitokens", "log_file"):
@@ -40,10 +39,10 @@ def set_config(config = None):
         if log_file is not None:
             # Create loggers with 100MB files, rotated 5 times
             logger.addHandler(logging.handlers.RotatingFileHandler(log_file, maxBytes=100 * (1024*1000), backupCount=5))
-        
+
     else:
         logger.addHandler(logging.StreamHandler())
-    
+
     # Set the logging
     log_level = configuration.get("scitokens", "log_level")
     if log_level == "DEBUG":
@@ -58,17 +57,13 @@ def set_config(config = None):
         logger.setLevel(logging.CRITICAL)
     else:
         logger.setLevel(logging.WARNING)
-    
-
-        
 
 
 def get(key, default=None):
     """
     Get the configuration value for key
-    
+
     :param str key: The key in the configuration to retreive
-    
     :returns: The value in the configuration, or the default
     """
     global configuration
@@ -81,18 +76,14 @@ def get(key, default=None):
             return config_defaults[key]
         else:
             raise noe
-        
+
 
 def get_int(key, default=None):
     """
     Get an integer from the configuration.
-    
+
     :param str key: The key in the configuration to retreive
     :returns: The value in the configuration, or the default
     """
     return int(get(key, default))
-
-
-
-
 
