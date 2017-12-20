@@ -9,6 +9,7 @@ import time
 import pkg_resources  # part of setuptools
 import pwd
 import re
+import logging
 try:
     PKG_VERSION = pkg_resources.require("scitokens")[0].version
 except pkg_resources.DistributionNotFound as error:
@@ -72,12 +73,12 @@ class KeyCache(object):
         :param str key_id: Key Identifier
         :param public_key: Cryptography public_key object
         :param int cache_timer: Cache lifetime of the public_key
-        :param int next_update: Unix epoch timestamp for when the next update should occur
+        :param int next_update: Seconds until next update time
         """
         
         # If the next_update is 0, then set it to 1 hour
         if next_update == 0:
-            next_update = time.time() + 3600
+            next_update = 3600
         
         conn = sqlite3.connect(self.cache_location)
         conn.row_factory = sqlite3.Row
@@ -97,7 +98,7 @@ class KeyCache(object):
         keydata = public_key.public_bytes(Encoding.PEM, PublicFormat.PKCS1).decode('ascii')
 
         curs.execute(insert_key_statement.format(issuer=issuer, expiration=time.time()+cache_timer, key_id=key_id,
-                                                 keydata=keydata, next_update=next_update))
+                                                 keydata=keydata, next_update=time.time()+next_update))
         if curs.rowcount != 1:
             raise UnableToWriteKeyCache("Unable to insert into key cache")
 
@@ -132,7 +133,7 @@ class KeyCache(object):
                     conn.close()
                     return public_key
                 except:
-                    logger = logging.getlogger("scitokens")
+                    logger = logging.getLogger("scitokens")
                     logger.warning("Unable to get key triggered by next update")
                     conn.close()
                     return load_pem_public_key(row['keydata'].encode(), backend=backends.default_backend())
