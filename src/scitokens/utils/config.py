@@ -1,6 +1,7 @@
 
 # Config parser is renamed in python 3
 from six.moves import configparser
+import six
 import logging
 import logging.handlers
 
@@ -20,7 +21,7 @@ def set_config(config = None):
     """
     global configuration
     
-    if isinstance(config, basestring):
+    if isinstance(config, six.string_types):
         configuration = configparser.SafeConfigParser(config_defaults)
         configuration.read([config])
     elif isinstance(config, configparser.RawConfigParser):
