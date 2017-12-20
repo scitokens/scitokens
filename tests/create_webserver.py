@@ -5,13 +5,11 @@ required requests.  This is so we can test the HTTP requesting part of issuers.
 
 import threading
 import json
-import base64
 try:
     from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
 except ImportError:
     from http.server import BaseHTTPRequestHandler, HTTPServer
 
-import cryptography.utils
 import scitokens.utils
 
 # For use in the HTTP Serve test class

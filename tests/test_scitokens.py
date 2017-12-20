@@ -21,6 +21,9 @@ import scitokens
 
 
 class TestValidation(unittest.TestCase):
+    """
+    Tests related to the Validator object.
+    """
 
     def test_valid(self):
         """
@@ -28,6 +31,9 @@ class TestValidation(unittest.TestCase):
         """
 
         def always_accept(value):
+            """
+            A validator that accepts any value.
+            """
             if value or not value:
                 return True
 
@@ -42,6 +48,9 @@ class TestValidation(unittest.TestCase):
 
 
 class TestEnforcer(unittest.TestCase):
+    """
+    Unit tests for the SciToken's Enforcer object.
+    """
 
     _test_issuer = "https://scitokens.org/unittest"
 
