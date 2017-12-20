@@ -21,6 +21,9 @@ import scitokens
 
 
 class TestValidation(unittest.TestCase):
+    """
+    Tests related to the Validator object.
+    """
 
     def test_valid(self):
         """
@@ -28,6 +31,9 @@ class TestValidation(unittest.TestCase):
         """
 
         def always_accept(value):
+            """
+            A validator that accepts any value.
+            """
             if value or not value:
                 return True
 
@@ -42,8 +48,16 @@ class TestValidation(unittest.TestCase):
 
 
 class TestEnforcer(unittest.TestCase):
+    """
+    Unit tests for the SciToken's Enforcer object.
+    """
 
     _test_issuer = "https://scitokens.org/unittest"
+
+    @staticmethod
+    def always_accept(value):
+        if value or not value:
+            return True
 
     def setUp(self):
         """
@@ -66,18 +80,11 @@ class TestEnforcer(unittest.TestCase):
         """
         Test the Enforcer object.
         """
-        def always_accept(value):
-            """
-            A validator function that always accepts a given value.
-            """
-            if value or not value:
-                return True
-
         with self.assertRaises(scitokens.scitokens.EnforcementError):
             print(scitokens.Enforcer(None))
 
         enf = scitokens.Enforcer(self._test_issuer)
-        enf.add_validator("foo", always_accept)
+        enf.add_validator("foo", self.always_accept)
 
         self.assertFalse(enf.test(self._token, "read", "/"), msg=enf.last_failure)
 
@@ -85,7 +92,7 @@ class TestEnforcer(unittest.TestCase):
         self.assertTrue(enf.test(self._token, "read", "/"), msg=enf.last_failure)
 
         enf = scitokens.Enforcer(self._test_issuer, audience = "https://example.unl.edu")
-        enf.add_validator("foo", always_accept)
+        enf.add_validator("foo", self.always_accept)
         self.assertTrue(enf.test(self._token, "read", "/"), msg=enf.last_failure)
 
         self._token["scp"] = "read:/foo/bar"
@@ -94,7 +101,7 @@ class TestEnforcer(unittest.TestCase):
         self._token["site"] = "T2_US_Example"
         self.assertFalse(enf.test(self._token, "read", "/foo/bar"), msg=enf.last_failure)
         enf = scitokens.Enforcer(self._test_issuer, site="T2_US_Example")
-        enf.add_validator("foo", always_accept)
+        enf.add_validator("foo", self.always_accept)
         self.assertTrue(enf.test(self._token, "read", "/foo/bar"), msg=enf.last_failure)
 
         self.assertFalse(enf.test(self._token, "write", "/foo/bar"), msg=enf.last_failure)
@@ -139,12 +146,8 @@ class TestEnforcer(unittest.TestCase):
         """
         Test the generation of ACLs
         """
-        def always_accept(value):
-            if value or not value:
-                return True
-
         enf = scitokens.Enforcer(self._test_issuer)
-        enf.add_validator("foo", always_accept)
+        enf.add_validator("foo", self.always_accept)
 
         self._token['scp'] = 'read:/'
         acls = enf.generate_acls(self._token)
@@ -178,6 +181,18 @@ class TestEnforcer(unittest.TestCase):
         self._token['scp'] = 'read'
         with self.assertRaises(scitokens.scitokens.InvalidAuthorizationResource):
             print(enf.generate_acls(self._token))
+
+    def test_sub(self):
+        """
+        Verify that tokens with the `sub` set are accepted.
+        """
+        self._token['sub'] = 'Some Great User'
+        enf = scitokens.Enforcer(self._test_issuer)
+        enf.add_validator("foo", self.always_accept)
+
+        self._token['scp'] = 'read:/'
+        acls = enf.generate_acls(self._token)
+        self.assertTrue(len(acls), 1)
 
 if __name__ == '__main__':
     unittest.main()
