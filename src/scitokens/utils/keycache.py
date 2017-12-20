@@ -65,7 +65,7 @@ class KeyCache(object):
             KEYCACHE_INSTANCE = KeyCache()
         return KEYCACHE_INSTANCE
 
-    def addkeyinfo(self, issuer, key_id, public_key, cache_timer=0):
+    def addkeyinfo(self, issuer, key_id, public_key, cache_timer=0, next_update=0):
         """
         Add a single, known public key to the cache.
         
@@ -73,26 +73,32 @@ class KeyCache(object):
         :param str key_id: Key Identifier
         :param public_key: Cryptography public_key object
         :param int cache_timer: Cache lifetime of the public_key
+        :param int next_update: Unix epoch timestamp for when the next update should occur
         """
+        
+        # If the next_update is 0, then set it to 1 hour
+        if next_update == 0:
+            next_update = time.time() + 3600
+        
         conn = sqlite3.connect(self.cache_location)
         conn.row_factory = sqlite3.Row
         curs = conn.cursor()
         curs.execute("DELETE FROM keycache WHERE issuer = '{}' AND key_id = '{}'".format(issuer, key_id))
-        KeyCache._addkeyinfo(curs, issuer, key_id, public_key, cache_timer=cache_timer)
+        KeyCache._addkeyinfo(curs, issuer, key_id, public_key, cache_timer=cache_timer, next_update = next_update)
         conn.commit()
         conn.close()
 
     @staticmethod
-    def _addkeyinfo(curs, issuer, key_id, public_key, cache_timer=0):
+    def _addkeyinfo(curs, issuer, key_id, public_key, cache_timer=0, next_update = 0):
         """
         Given an open database cursor to a key cache, insert a key.
         """
         # Add the key to the cache
-        insert_key_statement = "INSERT INTO keycache VALUES('{issuer}', '{expiration}', '{key_id}', '{keydata}')"
+        insert_key_statement = "INSERT INTO keycache VALUES('{issuer}', '{expiration}', '{key_id}', '{keydata}', '{next_update}')"
         keydata = public_key.public_bytes(Encoding.PEM, PublicFormat.PKCS1).decode('ascii')
 
         curs.execute(insert_key_statement.format(issuer=issuer, expiration=time.time()+cache_timer, key_id=key_id,
-                                                 keydata=keydata))
+                                                 keydata=keydata, next_update=next_update))
         if curs.rowcount != 1:
             raise UnableToWriteKeyCache("Unable to insert into key cache")
 
@@ -117,12 +123,31 @@ class KeyCache(object):
         
         row = curs.fetchone()
         if row != None:
-            if self._check_validity(row):
-                # Convert the PEM formatted public key to a public key object
+            # If it's time to update the key, but the key is still valid
+            if int(row['next_update']) < time.time() and self._check_validity(row):
+                # Try to update the key, but if it doesn't work, just return the saved one
+                try:
+                    public_key, cache_timer = self._get_issuer_publickey(issuer, key_id, insecure)
+                    self._addkeyinfo(curs, issuer, key_id, public_key, cache_timer)
+                    conn.commit()
+                    conn.close()
+                    return public_key
+                except:
+                    print "Unable to get key triggered by next update"
+                    conn.close()
+                    return load_pem_public_key(row['keydata'].encode(), backend=backends.default_backend())
+            
+            # If it's not time to update the key, but the key is still valid
+            elif self._check_validity(row):
                 conn.close()
                 return load_pem_public_key(row['keydata'].encode(), backend=backends.default_backend())
+                
+            # If it's not time to update the key, and the key is not valid
             else:
+
                 # Delete the row
+                # If it gets to this point, then there is a row for the key, but it's:
+                # - Not valid anymore
                 curs.execute("DELETE FROM keycache WHERE issuer = '{}' AND key_id = '{}'".format(row['issuer'],
                              row['key_id']))
 
@@ -290,6 +315,7 @@ class KeyCache(object):
                       "expiration integer NOT NULL,"
                       "key_id text,"
                       "keydata text NOT NULL,"
+                      "next_update integer NOT NULL,"
                       "PRIMARY KEY (issuer, key_id))")
         # Save (commit) the changes
         conn.commit()
