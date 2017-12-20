@@ -17,3 +17,9 @@ scitokens Package
     :undoc-members:
     :show-inheritance:
 
+:mod:`scitokens.config` Module
+------------------------------
+.. automodule:: scitokens.utils.config
+    :members:
+    :undoc-members:
+    :show-inheritance:

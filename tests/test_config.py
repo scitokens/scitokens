@@ -19,6 +19,10 @@ class TestConfig(unittest.TestCase):
 
     def setUp(self):
         self.dir_path = os.path.dirname(os.path.realpath(__file__))
+    
+    def tearDown(self):
+        # Clear the config back to defaults each time
+        scitokens.set_config()
 
     def test_config_file(self):
         # Get the current directory and pass it the path of test_config.ini

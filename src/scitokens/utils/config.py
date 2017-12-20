@@ -7,11 +7,17 @@ import logging.handlers
 config_defaults = {
     'log_file': None,
     'log_level': "INFO",
-    'cache_lifetime': 60
+    'cache_lifetime': "3600",
+    'cache_location': None
 }
 
 
 def set_config(config = None):
+    """
+    Set the configuration of SciTokens library
+    
+    :param config: config may be: A full path to a ini configuration file, A ConfigParser instance, or None, which will use all defaults.
+    """
     global configuration
     
     if isinstance(config, basestring):
@@ -22,6 +28,7 @@ def set_config(config = None):
     elif config is None:
         print("Using built-in defaults")
         configuration = configparser.SafeConfigParser(config_defaults)
+        configuration.add_section("scitokens")
     else:
         pass
     
@@ -58,6 +65,10 @@ def set_config(config = None):
 def get(key, default=None):
     """
     Get the configuration value for key
+    
+    :param str key: The key in the configuration to retreive
+    
+    :returns: The value in the configuration, or the default
     """
     global configuration
 
@@ -71,7 +82,14 @@ def get(key, default=None):
             raise noe
         
 
-
+def get_int(key, default=None):
+    """
+    Get an integer from the configuration.
+    
+    :param str key: The key in the configuration to retreive
+    :returns: The value in the configuration, or the default
+    """
+    return int(get(key, default))
 
 
 
