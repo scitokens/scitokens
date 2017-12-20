@@ -12,11 +12,9 @@ import jwt
 from . import urltools
 import logging
 
-logger = logging.getLogger("scitokens")
+LOGGER = logging.getLogger("scitokens")
 import uuid
 
-import cryptography.utils
-import cryptography.hazmat.primitives.asymmetric.rsa as rsa
 import cryptography.hazmat.backends as backends
 from .utils import keycache as KeyCache
 from .utils.errors import MissingIssuerException, InvalidTokenFormat, MissingKeyException
@@ -125,8 +123,8 @@ class SciToken(object):
         self._verified_claims.update(self._claims)
         self._claims = {}
         
-        global logger
-        logger.info("Signed Token: {0}".format(str(payload)))
+        global LOGGER
+        LOGGER.info("Signed Token: {0}".format(str(payload)))
         
         return encoded
 
@@ -484,8 +482,8 @@ class Enforcer(object):
         JTI, or json token id, should always pass.  It's mostly used for logging
         and auditing.
         """
-        global logger
-        logger.info("Validating SciToken with jti: {0}".format(value))
+        global LOGGER
+        LOGGER.info("Validating SciToken with jti: {0}".format(value))
         return True
 
     def _check_scope(self, scope):
