@@ -160,6 +160,52 @@ must be validated. There are no “optional” claim attributes or values.</p>
 <p>This will throw a <code class="docutils literal"><span class="pre">ValidationException</span></code> if the token could not be
 validated.</p>
 </div>
+<div class="section" id="configuration">
+<h2>Configuration<a class="headerlink" href="#configuration" title="Permalink to this headline">¶</a></h2>
+<p>An optional configuration file can be provided that will alter the behavior of
+the SciTokens library.  Configuration options include:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="17%" />
+<col width="83%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Key</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>log_level</td>
+<td>The log level for which to use.  Options include: CRITICAL, ERROR, WARNING, INFO, DEBUG.
+Default: WARNING</td>
+</tr>
+<tr class="row-odd"><td>log_file</td>
+<td>The full path to the file to log.
+Default: None</td>
+</tr>
+<tr class="row-even"><td>cache_lifetime</td>
+<td>The minimum lifetime (in seconds) of keys in the keycache.
+Default: 3600 seconds</td>
+</tr>
+<tr class="row-odd"><td>cache_location</td>
+<td>The directory to store the KeyCache, used to store public keys across executions.
+Default: $HOME/.cache/scitokens</td>
+</tr>
+</tbody>
+</table>
+<p>The configuration file is in the ini format, and will look similar to:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">scitokens</span><span class="p">]</span>
+<span class="n">log_level</span> <span class="o">=</span> <span class="n">DEBUG</span>
+<span class="n">cache_lifetime</span> <span class="o">=</span> <span class="mi">60</span>
+</pre></div>
+</div>
+<p>You may set the configuration by passing a file name to <code class="docutils literal"><span class="pre">scitokens.set_config</span></code> function:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;&gt;</span> <span class="kn">import</span> <span class="nn">scitokens</span>
+<span class="o">&gt;&gt;</span> <span class="n">scitokens</span><span class="o">.</span><span class="n">set_config</span><span class="p">(</span><span class="s2">&quot;/etc/scitokens/scitokens.ini&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>See <a class="reference internal" href="scitokens.html#scitokens.utils.config.set_config" title="scitokens.utils.config.set_config"><code class="xref py py-func docutils literal"><span class="pre">set_config()</span></code></a></p>
+</div>
 </div>
 <div class="section" id="project-status">
 <h1>Project Status<a class="headerlink" href="#project-status" title="Permalink to this headline">¶</a></h1>
@@ -180,6 +226,7 @@ validated.</p>
 <li><a class="reference internal" href="#generating-tokens">Generating Tokens</a></li>
 <li><a class="reference internal" href="#token-serialization">Token Serialization</a></li>
 <li><a class="reference internal" href="#validating-tokens">Validating Tokens</a></li>
+<li><a class="reference internal" href="#configuration">Configuration</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#project-status">Project Status</a></li>
