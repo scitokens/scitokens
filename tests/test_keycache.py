@@ -167,7 +167,7 @@ class TestKeyCache(unittest.TestCase):
             format=serialization.PublicFormat.SubjectPublicKeyInfo
         )
 
-        self.keycache.addkeyinfo("https://doesnotexists.com/", "blahstuff", public_key, cache_timer=60, next_update=time.time()-1)
+        self.keycache.addkeyinfo("https://doesnotexists.com/", "blahstuff", public_key, cache_timer=60, next_update=-1)
 
         # Even though the cache is still valid, the next update is triggered
         # We should still get the key, even though the next update fails 
@@ -210,7 +210,7 @@ class TestKeyCache(unittest.TestCase):
         )
         
         # Now try to get the public key from the server
-        self.keycache.addkeyinfo("http://localhost:{}/".format(server_address[1]), test_id, public_key, cache_timer=60, next_update=time.time()-1)
+        self.keycache.addkeyinfo("http://localhost:{}/".format(server_address[1]), test_id, public_key, cache_timer=60, next_update=-1)
 
         # Next update should trigger now
         pubkey_from_keycache = self.keycache.getkeyinfo("http://localhost:{}/".format(server_address[1]),
