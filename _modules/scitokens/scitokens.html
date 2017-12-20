@@ -57,6 +57,10 @@
 
 <span class="kn">import</span> <span class="nn">jwt</span>
 <span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">urltools</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+
+<span class="n">LOGGER</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;scitokens&quot;</span><span class="p">)</span>
+<span class="kn">import</span> <span class="nn">uuid</span>
 
 <span class="kn">import</span> <span class="nn">cryptography.hazmat.backends</span> <span class="k">as</span> <span class="nn">backends</span>
 <span class="kn">from</span> <span class="nn">.utils</span> <span class="k">import</span> <span class="n">keycache</span> <span class="k">as</span> <span class="n">KeyCache</span>
@@ -150,6 +154,11 @@
             <span class="s2">&quot;iat&quot;</span><span class="p">:</span> <span class="n">issue_time</span><span class="p">,</span>
             <span class="s2">&quot;nbf&quot;</span><span class="p">:</span> <span class="n">issue_time</span>
         <span class="p">})</span>
+        
+        <span class="k">if</span> <span class="s1">&#39;jti&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">payload</span><span class="p">:</span>
+            <span class="c1"># Create a jti from a uuid</span>
+            <span class="n">payload</span><span class="p">[</span><span class="s1">&#39;jti&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">())</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_claims</span><span class="p">[</span><span class="s1">&#39;jti&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">payload</span><span class="p">[</span><span class="s1">&#39;jti&#39;</span><span class="p">]</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_key_id</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">encoded</span> <span class="o">=</span> <span class="n">jwt</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">payload</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_key</span><span class="p">,</span> <span class="n">algorithm</span> <span class="o">=</span> <span class="s2">&quot;RS256&quot;</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;kid&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_key_id</span><span class="p">})</span>
@@ -160,7 +169,10 @@
         <span class="c1"># Move claims over to verified claims</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_verified_claims</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_claims</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_claims</span> <span class="o">=</span> <span class="p">{}</span>
-
+        
+        <span class="k">global</span> <span class="n">LOGGER</span>
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Signed Token: </span><span class="si">{0}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">payload</span><span class="p">)))</span>
+        
         <span class="k">return</span> <span class="n">encoded</span></div>
 
 <div class="viewcode-block" id="SciToken.update_claims"><a class="viewcode-back" href="../../scitokens.html#scitokens.scitokens.SciToken.update_claims">[docs]</a>    <span class="k">def</span> <span class="nf">update_claims</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">claims</span><span class="p">):</span>
@@ -517,8 +529,8 @@
 <span class="sd">        JTI, or json token id, should always pass.  It&#39;s mostly used for logging</span>
 <span class="sd">        and auditing.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># Fix for unused argument</span>
-        <span class="k">del</span> <span class="n">value</span>
+        <span class="k">global</span> <span class="n">LOGGER</span>
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Validating SciToken with jti: </span><span class="si">{0}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">value</span><span class="p">))</span>
         <span class="k">return</span> <span class="kc">True</span>
 
     <span class="k">def</span> <span class="nf">_check_scope</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scope</span><span class="p">):</span>
