@@ -17,11 +17,12 @@ CONFIG_DEFAULTS = {
     'cache_location': None
 }
 
+configuration = configparser.SafeConfigParser(CONFIG_DEFAULTS) # pylint: disable=C0103
 
 def set_config(config = None):
     """
     Set the configuration of SciTokens library
-    :param config: config may be: A full path to a ini configuration file, 
+    :param config: config may be: A full path to a ini configuration file,
         A ConfigParser instance, or None, which will use all defaults.
     """
     global configuration # pylint: disable=C0103
