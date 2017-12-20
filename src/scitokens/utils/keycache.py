@@ -145,7 +145,6 @@ class KeyCache(object):
                 except:
                     logger = logging.getLogger("scitokens")
                     logger.warning("Unable to get key triggered by next update")
-                    conn.close()
                     return load_pem_public_key(row['keydata'].encode(), backend=backends.default_backend())
 
             # If it's not time to update the key, but the key is still valid
