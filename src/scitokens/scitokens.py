@@ -10,6 +10,7 @@ import time
 
 import jwt
 from . import urltools
+import logging
 
 import cryptography.utils
 import cryptography.hazmat.primitives.asymmetric.rsa as rsa
@@ -461,8 +462,7 @@ class Enforcer(object):
         JTI, or json token id, should always pass.  It's mostly used for logging
         and auditing.
         """
-        # Fix for unused argument
-        del value
+        logging.info("Validating SciToken with jti: {0}".format(value))
         return True
 
     def _check_scope(self, scope):
