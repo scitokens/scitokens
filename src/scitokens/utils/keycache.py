@@ -34,6 +34,7 @@ import cryptography.hazmat.primitives.asymmetric.ec as ec
 import cryptography.hazmat.primitives.asymmetric.rsa as rsa
 from scitokens.utils.errors import MissingKeyException, NonHTTPSIssuer, UnableToCreateCache
 from scitokens.utils import long_from_bytes
+import scitokens.utils.config as config
 
 
 CACHE_FILENAME = "scitokens_keycache.sqllite"
@@ -196,7 +197,7 @@ class KeyCache(object):
                 if match:
                     cache_timer = int(match.group(1))
         # Minimum cache time of 10 minutes, no matter what the remote says
-        cache_timer = max(cache_timer, 600)
+        cache_timer = max(cache_timer, config.get("cache_lifetime"))
 
         keys_data = json.loads(response.read().decode('utf-8'))
         # Loop through each key, looking for the right key id

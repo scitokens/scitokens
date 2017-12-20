@@ -145,6 +145,21 @@ Once all the known validator callbacks have been registered, use the
 This will throw a ``ValidationException`` if the token could not be
 validated.
 
+Configuration
+-------------
+
+An optional configuration file can be provided that will alter the behavior of 
+the SciTokens library.  Configuration options include:
+
+================== =======================================================================================
+Key                Description
+================== =======================================================================================
+log_level          The log level for which to use.  Options include: CRITICAL, ERROR, WARNING, INFO, DEBUG
+cache_location     The location of the KeyCache, used to store public keys across executions
+================== =======================================================================================
+
+You may set the 
+
 Project Status
 ==============
 

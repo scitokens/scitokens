@@ -16,5 +16,6 @@ setuptools.setup(name="scitokens",
                  scripts=['tools/scitokens-admin-create-token',
                           'tools/scitokens-admin-create-key'],
                  install_requires=['cryptography',
-                                   'PyJWT'],
+                                   'PyJWT',
+                                   'six'],
                 )
