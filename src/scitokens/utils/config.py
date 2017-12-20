@@ -1,3 +1,8 @@
+"""
+Module for configuration management
+
+"""
+
 
 # Config parser is renamed in python 3
 from six.moves import configparser
@@ -5,7 +10,7 @@ import six
 import logging
 import logging.handlers
 
-config_defaults = {
+CONFIG_DEFAULTS = {
     'log_file': None,
     'log_level': "INFO",
     'cache_lifetime': "3600",
@@ -16,18 +21,19 @@ config_defaults = {
 def set_config(config = None):
     """
     Set the configuration of SciTokens library
-    :param config: config may be: A full path to a ini configuration file, A ConfigParser instance, or None, which will use all defaults.
+    :param config: config may be: A full path to a ini configuration file, 
+        A ConfigParser instance, or None, which will use all defaults.
     """
-    global configuration
+    global configuration # pylint: disable=C0103
 
     if isinstance(config, six.string_types):
-        configuration = configparser.SafeConfigParser(config_defaults)
+        configuration = configparser.SafeConfigParser(CONFIG_DEFAULTS)
         configuration.read([config])
     elif isinstance(config, configparser.RawConfigParser):
         configuration = config
     elif config is None:
         print("Using built-in defaults")
-        configuration = configparser.SafeConfigParser(config_defaults)
+        configuration = configparser.SafeConfigParser(CONFIG_DEFAULTS)
         configuration.add_section("scitokens")
     else:
         pass
@@ -66,14 +72,15 @@ def get(key, default=None):
     :param str key: The key in the configuration to retreive
     :returns: The value in the configuration, or the default
     """
-    global configuration
+    del default
+    global configuration # pylint: disable=C0103
 
     try:
         return configuration.get("scitokens", key)
     except configparser.NoOptionError as noe:
         # Check the defaults
-        if key in config_defaults:
-            return config_defaults[key]
+        if key in CONFIG_DEFAULTS:
+            return CONFIG_DEFAULTS[key]
         else:
             raise noe
 

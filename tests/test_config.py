@@ -3,7 +3,6 @@ Test for using a configuration file
 """
 
 import os
-import sys
 import unittest
 import tempfile
 import logging
@@ -19,12 +18,15 @@ class TestConfig(unittest.TestCase):
 
     def setUp(self):
         self.dir_path = os.path.dirname(os.path.realpath(__file__))
-    
+
     def tearDown(self):
         # Clear the config back to defaults each time
         scitokens.set_config()
 
     def test_config_file(self):
+        """
+        Test the configuration with a regular config file
+        """
         # Get the current directory and pass it the path of test_config.ini
         scitokens.set_config(os.path.join(self.dir_path, "test_config.ini"))
 
@@ -43,7 +45,7 @@ class TestConfig(unittest.TestCase):
 
         self.assertEqual(scitokens.utils.config.get("log_level"), "WARNING")
 
-    def test_passing_config(self):
+    def test_passing_config_log(self):
         """
         Test the with log_file
         """
