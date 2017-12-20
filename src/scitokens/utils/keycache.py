@@ -35,6 +35,7 @@ import cryptography.hazmat.primitives.asymmetric.ec as ec
 import cryptography.hazmat.primitives.asymmetric.rsa as rsa
 from scitokens.utils.errors import MissingKeyException, NonHTTPSIssuer, UnableToCreateCache
 from scitokens.utils import long_from_bytes
+import scitokens.utils.config as config
 
 
 CACHE_FILENAME = "scitokens_keycache.sqllite"
@@ -239,7 +240,7 @@ class KeyCache(object):
                 if match:
                     cache_timer = int(match.group(1))
         # Minimum cache time of 10 minutes, no matter what the remote says
-        cache_timer = max(cache_timer, 600)
+        cache_timer = max(cache_timer, config.get_int("cache_lifetime"))
 
         keys_data = json.loads(response.read().decode('utf-8'))
         # Loop through each key, looking for the right key id
@@ -286,14 +287,18 @@ class KeyCache(object):
         """
         Get the Cache file location
         
-        1. $XDG_CACHE_HOME
-        2. .cache subdirectory of home directory as returned by the password database
+        1. Configuration cache location
+        2. $XDG_CACHE_HOME
+        3. .cache subdirectory of home directory as returned by the password database
         """
-
+        
+        config_cache_location = config.get('cache_location')
         xdg_cache_home = os.environ.get("XDG_CACHE_HOME", None)
         home_dir = pwd.getpwuid(os.geteuid()).pw_dir
 
-        if xdg_cache_home != None:
+        if config_cache_location != None:
+            cache_dir = config_cache_location
+        elif xdg_cache_home != None:
             cache_dir = xdg_cache_home
         elif home_dir != None:
             cache_dir = os.path.join(home_dir, ".cache")

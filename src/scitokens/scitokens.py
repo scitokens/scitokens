@@ -17,6 +17,7 @@ import uuid
 
 import cryptography.hazmat.backends as backends
 from .utils import keycache as KeyCache
+from .utils import config
 from .utils.errors import MissingIssuerException, InvalidTokenFormat, MissingKeyException
 from cryptography.hazmat.primitives.serialization import load_pem_public_key
 
