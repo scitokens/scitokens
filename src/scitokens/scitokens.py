@@ -11,7 +11,9 @@ import time
 import jwt
 from . import urltools
 import logging
+
 logger = logging.getLogger("scitokens")
+import uuid
 
 import cryptography.utils
 import cryptography.hazmat.primitives.asymmetric.rsa as rsa
@@ -107,6 +109,11 @@ class SciToken(object):
             "iat": issue_time,
             "nbf": issue_time
         })
+        
+        if 'jti' not in payload:
+            # Create a jti from a uuid
+            payload['jti'] = str(uuid.uuid4())
+            self._claims['jti'] = payload['jti']
 
         if self._key_id != None:
             encoded = jwt.encode(payload, self._key, algorithm = "RS256", headers={'kid': self._key_id})
@@ -117,7 +124,10 @@ class SciToken(object):
         # Move claims over to verified claims
         self._verified_claims.update(self._claims)
         self._claims = {}
-
+        
+        global logger
+        logger.info("Signed Token: {0}".format(str(payload)))
+        
         return encoded
 
     def update_claims(self, claims):
