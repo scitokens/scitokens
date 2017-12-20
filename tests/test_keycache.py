@@ -6,7 +6,6 @@ import os
 import tempfile
 import shutil
 import unittest
-import time
 from scitokens.utils.keycache import KeyCache
 from scitokens.utils.errors import UnableToCreateCache
 from cryptography.hazmat.primitives.asymmetric.rsa import generate_private_key
@@ -150,7 +149,7 @@ class TestKeyCache(unittest.TestCase):
 
         self.assertEqual(cache_timer, 3600)
         create_webserver.shutdown_server()
-        
+
     def test_cache_update_time(self):
         """
         Test if the cache next_update works
@@ -170,7 +169,7 @@ class TestKeyCache(unittest.TestCase):
         self.keycache.addkeyinfo("https://doesnotexists.com/", "blahstuff", public_key, cache_timer=60, next_update=-1)
 
         # Even though the cache is still valid, the next update is triggered
-        # We should still get the key, even though the next update fails 
+        # We should still get the key, even though the next update fails
         # (invalid url)
         pubkey = self.keycache.getkeyinfo("https://doesnotexists.com/", "blahstuff")
 
@@ -208,9 +207,13 @@ class TestKeyCache(unittest.TestCase):
             encoding=serialization.Encoding.PEM,
             format=serialization.PublicFormat.SubjectPublicKeyInfo
         )
-        
+
         # Now try to get the public key from the server
-        self.keycache.addkeyinfo("http://localhost:{}/".format(server_address[1]), test_id, public_key, cache_timer=60, next_update=-1)
+        self.keycache.addkeyinfo("http://localhost:{}/".format(server_address[1]),
+                                 test_id,
+                                 public_key,
+                                 cache_timer=60,
+                                 next_update=-1)
 
         # Next update should trigger now
         pubkey_from_keycache = self.keycache.getkeyinfo("http://localhost:{}/".format(server_address[1]),
@@ -231,6 +234,4 @@ class TestKeyCache(unittest.TestCase):
         self.assertEqual(public_pem, pubkey_pem_from_keycache)
 
         create_webserver.shutdown_server()
-        
-        
-        
+

@@ -94,7 +94,8 @@ class KeyCache(object):
         Given an open database cursor to a key cache, insert a key.
         """
         # Add the key to the cache
-        insert_key_statement = "INSERT INTO keycache VALUES('{issuer}', '{expiration}', '{key_id}', '{keydata}', '{next_update}')"
+        insert_key_statement = "INSERT INTO keycache VALUES('{issuer}', '{expiration}', '{key_id}', \
+                               '{keydata}', '{next_update}')"
         keydata = public_key.public_bytes(Encoding.PEM, PublicFormat.PKCS1).decode('ascii')
 
         curs.execute(insert_key_statement.format(issuer=issuer, expiration=time.time()+cache_timer, key_id=key_id,
@@ -141,9 +142,9 @@ class KeyCache(object):
                     conn.commit()
                     conn.close()
                     return public_key
-                except:
+                except Exception as ex:
                     logger = logging.getLogger("scitokens")
-                    logger.warning("Unable to get key triggered by next update")
+                    logger.warning("Unable to get key triggered by next update: {0}".format(str(ex)))
                     return load_pem_public_key(row['keydata'].encode(), backend=backends.default_backend())
 
             # If it's not time to update the key, but the key is still valid
