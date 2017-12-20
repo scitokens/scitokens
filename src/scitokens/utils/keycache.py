@@ -119,7 +119,7 @@ class KeyCache(object):
         conn.row_factory = sqlite3.Row
         curs = conn.cursor()
         curs.execute(key_query.format(issuer=issuer, key_id=key_id))
-        
+
         row = curs.fetchone()
         if row != None:
             # If it's time to update the key, but the key is still valid
@@ -135,12 +135,12 @@ class KeyCache(object):
                     print "Unable to get key triggered by next update"
                     conn.close()
                     return load_pem_public_key(row['keydata'].encode(), backend=backends.default_backend())
-            
+
             # If it's not time to update the key, but the key is still valid
             elif self._check_validity(row):
                 conn.close()
                 return load_pem_public_key(row['keydata'].encode(), backend=backends.default_backend())
-                
+
             # If it's not time to update the key, and the key is not valid
             else:
 
