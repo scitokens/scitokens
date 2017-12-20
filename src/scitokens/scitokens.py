@@ -11,6 +11,7 @@ import time
 import jwt
 from . import urltools
 import logging
+logger = logging.getLogger("scitokens")
 
 import cryptography.hazmat.backends as backends
 from .utils import keycache as KeyCache
@@ -472,7 +473,6 @@ class Enforcer(object):
         JTI, or json token id, should always pass.  It's mostly used for logging
         and auditing.
         """
-        logger = logging.getLogger('scitokens')
         logger.info("Validating SciToken with jti: {0}".format(value))
         return True
 
