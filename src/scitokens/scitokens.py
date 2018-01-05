@@ -478,11 +478,13 @@ class Enforcer(object):
         else:
             return False
 
+    @classmethod
     def _validate_opt(self, value):
         """
         Opt is optional information.  We don't know what's in there, so just
         return true.
         """
+        del value
         return True
 
     @classmethod

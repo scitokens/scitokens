@@ -152,8 +152,8 @@ class TestCreation(unittest.TestCase):
         # Now set it to a number it shouldn't understand
         self._token['ver'] = 9999
         self.assertFalse(enf.test(self._token, "write", "/home/example/test_file"))
-        
-    def test_ver(self):
+
+    def test_opt(self):
         """
         Testing the version attribute
         """
