@@ -363,6 +363,9 @@ class Enforcer(object):
 
     _authz_requiring_path = set(["read", "write"])
 
+    # An array of versions of scitokens that we understand and can enforce
+    _versions_understood = [ 1 ]
+
     def __init__(self, issuer, site=None, audience=None):
         self._issuer = issuer
         self.last_failure = None
@@ -385,6 +388,8 @@ class Enforcer(object):
         self._validator.add_validator("scp", self._validate_scp)
         self._validator.add_validator("jti", self._validate_jti)
         self._validator.add_validator("sub", self._validate_sub)
+        self._validator.add_validator("ver", self._validate_ver)
+        self._validator.add_validator("opt", self._validate_opt)
 
     def _reset_state(self):
         """
@@ -466,6 +471,19 @@ class Enforcer(object):
         if not self._audience:
             return False
         return value == self._audience
+
+    def _validate_ver(self, value):
+        if value in self._versions_understood:
+            return True
+        else:
+            return False
+
+    def _validate_opt(self, value):
+        """
+        Opt is optional information.  We don't know what's in there, so just
+        return true.
+        """
+        return True
 
     @classmethod
     def _validate_sub(self, value):
