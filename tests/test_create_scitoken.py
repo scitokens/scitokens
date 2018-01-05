@@ -140,5 +140,27 @@ class TestCreation(unittest.TestCase):
         self.assertFalse(enf.test(token, "read", "/home/example/test_file"))
         self.assertFalse(enf.test(token, "write", "/home/other/test_file"))
 
+    def test_ver(self):
+        """
+        Testing the version attribute
+        """
+        self._token['ver'] = 1
+        self._token['scp'] = "write:/home/example"
+        enf = scitokens.Enforcer(issuer="local")
+        self.assertTrue(enf.test(self._token, "write", "/home/example/test_file"))
+
+        # Now set it to a number it shouldn't understand
+        self._token['ver'] = 9999
+        self.assertFalse(enf.test(self._token, "write", "/home/example/test_file"))
+
+    def test_opt(self):
+        """
+        Testing the version attribute
+        """
+        self._token['opt'] = "This is optional information, and should always return true"
+        self._token['scp'] = "write:/home/example"
+        enf = scitokens.Enforcer(issuer="local")
+        self.assertTrue(enf.test(self._token, "write", "/home/example/test_file"))
+
 if __name__ == '__main__':
     unittest.main()
