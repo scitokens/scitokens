@@ -410,6 +410,9 @@
 
     <span class="n">_authz_requiring_path</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="s2">&quot;read&quot;</span><span class="p">,</span> <span class="s2">&quot;write&quot;</span><span class="p">])</span>
 
+    <span class="c1"># An array of versions of scitokens that we understand and can enforce</span>
+    <span class="n">_versions_understood</span> <span class="o">=</span> <span class="p">[</span> <span class="mi">1</span> <span class="p">]</span>
+
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">issuer</span><span class="p">,</span> <span class="n">site</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">audience</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_issuer</span> <span class="o">=</span> <span class="n">issuer</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">last_failure</span> <span class="o">=</span> <span class="kc">None</span>
@@ -432,6 +435,8 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_validator</span><span class="o">.</span><span class="n">add_validator</span><span class="p">(</span><span class="s2">&quot;scp&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_validate_scp</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_validator</span><span class="o">.</span><span class="n">add_validator</span><span class="p">(</span><span class="s2">&quot;jti&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_validate_jti</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_validator</span><span class="o">.</span><span class="n">add_validator</span><span class="p">(</span><span class="s2">&quot;sub&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_validate_sub</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_validator</span><span class="o">.</span><span class="n">add_validator</span><span class="p">(</span><span class="s2">&quot;ver&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_validate_ver</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_validator</span><span class="o">.</span><span class="n">add_validator</span><span class="p">(</span><span class="s2">&quot;opt&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_validate_opt</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_reset_state</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -513,6 +518,21 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_audience</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">False</span>
         <span class="k">return</span> <span class="n">value</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_audience</span>
+
+    <span class="k">def</span> <span class="nf">_validate_ver</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_versions_understood</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">_validate_opt</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Opt is optional information.  We don&#39;t know what&#39;s in there, so just</span>
+<span class="sd">        return true.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">del</span> <span class="n">value</span>
+        <span class="k">return</span> <span class="kc">True</span>
 
     <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">_validate_sub</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
