@@ -215,7 +215,7 @@ class SciToken(object):
         keycache = KeyCache.KeyCache().getinstance()
         if public_key == None:
             issuer_public_key = keycache.getkeyinfo(unverified_payload['iss'],
-                                key_id=unverified_headers['kid'],
+                                key_id=unverified_headers['kid'] if 'kid' in unverified_headers else None,
                                 insecure=insecure)
         else:
             issuer_public_key = load_pem_public_key(public_key, backend=backends.default_backend())

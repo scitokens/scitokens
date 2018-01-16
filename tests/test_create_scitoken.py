@@ -38,6 +38,7 @@ class TestCreation(unittest.TestCase):
         keycache = scitokens.utils.keycache.KeyCache.getinstance()
         keycache.addkeyinfo("local", "sample_key", self._private_key.public_key())
         self._token = scitokens.SciToken(key = self._private_key, key_id="sample_key")
+        self._no_kid_token = scitokens.SciToken(key = self._private_key)
 
     def test_create(self):
         """
@@ -161,6 +162,22 @@ class TestCreation(unittest.TestCase):
         self._token['scp'] = "write:/home/example"
         enf = scitokens.Enforcer(issuer="local")
         self.assertTrue(enf.test(self._token, "write", "/home/example/test_file"))
+
+    def test_no_kid(self):
+        """
+        Testing a token without a kid
+        """
+        serialized_token = self._no_kid_token.serialize(issuer = 'local')
+        print(serialized_token)
+
+        # Make sure that without a kid, it throws a value error rather than
+        # a key error (there was a bug)
+        with self.assertRaises(ValueError):
+            token = scitokens.SciToken.deserialize(serialized_token, insecure=True)
+
+        token = scitokens.SciToken.deserialize(serialized_token, public_key = self._public_pem, insecure=True)
+
+
 
 if __name__ == '__main__':
     unittest.main()
