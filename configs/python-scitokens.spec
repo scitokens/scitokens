@@ -2,7 +2,7 @@
 %global pypi_name scitokens
 
 Name:           python-%{pypi_name}
-Version:        0.3.3
+Version:        1.0.0
 Release:        1%{?dist}
 Summary:        SciToken reference implementation library
 
@@ -48,6 +48,11 @@ rm -rf %{pypi_name}.egg-info
 %{python2_sitelib}/%{pypi_name}-%{version}-py?.?.egg-info
 
 %changelog
+* Tue Jan 30 2018 Derek Weitzel <dweitzel@cse.unl.edu> - 1.0.0-1
+- Add optional configuration file
+- Fix bug for missing kid
+- Add automatic jti generation
+
 * Mon Nov 06 2017 Derek Weitzel <dweitzel@cse.unl.edu> - 0.3.3-1
 - Add subject testing in the Enforcer
 
