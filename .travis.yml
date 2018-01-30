@@ -19,7 +19,8 @@ script:
 - python setup.py install
 - PYTHONPATH=src coverage run `which pytest`
 - coverage xml --include "src/scitokens/*"
-- docker run --privileged --rm -ti -v `pwd`:/scitokens:rw centos:centos7 /bin/bash -xec "bash -xe /scitokens/build-scripts/build_rpm.sh"
+- if [ "${TRAVIS_PYTHON_VERSION}" == "2.7" -a "${TRAVIS_PULL_REQUEST}" = "false" ];
+  then docker run --privileged --rm -ti -v `pwd`:/scitokens:rw centos:centos7 /bin/bash -xec "bash -xe /scitokens/build-scripts/build_rpm.sh"; fi
 
 after_success:
 - pushd docs
@@ -44,4 +45,5 @@ deploy:
     token:
       secure: RXccQELrxCfUbKEqUyvf4i9Tw686p4sMFsRc6GT7zrK/kHv/x8Xqqv0g4Fr9tpHlOq7DYjyz5cgurc19BLPnX7HIZlqpf/vqZGTyYLP/rqQ+fDRWA2dh+v7EYjjs1UwMIBDhZ9nbIzM4ROQrOFgFFodW2zUdCIwhFTxG5J1tmdacDMjRudp0j/cdrCCjo6hDw0iwp67fMvjnafuGeW7Pgc1KMYVU4uBaiwcfNpZXSG9E9j6OlM7TYw+0I/408OU9HU0slH27PjTxX55C+miqLkftFyZfHz3oaAIjoJBfbFrIcvvDRuMFvr6shGRH7AQQLrUJXBpeD2M+EDiEg9hUjAou0ZNVBllKsk1gJ2nFhvQdKcv31VYIJPTbBx6Y4LezOAiBm69l3aGtkmNaC4iCos+GP6em1WfqOAf8kfvJjizQEIKqC4UItAPIlMl16+UmAdK3DXrIh3XnWznRDGLSDSRrhtgyEM79iZYH+MGG3lrZTB0cs4Px0/+TIfAgEtybPf4XttmzxsaTIMEapmZFWvLGDrXPfOXmsuGeXQZKupQkfkg6gcaf33+L/LLRHBF04gkK2DGVdv5An0e98QTdgF2aFjdkdIERZ/TO1ilUZvxhn9cWudgnb0u9DlKqG8TPy+RZqKuB9uQSQcX2vqrPwQxoccwWfnM1g9y0n2sd9RE=
     on:
-      branch: add_deploy
+      tags: true
+      condition: ${TRAVIS_PYTHON_VERSION} = "2.7"
