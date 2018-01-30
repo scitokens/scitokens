@@ -18,6 +18,7 @@ class TestConfig(unittest.TestCase):
 
     def setUp(self):
         self.dir_path = os.path.dirname(os.path.realpath(__file__))
+        scitokens.utils.config.configuration = configparser.SafeConfigParser(scitokens.utils.config.CONFIG_DEFAULTS)
 
     def tearDown(self):
         # Clear the config back to defaults each time
@@ -69,3 +70,11 @@ class TestConfig(unittest.TestCase):
         self.assertTrue(os.path.getsize(tmp_file.name) > 0)
 
         tmp_file.close()
+
+    def test_no_config(self):
+        """
+        Test when there is no config
+        """
+
+        # This should throw an exception if there is an error
+        self.assertEqual(scitokens.utils.config.get("cache_location"), None)

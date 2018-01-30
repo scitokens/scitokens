@@ -78,7 +78,7 @@ def get(key, default=None):
 
     try:
         return configuration.get("scitokens", key)
-    except configparser.NoOptionError as noe:
+    except (configparser.NoOptionError, configparser.NoSectionError) as noe:
         # Check the defaults
         if key in CONFIG_DEFAULTS:
             return CONFIG_DEFAULTS[key]
