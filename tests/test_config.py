@@ -70,7 +70,7 @@ class TestConfig(unittest.TestCase):
         self.assertTrue(os.path.getsize(tmp_file.name) > 0)
 
         tmp_file.close()
-        
+
     def test_no_config(self):
         """
         Test when there is no config
