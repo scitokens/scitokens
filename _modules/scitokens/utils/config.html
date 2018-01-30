@@ -125,7 +125,7 @@
 
     <span class="k">try</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">configuration</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;scitokens&quot;</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
-    <span class="k">except</span> <span class="n">configparser</span><span class="o">.</span><span class="n">NoOptionError</span> <span class="k">as</span> <span class="n">noe</span><span class="p">:</span>
+    <span class="k">except</span> <span class="p">(</span><span class="n">configparser</span><span class="o">.</span><span class="n">NoOptionError</span><span class="p">,</span> <span class="n">configparser</span><span class="o">.</span><span class="n">NoSectionError</span><span class="p">)</span> <span class="k">as</span> <span class="n">noe</span><span class="p">:</span>
         <span class="c1"># Check the defaults</span>
         <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">CONFIG_DEFAULTS</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">CONFIG_DEFAULTS</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
