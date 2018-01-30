@@ -1,7 +1,17 @@
+sudo: required
+
 language: python
 python:
 - '2.7'
 - '3.4'
+
+before_install:
+  - sudo apt-get update
+  - echo 'DOCKER_OPTS="-H tcp://127.0.0.1:2375 -H unix:///var/run/docker.sock -s devicemapper"' | sudo tee /etc/default/docker > /dev/null
+  - sudo service docker restart
+  - sleep 5
+  - sudo docker pull centos:centos7
+
 install:
 - pip install sphinx sphinx_rtd_theme coverage codacy-coverage
 - pip install -r requirements.txt
@@ -9,21 +19,29 @@ script:
 - python setup.py install
 - PYTHONPATH=src coverage run `which pytest`
 - coverage xml --include "src/scitokens/*"
+- docker run --privileged --rm -ti -v `pwd`:/scitokens:rw centos:centos7 /bin/bash -xec "bash -xe /scitokens/build-scripts/build_rpm.sh"
+
 after_success:
 - pushd docs
 - if [ "${TRAVIS_PYTHON_VERSION}" == "2.7" ]; then make gh-pages; fi
 - popd
 - if [ "${TRAVIS_PYTHON_VERSION}" == "2.7" -a "${TRAVIS_PULL_REQUEST}" = "false" ];
   then python-codacy-coverage -r coverage.xml; fi
+
 deploy:
-  provider: pypi
-  user: "Your username"
-  password:
-    secure: "Your encrypted password"
-deploy:
-  provider: pypi
-  user: "djw8605"
-  password:
-    secure: E13ZdtIrgENFDCbg+IzKapUeoDe/6bS5ytJk0mq3eN1AoCZCUuPzCRMQQKwWYz1US2p3JVLeOtk2McicyFAA9q7uVyy+ND/4EwLNgMrlgdvXMU2V+hz1N8bfarnXweuWea3OdhPOabj2zFKvzIZeOcrS9rcrl5T0mtqSNrvFos+quBmUzuO6zAeKwPrWvwMVxMo4tP8fk60jCB4YF7w0aTD5L6ZVMHrxhl5yfhuL27/zujh53u4XGqJyhOCfWUD6sq2TaykQ+NOUagtwOATqUO5xJC4TZB2vPwR+/F84VSEmZXgtNdrlk1H2KjAFxXlNWh1wFNMZj/hGsQS7RLj1rpoMk9IdjN/itDItZyw6QBuhigSpQoHugHjaKNAzRyKKN3Vv3Tmstkv3mZjXtbcD3zIjNdk7+S6HXeB4o0vT4m049RHm9717JTvBq1bBK0GRavJj/5jhec94wLDCt0GpkX3RPDpgrTWjS+zNZCoSMHzSSV64iYh/TDWCbO/fgDp1f2xETL5Q4x3cSraNgE+xWuvkg5IxG2LWpfy6SqpcIsRPa0tbZqu5Ctjqij4nDimXLzgQk2YB8XCrE2nNdZ17sUKWBKnX7a1C3zcx1J3qJoi1ZNXNIcsZH5pU/QN5rAoo+T4RmKPnC9KdeBtJmiRdn1pKaVN/3Ie2jFBFuqYY4eQ=
-  on:
-    tags: true
+  - provider: pypi
+    user: djw8605
+    password:
+      secure: E13ZdtIrgENFDCbg+IzKapUeoDe/6bS5ytJk0mq3eN1AoCZCUuPzCRMQQKwWYz1US2p3JVLeOtk2McicyFAA9q7uVyy+ND/4EwLNgMrlgdvXMU2V+hz1N8bfarnXweuWea3OdhPOabj2zFKvzIZeOcrS9rcrl5T0mtqSNrvFos+quBmUzuO6zAeKwPrWvwMVxMo4tP8fk60jCB4YF7w0aTD5L6ZVMHrxhl5yfhuL27/zujh53u4XGqJyhOCfWUD6sq2TaykQ+NOUagtwOATqUO5xJC4TZB2vPwR+/F84VSEmZXgtNdrlk1H2KjAFxXlNWh1wFNMZj/hGsQS7RLj1rpoMk9IdjN/itDItZyw6QBuhigSpQoHugHjaKNAzRyKKN3Vv3Tmstkv3mZjXtbcD3zIjNdk7+S6HXeB4o0vT4m049RHm9717JTvBq1bBK0GRavJj/5jhec94wLDCt0GpkX3RPDpgrTWjS+zNZCoSMHzSSV64iYh/TDWCbO/fgDp1f2xETL5Q4x3cSraNgE+xWuvkg5IxG2LWpfy6SqpcIsRPa0tbZqu5Ctjqij4nDimXLzgQk2YB8XCrE2nNdZ17sUKWBKnX7a1C3zcx1J3qJoi1ZNXNIcsZH5pU/QN5rAoo+T4RmKPnC9KdeBtJmiRdn1pKaVN/3Ie2jFBFuqYY4eQ=
+    on:
+      tags: true
+  - provider: packagecloud
+    username: scitokens
+    repository: scitokens
+    dist: el/7
+    package_glob: '*.rpm'
+    skip_cleanup: true
+    token:
+      secure: RXccQELrxCfUbKEqUyvf4i9Tw686p4sMFsRc6GT7zrK/kHv/x8Xqqv0g4Fr9tpHlOq7DYjyz5cgurc19BLPnX7HIZlqpf/vqZGTyYLP/rqQ+fDRWA2dh+v7EYjjs1UwMIBDhZ9nbIzM4ROQrOFgFFodW2zUdCIwhFTxG5J1tmdacDMjRudp0j/cdrCCjo6hDw0iwp67fMvjnafuGeW7Pgc1KMYVU4uBaiwcfNpZXSG9E9j6OlM7TYw+0I/408OU9HU0slH27PjTxX55C+miqLkftFyZfHz3oaAIjoJBfbFrIcvvDRuMFvr6shGRH7AQQLrUJXBpeD2M+EDiEg9hUjAou0ZNVBllKsk1gJ2nFhvQdKcv31VYIJPTbBx6Y4LezOAiBm69l3aGtkmNaC4iCos+GP6em1WfqOAf8kfvJjizQEIKqC4UItAPIlMl16+UmAdK3DXrIh3XnWznRDGLSDSRrhtgyEM79iZYH+MGG3lrZTB0cs4Px0/+TIfAgEtybPf4XttmzxsaTIMEapmZFWvLGDrXPfOXmsuGeXQZKupQkfkg6gcaf33+L/LLRHBF04gkK2DGVdv5An0e98QTdgF2aFjdkdIERZ/TO1ilUZvxhn9cWudgnb0u9DlKqG8TPy+RZqKuB9uQSQcX2vqrPwQxoccwWfnM1g9y0n2sd9RE=
+    on:
+      branch: add_deploy
