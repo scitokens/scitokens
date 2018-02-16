@@ -14,6 +14,7 @@ if os.path.exists("../src"):
 
 import scitokens
 from cryptography.hazmat.primitives.asymmetric.rsa import generate_private_key
+import cryptography.hazmat.primitives.asymmetric.ec as ec
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 from jwt import DecodeError, InvalidAudienceError
@@ -51,7 +52,59 @@ class TestCreation(unittest.TestCase):
 
         self.assertEqual(len(serialized_token.decode('utf8').split(".")), 3)
         print(serialized_token)
+        
+    def test_EC_create(self):
+        """
+        Test the creation of a simple Elliptical Curve token
+        """
+        ec_private_key = ec.generate_private_key(
+            ec.SECP256R1(), default_backend()
+        )
+        
+        token = scitokens.SciToken(key = ec_private_key, algorithm = "ES256")
+        self.assertTrue(isinstance(ec_private_key, ec.EllipticCurvePrivateKey))
+        token.update_claims({"test": "true"})
+        serialized_token = token.serialize(issuer = "local")
+        
+        self.assertEqual(len(serialized_token.decode('utf8').split(".")), 3)
+        print(serialized_token)
 
+
+    def test_EC_public_key(self):
+        """
+        Test when the public key is provided to deserialize for Elliptical Curve
+        """
+
+        ec_private_key = ec.generate_private_key(
+            ec.SECP256R1(), default_backend()
+        )
+        ec_public_key = ec_private_key.public_key()
+        ec_public_pem = ec_public_key.public_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PublicFormat.SubjectPublicKeyInfo
+        )
+        
+        token = scitokens.SciToken(key = ec_private_key, algorithm = "ES256")
+        serialized_token = token.serialize(issuer = "local")
+
+        new_token = scitokens.SciToken.deserialize(serialized_token, public_key = ec_public_pem, insecure = True)
+        self.assertIsInstance(new_token, scitokens.SciToken)
+
+        # With invalid key
+        with self.assertRaises(ValueError):
+            scitokens.SciToken.deserialize(serialized_token, insecure=True, public_key = "asdf".encode())
+
+        # With a proper key, but not the right one
+        private_key = ec.generate_private_key(
+            ec.SECP256R1(), default_backend()
+        )
+        public_key = private_key.public_key()
+        pem = public_key.public_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PublicFormat.SubjectPublicKeyInfo
+        )
+        with self.assertRaises(DecodeError):
+            scitokens.SciToken.deserialize(serialized_token, insecure=True, public_key = pem)
 
     def test_public_key(self):
         """
