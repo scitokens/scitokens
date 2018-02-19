@@ -4,27 +4,18 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
+        <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <title>SciTokens Library &#8212; SciTokens Library 0.1 documentation</title>
     <link rel="stylesheet" href="_static/classic.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    './',
-        VERSION:     '0.1',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true,
-        SOURCELINK_SUFFIX: '.txt'
-      };
-    </script>
+    <script type="text/javascript" src="_static/documentation_options.js"></script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" /> 
-  </head>
-  <body>
+  </head><body>
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
@@ -56,26 +47,26 @@ common pitfalls of using the underling libraries directly.</p>
 designed; this README describes how we would like it to work, not
 necessarily current functionality. Particularly, we do not foresee the
 chained tokens described here as part of the first release’s
-functionality. The ideas behind the separate <code class="docutils literal"><span class="pre">Validator</span></code> in this
+functionality. The ideas behind the separate <code class="docutils literal notranslate"><span class="pre">Validator</span></code> in this
 library is taken from
 <a class="reference external" href="https://github.com/rescrv/libmacaroons">libmacaroons</a>.</p>
 <div class="section" id="generating-tokens">
 <h2>Generating Tokens<a class="headerlink" href="#generating-tokens" title="Permalink to this headline">¶</a></h2>
-<p>Usage revolves around the <code class="docutils literal"><span class="pre">SciToken</span></code> object. This can be generated
+<p>Usage revolves around the <code class="docutils literal notranslate"><span class="pre">SciToken</span></code> object. This can be generated
 directly:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">scitokens</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">scitokens</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">token</span> <span class="o">=</span> <span class="n">scitokens</span><span class="o">.</span><span class="n">SciToken</span><span class="p">()</span> <span class="c1"># Create token and generate a new private key</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">token2</span> <span class="o">=</span> <span class="n">scitokens</span><span class="o">.</span><span class="n">SciToken</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="n">private_key</span><span class="p">)</span> <span class="c1"># Create token using existing key</span>
 </pre></div>
 </div>
-<p>where <code class="docutils literal"><span class="pre">key</span></code> is a private key object (more later on generating private
+<p>where <code class="docutils literal notranslate"><span class="pre">key</span></code> is a private key object (more later on generating private
 keys). Direct generation using a private key will most often be done to
 do a <em>base token</em>. SciTokens can be chained, meaning one token can be
 appended to another:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">token</span> <span class="o">=</span> <span class="n">scitokens</span><span class="o">.</span><span class="n">SciToken</span><span class="p">(</span><span class="n">parent</span><span class="o">=</span><span class="n">parent_token</span><span class="p">)</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">token</span> <span class="o">=</span> <span class="n">scitokens</span><span class="o">.</span><span class="n">SciToken</span><span class="p">(</span><span class="n">parent</span><span class="o">=</span><span class="n">parent_token</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>The generated object, <code class="docutils literal"><span class="pre">token</span></code>, will default to having all the
+<p>The generated object, <code class="docutils literal notranslate"><span class="pre">token</span></code>, will default to having all the
 authoriations of the parent token - but is mutable and can add further
 restrictions.</p>
 <p>Tokens contain zero or more claims, which are facts about the token that
@@ -84,7 +75,7 @@ has. A token has a list of key-value pairs; each token can only have a
 single value per key, but multiple values per key can occur in a token
 chain.</p>
 <p>To set a claim, one can use dictionary-like setter:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">token</span><span class="p">[</span><span class="s1">&#39;claim1&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;value2&#39;</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">token</span><span class="p">[</span><span class="s1">&#39;claim1&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;value2&#39;</span>
 </pre></div>
 </div>
 <p>The value of each claim should be a Python object that can be serialized
@@ -97,11 +88,11 @@ response to a successful authentication or authorization request.
 SciTokens are built on top of JSON Web Tokens (JWT), which define a
 useful base64-encoded serialization format. A serialized token may look
 something like this:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">eyJhbGciOiJFUzI1NiIsImN3ayI6eyJ5IjoiazRlM1FFeDVjdGJsWmNrVkhINlkzSFZoTzFadUxVVWNZQW5ON0xkREV3YyIsIngiOiI4TkU2ZEE2T1g4NHBybHZEaDZUX3kwcWJOYmc5a2xWc2pYQnJnSkw5aElBIiwiY3J2IjoiUC0yNTYiLCJrdHkiOiJFQyJ9LCJ0eXAiOiJKV1QiLCJ4NXUiOiJodHRwczovL3ZvLmV4YW1wbGUuY29tL0pXUyJ9</span><span class="o">.</span><span class="n">eyJyZWFkIjoiL2xpZ28ifQ</span><span class="o">.</span><span class="n">uXVzbcOBCK4S4W89HzlWNmnE9ZcpuRHKTrTXYv8LZL9cDy3Injf97xNPm756fKcYwBO5KykYngFrUSGa4owglA</span><span class="o">.</span><span class="n">eyJjcnYiOiAiUC0yNTYiLCAia3R5IjogIkVDIiwgImQiOiAieWVUTTdsVXk5bGJEX2hnLVVjaGp0aXZFWHZxSWxoelJQVEVaZDBaNFBpOCJ9</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">eyJhbGciOiJFUzI1NiIsImN3ayI6eyJ5IjoiazRlM1FFeDVjdGJsWmNrVkhINlkzSFZoTzFadUxVVWNZQW5ON0xkREV3YyIsIngiOiI4TkU2ZEE2T1g4NHBybHZEaDZUX3kwcWJOYmc5a2xWc2pYQnJnSkw5aElBIiwiY3J2IjoiUC0yNTYiLCJrdHkiOiJFQyJ9LCJ0eXAiOiJKV1QiLCJ4NXUiOiJodHRwczovL3ZvLmV4YW1wbGUuY29tL0pXUyJ9</span><span class="o">.</span><span class="n">eyJyZWFkIjoiL2xpZ28ifQ</span><span class="o">.</span><span class="n">uXVzbcOBCK4S4W89HzlWNmnE9ZcpuRHKTrTXYv8LZL9cDy3Injf97xNPm756fKcYwBO5KykYngFrUSGa4owglA</span><span class="o">.</span><span class="n">eyJjcnYiOiAiUC0yNTYiLCAia3R5IjogIkVDIiwgImQiOiAieWVUTTdsVXk5bGJEX2hnLVVjaGp0aXZFWHZxSWxoelJQVEVaZDBaNFBpOCJ9</span>
 </pre></div>
 </div>
 <p>This is actually 4 separate base64-encoded strings, separated by the
-<code class="docutils literal"><span class="pre">.</span></code> character. The four pieces are:</p>
+<code class="docutils literal notranslate"><span class="pre">.</span></code> character. The four pieces are:</p>
 <ul class="simple">
 <li>A <em>header</em>, implementing the JSON Web Key standard, specifying the
 cryptographic properties of the token.</li>
@@ -113,14 +104,14 @@ payload.</li>
 part of the token format, but may be required by some remote
 services.</li>
 </ul>
-<p>Given a serialized token, the <code class="docutils literal"><span class="pre">scitokens</span></code> library can deserialize it:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">token</span> <span class="o">=</span> <span class="n">scitokens</span><span class="o">.</span><span class="n">SciToken</span><span class="o">.</span><span class="n">deserialize</span><span class="p">(</span><span class="n">token_serialized_bytes</span><span class="p">)</span>
+<p>Given a serialized token, the <code class="docutils literal notranslate"><span class="pre">scitokens</span></code> library can deserialize it:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">token</span> <span class="o">=</span> <span class="n">scitokens</span><span class="o">.</span><span class="n">SciToken</span><span class="o">.</span><span class="n">deserialize</span><span class="p">(</span><span class="n">token_serialized_bytes</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>As part of the deserialization, the <code class="docutils literal"><span class="pre">scitokens</span></code> library will throw an
+<p>As part of the deserialization, the <code class="docutils literal notranslate"><span class="pre">scitokens</span></code> library will throw an
 exception if token verification failed.</p>
-<p>The existing token can be serialized with the <code class="docutils literal"><span class="pre">serialize</span></code> method:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">token_serialized_bytes</span> <span class="o">=</span> <span class="n">token</span><span class="o">.</span><span class="n">serialize</span><span class="p">()</span>
+<p>The existing token can be serialized with the <code class="docutils literal notranslate"><span class="pre">serialize</span></code> method:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">token_serialized_bytes</span> <span class="o">=</span> <span class="n">token</span><span class="o">.</span><span class="n">serialize</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
@@ -133,32 +124,71 @@ source without tampering? Can we validate the chain of trust? Validation
 is determining whether the claims of the token are satisfied in a given
 context.</p>
 <p>For example, if a token contains the claims
-<code class="docutils literal"><span class="pre">{vo:</span> <span class="pre">ligo,</span> <span class="pre">op:</span> <span class="pre">read,</span> <span class="pre">path:</span> <span class="pre">/ligo}</span></code>, we would first verify that the
+<code class="docutils literal notranslate"><span class="pre">{vo:</span> <span class="pre">ligo,</span> <span class="pre">op:</span> <span class="pre">read,</span> <span class="pre">path:</span> <span class="pre">/ligo}</span></code>, we would first verify that the
 token is correctly signed by a known public key associated with LIGO.
 When presented to a storage system along with an HTTP request, the
 storage system would validate the token authorizes the corresponding
 request (is it a GET request? Is it for a sub-path of /ligo?).</p>
-<p>Within the <code class="docutils literal"><span class="pre">scitokens</span></code> module, validation is done by the <code class="docutils literal"><span class="pre">Validator</span></code>
+<p>Within the <code class="docutils literal notranslate"><span class="pre">scitokens</span></code> module, validation is done by the <code class="docutils literal notranslate"><span class="pre">Validator</span></code>
 object:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">val</span> <span class="o">=</span> <span class="n">scitokens</span><span class="o">.</span><span class="n">Validator</span><span class="p">()</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">val</span> <span class="o">=</span> <span class="n">scitokens</span><span class="o">.</span><span class="n">Validator</span><span class="p">()</span>
 </pre></div>
 </div>
 <p>This object can be reused for multiple validations. All SciToken claims
 must be validated. There are no “optional” claim attributes or values.</p>
 <p>To validate a specific claim, provide a callback function to the
-<code class="docutils literal"><span class="pre">Validator</span></code> object:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">validate_op</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+<code class="docutils literal notranslate"><span class="pre">Validator</span></code> object:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">validate_op</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
 <span class="gp">... </span>    <span class="k">return</span> <span class="n">value</span> <span class="o">==</span> <span class="kc">True</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">val</span><span class="o">.</span><span class="n">add_validator</span><span class="p">(</span><span class="s2">&quot;op&quot;</span><span class="p">,</span> <span class="n">validate_op</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Once all the known validator callbacks have been registered, use the
-<code class="docutils literal"><span class="pre">validate</span></code> method with a token:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">val</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">token</span><span class="p">)</span>
+<code class="docutils literal notranslate"><span class="pre">validate</span></code> method with a token:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">val</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">token</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>This will throw a <code class="docutils literal"><span class="pre">ValidationException</span></code> if the token could not be
+<p>This will throw a <code class="docutils literal notranslate"><span class="pre">ValidationException</span></code> if the token could not be
 validated.</p>
+</div>
+<div class="section" id="enforcing-scitokens-logic">
+<h2>Enforcing SciTokens Logic<a class="headerlink" href="#enforcing-scitokens-logic" title="Permalink to this headline">¶</a></h2>
+<p>For most users of SciTokens, determining that a token is valid is insufficient.
+Rather, most will be asking “does this token allow the current resource
+request?”  The valid token must be compared to some action the user is
+attempting to take.</p>
+<p>To assist in the authorization enforcement, the SciTokens library provides
+the <code class="docutils literal notranslate"><span class="pre">Enforcer</span></code> class.</p>
+<p>An unique Enforcer object is needed for each thread and issuer:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">enf</span> <span class="o">=</span> <span class="n">scitokens</span><span class="o">.</span><span class="n">Enforcer</span><span class="p">(</span><span class="s2">&quot;https://scitokens.org/dteam&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This object will accept tokens targetted to any audience; a more typical
+use case will look like the following:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">enf</span> <span class="o">=</span> <span class="n">scitokens</span><span class="o">.</span><span class="n">Enforcer</span><span class="p">(</span><span class="s2">&quot;https://scitokens.org/dteam&quot;</span><span class="p">,</span>
+<span class="go">                             audience=&quot;https://example.com&quot;)</span>
+</pre></div>
+</div>
+<p>This second enforcer would not accept tokens that are intended for
+<a class="reference external" href="https://google.com">https://google.com</a>.</p>
+<p>The enforcer can then test authorization logic against a valid token:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">token</span> <span class="o">=</span> <span class="s2">&quot;eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtp...&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">stoken</span> <span class="o">=</span> <span class="n">scitokens</span><span class="o">.</span><span class="n">SciToken</span><span class="o">.</span><span class="n">deserialize</span><span class="p">(</span><span class="n">token</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">enf</span><span class="o">.</span><span class="n">generate_acls</span><span class="p">(</span><span class="n">stoken</span><span class="p">)</span>
+<span class="go">[(u&#39;write&#39;, u&#39;/store/user/bbockelm&#39;), (u&#39;read&#39;, u&#39;/store&#39;)]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">enf</span><span class="o">.</span><span class="n">test</span><span class="p">(</span><span class="n">stoken</span><span class="p">,</span> <span class="s2">&quot;read&quot;</span><span class="p">,</span> <span class="s2">&quot;/store/foo&quot;</span><span class="p">)</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">enf</span><span class="o">.</span><span class="n">test</span><span class="p">(</span><span class="n">stoken</span><span class="p">,</span> <span class="s2">&quot;write&quot;</span><span class="p">,</span> <span class="s2">&quot;/store/foo&quot;</span><span class="p">)</span>
+<span class="go">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">enf</span><span class="o">.</span><span class="n">test</span><span class="p">(</span><span class="n">stoken</span><span class="p">,</span> <span class="s2">&quot;write&quot;</span><span class="p">,</span> <span class="s2">&quot;/store/user/foo&quot;</span><span class="p">)</span>
+<span class="go">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">enf</span><span class="o">.</span><span class="n">test</span><span class="p">(</span><span class="n">stoken</span><span class="p">,</span> <span class="s2">&quot;write&quot;</span><span class="p">,</span> <span class="s2">&quot;/store/user/bbockelm/foo&quot;</span><span class="p">)</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">test</span></code> method uses the SciTokens built-in path parsing to validate the
+authorization.  The <code class="docutils literal notranslate"><span class="pre">generate_acls</span></code> method allows the caller to cache
+the ACL information from the token.</p>
 </div>
 <div class="section" id="configuration">
 <h2>Configuration<a class="headerlink" href="#configuration" title="Permalink to this headline">¶</a></h2>
@@ -194,17 +224,17 @@ Default: $HOME/.cache/scitokens</td>
 </tbody>
 </table>
 <p>The configuration file is in the ini format, and will look similar to:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">scitokens</span><span class="p">]</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">scitokens</span><span class="p">]</span>
 <span class="n">log_level</span> <span class="o">=</span> <span class="n">DEBUG</span>
 <span class="n">cache_lifetime</span> <span class="o">=</span> <span class="mi">60</span>
 </pre></div>
 </div>
-<p>You may set the configuration by passing a file name to <code class="docutils literal"><span class="pre">scitokens.set_config</span></code> function:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;&gt;</span> <span class="kn">import</span> <span class="nn">scitokens</span>
+<p>You may set the configuration by passing a file name to <code class="docutils literal notranslate"><span class="pre">scitokens.set_config</span></code> function:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&gt;&gt;</span> <span class="kn">import</span> <span class="nn">scitokens</span>
 <span class="o">&gt;&gt;</span> <span class="n">scitokens</span><span class="o">.</span><span class="n">set_config</span><span class="p">(</span><span class="s2">&quot;/etc/scitokens/scitokens.ini&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>See <a class="reference internal" href="scitokens.html#scitokens.utils.config.set_config" title="scitokens.utils.config.set_config"><code class="xref py py-func docutils literal"><span class="pre">set_config()</span></code></a></p>
+<p>See <a class="reference internal" href="scitokens.html#scitokens.utils.config.set_config" title="scitokens.utils.config.set_config"><code class="xref py py-func docutils literal notranslate"><span class="pre">set_config()</span></code></a></p>
 </div>
 </div>
 <div class="section" id="project-status">
@@ -226,6 +256,7 @@ Default: $HOME/.cache/scitokens</td>
 <li><a class="reference internal" href="#generating-tokens">Generating Tokens</a></li>
 <li><a class="reference internal" href="#token-serialization">Token Serialization</a></li>
 <li><a class="reference internal" href="#validating-tokens">Validating Tokens</a></li>
+<li><a class="reference internal" href="#enforcing-scitokens-logic">Enforcing SciTokens Logic</a></li>
 <li><a class="reference internal" href="#configuration">Configuration</a></li>
 </ul>
 </li>
@@ -241,12 +272,14 @@ Default: $HOME/.cache/scitokens</td>
    </div>
 <div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
+    <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
-      <div><input type="text" name="q" /></div>
-      <div><input type="submit" value="Go" /></div>
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
       <input type="hidden" name="check_keywords" value="yes" />
       <input type="hidden" name="area" value="default" />
     </form>
+    </div>
 </div>
 <script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
@@ -267,7 +300,7 @@ Default: $HOME/.cache/scitokens</td>
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2017, Brian Bockelman and Derek Weitzel.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.6.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.0.
     </div>
   </body>
 </html>
