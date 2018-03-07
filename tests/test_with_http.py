@@ -75,7 +75,7 @@ class TestDeserialization(unittest.TestCase):
         """
         Perform the EC deserialization test
         """
-        
+
         server_address = start_server(self.public_numbers.n, self.public_numbers.e, self.test_id, test_ec={'x': self.ec_public_numbers.x, 'y': self.ec_public_numbers.y, 'kid': self.ec_test_id})
         print(server_address)
         issuer = "http://localhost:{}/".format(server_address[1])

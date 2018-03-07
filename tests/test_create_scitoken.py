@@ -52,7 +52,7 @@ class TestCreation(unittest.TestCase):
 
         self.assertEqual(len(serialized_token.decode('utf8').split(".")), 3)
         print(serialized_token)
-        
+
     def test_EC_create(self):
         """
         Test the creation of a simple Elliptical Curve token
@@ -60,12 +60,12 @@ class TestCreation(unittest.TestCase):
         ec_private_key = ec.generate_private_key(
             ec.SECP256R1(), default_backend()
         )
-        
+
         token = scitokens.SciToken(key = ec_private_key, algorithm = "ES256")
         self.assertTrue(isinstance(ec_private_key, ec.EllipticCurvePrivateKey))
         token.update_claims({"test": "true"})
         serialized_token = token.serialize(issuer = "local")
-        
+
         self.assertEqual(len(serialized_token.decode('utf8').split(".")), 3)
         print(serialized_token)
 
@@ -83,7 +83,7 @@ class TestCreation(unittest.TestCase):
             encoding=serialization.Encoding.PEM,
             format=serialization.PublicFormat.SubjectPublicKeyInfo
         )
-        
+
         token = scitokens.SciToken(key = ec_private_key, algorithm = "ES256")
         serialized_token = token.serialize(issuer = "local")
 
