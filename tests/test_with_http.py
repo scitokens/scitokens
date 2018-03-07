@@ -33,7 +33,7 @@ class TestDeserialization(unittest.TestCase):
         )
         self.test_id = "stuffblah"
         self.public_numbers = self.private_key.public_key().public_numbers()
-        
+
         with open('tests/simple_ec_private_key.pem', 'rb') as key_file:
             self.ec_private_key = serialization.load_pem_private_key(
             key_file.read(),
@@ -41,7 +41,7 @@ class TestDeserialization(unittest.TestCase):
             backend=default_backend()
         )
         self.ec_test_id = "ec_test_id"
-        
+
         self.ec_public_numbers = self.ec_private_key.public_key().public_numbers()
 
     def tearDown(self):

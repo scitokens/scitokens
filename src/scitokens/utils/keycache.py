@@ -69,18 +69,18 @@ class KeyCache(object):
     def addkeyinfo(self, issuer, key_id, public_key, cache_timer=0, next_update=0):
         """
         Add a single, known public key to the cache.
-        
+
         :param str issuer: URI of the issuer
         :param str key_id: Key Identifier
         :param public_key: Cryptography public_key object
         :param int cache_timer: Cache lifetime of the public_key
         :param int next_update: Seconds until next update time
         """
-        
+
         # If the next_update is 0, then set it to 1 hour
         if next_update == 0:
             next_update = 3600
-        
+
         conn = sqlite3.connect(self.cache_location)
         conn.row_factory = sqlite3.Row
         curs = conn.cursor()
@@ -114,10 +114,10 @@ class KeyCache(object):
         :param str kid: Key ID
         :param str keydata: Raw JSON key data (at least, it should be)
         :param curs: SQLite cursor, in case it has to delete the row
-        
+
         :returns str: encoded public key, otherwise None 
         """
-        
+
         # First, get the key data
         try:
             return json.loads(keydata)['pub_key']
@@ -194,7 +194,7 @@ class KeyCache(object):
                     public_key, cache_timer = self._get_issuer_publickey(issuer, key_id, insecure)
                     self.addkeyinfo(issuer, key_id, public_key, cache_timer)
                     return public_key
-                    
+
 
             # If it's not time to update the key, and the key is not valid
             else:
@@ -228,10 +228,10 @@ class KeyCache(object):
         :return: Tuple containing (public_key, cache_lifetime).  Cache_lifetime how 
             the public key is valid
         """
-        
+
         # Set the user agent so Cloudflare isn't mad at us
         headers={'User-Agent': 'SciTokens/{}'.format(PKG_VERSION)}
-        
+
         # Go to the issuer's website, and download the OAuth well known bits
         # https://tools.ietf.org/html/draft-ietf-oauth-discovery-07
         well_known_uri = ".well-known/openid-configuration"
@@ -317,12 +317,12 @@ class KeyCache(object):
     def _get_cache_file(self):
         """
         Get the Cache file location
-        
+
         1. Configuration cache location
         2. $XDG_CACHE_HOME
         3. .cache subdirectory of home directory as returned by the password database
         """
-        
+
         config_cache_location = config.get('cache_location')
         xdg_cache_home = os.environ.get("XDG_CACHE_HOME", None)
         home_dir = pwd.getpwuid(os.geteuid()).pw_dir
