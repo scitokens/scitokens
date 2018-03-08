@@ -33,7 +33,7 @@ from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat,
 import cryptography.hazmat.backends as backends
 import cryptography.hazmat.primitives.asymmetric.ec as ec
 import cryptography.hazmat.primitives.asymmetric.rsa as rsa
-from scitokens.utils.errors import MissingKeyException, NonHTTPSIssuer, UnableToCreateCache
+from scitokens.utils.errors import MissingKeyException, NonHTTPSIssuer, UnableToCreateCache, UnsupportedKeyException
 from scitokens.utils import long_from_bytes
 import scitokens.utils.config as config
 
@@ -85,12 +85,12 @@ class KeyCache(object):
         conn.row_factory = sqlite3.Row
         curs = conn.cursor()
         curs.execute("DELETE FROM keycache WHERE issuer = '{}' AND key_id = '{}'".format(issuer, key_id))
-        KeyCache._addkeyinfo(curs, issuer, key_id, public_key, cache_timer=cache_timer, next_update = next_update)
+        KeyCache._addkeyinfo(curs, issuer, key_id, public_key, cache_timer=cache_timer, next_update=next_update)
         conn.commit()
         conn.close()
 
     @staticmethod
-    def _addkeyinfo(curs, issuer, key_id, public_key, cache_timer=0, next_update = 0):
+    def _addkeyinfo(curs, issuer, key_id, public_key, cache_timer=0, next_update=0):
         """
         Given an open database cursor to a key cache, insert a key.
         """
@@ -115,13 +115,13 @@ class KeyCache(object):
         :param str keydata: Raw JSON key data (at least, it should be)
         :param curs: SQLite cursor, in case it has to delete the row
 
-        :returns str: encoded public key, otherwise None 
+        :returns str: encoded public key, otherwise None
         """
 
         # First, get the key data
         try:
             return json.loads(keydata)['pub_key']
-        except ValueError as decodeError:
+        except ValueError:
             logging.exception("Unable to parse JSON stored in keycache.  "
                               "This likely means the database format needs"
                               "to be updated, which we will now do automatically")
@@ -189,11 +189,11 @@ class KeyCache(object):
                 keydata = self._parse_key_data(row['issuer'], row['key_id'], row['keydata'])
                 if keydata:
                     return load_pem_public_key(keydata.encode(), backend=backends.default_backend())
-                else:
-                    # update the keycache
-                    public_key, cache_timer = self._get_issuer_publickey(issuer, key_id, insecure)
-                    self.addkeyinfo(issuer, key_id, public_key, cache_timer)
-                    return public_key
+                
+                # update the keycache
+                public_key, cache_timer = self._get_issuer_publickey(issuer, key_id, insecure)
+                self.addkeyinfo(issuer, key_id, public_key, cache_timer)
+                return public_key
 
 
             # If it's not time to update the key, and the key is not valid
@@ -225,12 +225,12 @@ class KeyCache(object):
     @staticmethod
     def _get_issuer_publickey(issuer, key_id=None, insecure=False):
         """
-        :return: Tuple containing (public_key, cache_lifetime).  Cache_lifetime how 
+        :return: Tuple containing (public_key, cache_lifetime).  Cache_lifetime how
             the public key is valid
         """
 
         # Set the user agent so Cloudflare isn't mad at us
-        headers={'User-Agent': 'SciTokens/{}'.format(PKG_VERSION)}
+        headers={'User-Agent' : 'SciTokens/{}'.format(PKG_VERSION)}
 
         # Go to the issuer's website, and download the OAuth well known bits
         # https://tools.ietf.org/html/draft-ietf-oauth-discovery-07

@@ -71,7 +71,7 @@ class OauthRequestHandler(BaseHTTPRequestHandler):
             key_info['e'] = scitokens.utils.bytes_from_long(TEST_E).decode('ascii')
             key_info['kty'] = "RSA"
             key_info['alg'] = "RS256"
-            
+
             if EC_TEST_ID and EC_TEST_X and EC_TEST_Y:
                 ec_key_info = {
                     'kid': EC_TEST_ID,

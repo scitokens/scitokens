@@ -27,19 +27,19 @@ class TestDeserialization(unittest.TestCase):
     def setUp(self):
         with open('tests/simple_private_key.pem', 'rb') as key_file:
             self.private_key = serialization.load_pem_private_key(
-            key_file.read(),
-            password=None,
-            backend=default_backend()
-        )
+                key_file.read(),
+                password=None,
+                backend=default_backend()
+                )
         self.test_id = "stuffblah"
         self.public_numbers = self.private_key.public_key().public_numbers()
 
         with open('tests/simple_ec_private_key.pem', 'rb') as key_file:
             self.ec_private_key = serialization.load_pem_private_key(
-            key_file.read(),
-            password=None,
-            backend=default_backend()
-        )
+                key_file.read(),
+                password=None,
+                backend=default_backend()
+                )
         self.ec_test_id = "ec_test_id"
 
         self.ec_public_numbers = self.ec_private_key.public_key().public_numbers()
@@ -76,10 +76,15 @@ class TestDeserialization(unittest.TestCase):
         Perform the EC deserialization test
         """
 
-        server_address = start_server(self.public_numbers.n, self.public_numbers.e, self.test_id, test_ec={'x': self.ec_public_numbers.x, 'y': self.ec_public_numbers.y, 'kid': self.ec_test_id})
+        server_address = start_server(self.public_numbers.n, self.public_numbers.e,
+                                      self.test_id,
+                                      test_ec={'x': self.ec_public_numbers.x,
+                                               'y': self.ec_public_numbers.y,
+                                               'kid': self.ec_test_id})
         print(server_address)
         issuer = "http://localhost:{}/".format(server_address[1])
-        token = scitokens.SciToken(key=self.ec_private_key, key_id=self.ec_test_id, algorithm="ES256")
+        token = scitokens.SciToken(key=self.ec_private_key, key_id=self.ec_test_id,
+                                   algorithm="ES256")
         token.update_claims({"test": "true"})
         serialized_token = token.serialize(issuer=issuer)
 

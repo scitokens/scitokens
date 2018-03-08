@@ -53,7 +53,7 @@ class TestCreation(unittest.TestCase):
         self.assertEqual(len(serialized_token.decode('utf8').split(".")), 3)
         print(serialized_token)
 
-    def test_EC_create(self):
+    def test_ec_create(self):
         """
         Test the creation of a simple Elliptical Curve token
         """
@@ -70,7 +70,7 @@ class TestCreation(unittest.TestCase):
         print(serialized_token)
 
 
-    def test_EC_public_key(self):
+    def test_ec_public_key(self):
         """
         Test when the public key is provided to deserialize for Elliptical Curve
         """
