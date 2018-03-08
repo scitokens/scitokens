@@ -145,6 +145,54 @@ Once all the known validator callbacks have been registered, use the
 This will throw a ``ValidationException`` if the token could not be
 validated.
 
+Enforcing SciTokens Logic
+-------------------------
+For most users of SciTokens, determining that a token is valid is insufficient.
+Rather, most will be asking "does this token allow the current resource
+request?"  The valid token must be compared to some action the user is
+attempting to take.
+
+To assist in the authorization enforcement, the SciTokens library provides
+the ``Enforcer`` class.
+
+An unique Enforcer object is needed for each thread and issuer:
+
+::
+
+    >>> enf = scitokens.Enforcer("https://scitokens.org/dteam")
+
+This object will accept tokens targetted to any audience; a more typical
+use case will look like the following:
+
+::
+
+    >>> enf = scitokens.Enforcer("https://scitokens.org/dteam",
+                                 audience="https://example.com")
+
+This second enforcer would not accept tokens that are intended for
+https://google.com.
+
+The enforcer can then test authorization logic against a valid token:
+
+::
+
+    >>> token = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtp..."
+    >>> stoken = scitokens.SciToken.deserialize(token)
+    >>> enf.generate_acls(stoken)
+    [(u'write', u'/store/user/bbockelm'), (u'read', u'/store')]
+    >>> enf.test(stoken, "read", "/store/foo")
+    True
+    >>> enf.test(stoken, "write", "/store/foo")
+    False
+    >>> enf.test(stoken, "write", "/store/user/foo")
+    False
+    >>> enf.test(stoken, "write", "/store/user/bbockelm/foo")
+    True
+
+The ``test`` method uses the SciTokens built-in path parsing to validate the
+authorization.  The ``generate_acls`` method allows the caller to cache
+the ACL information from the token.
+
 Configuration
 -------------
 
