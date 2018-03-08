@@ -111,7 +111,7 @@ def start_server(test_n, test_e, test_id, test_ec = None):
     TEST_N = test_n
     TEST_E = test_e
     TEST_ID = test_id
-    
+
     if test_ec:
         EC_TEST_ID = test_ec['kid']
         EC_TEST_X = test_ec['x']
