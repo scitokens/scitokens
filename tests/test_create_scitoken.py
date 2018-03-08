@@ -216,6 +216,17 @@ class TestCreation(unittest.TestCase):
         enf = scitokens.Enforcer(issuer="local")
         self.assertTrue(enf.test(self._token, "write", "/home/example/test_file"))
 
+    def test_contains(self):
+        """
+        Testing the contains attribute
+        """
+        self._token['opt'] = "This is optional information, and should always return true"
+        self._token['scp'] = "write:/home/example"
+
+        self.assertTrue('opt' in self._token)
+        self.assertTrue('scp' in self._token)
+        self.assertFalse('notin' in self._token)
+
     def test_no_kid(self):
         """
         Testing a token without a kid

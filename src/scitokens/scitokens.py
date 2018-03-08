@@ -157,6 +157,19 @@ class SciToken(object):
         if claim in self._verified_claims:
             return self._verified_claims[claim]
         raise KeyError(claim)
+        
+    def __contains__(self, claim):
+        """
+        Access the value corresponding to a particular claim; will
+        return claims from both the verified and unverified claims.
+
+        If a claim is not present, then a KeyError is thrown.
+        """
+        if claim in self._claims:
+            return True
+        if claim in self._verified_claims:
+            return True
+        return False
 
     def get(self, claim, default=None, verified_only=False):
         """
