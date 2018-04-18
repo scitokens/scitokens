@@ -247,7 +247,7 @@ class TestCreation(unittest.TestCase):
         Test a token with an unsupported key algorithm
         """
         with self.assertRaises(UnsupportedKeyException):
-            token = scitokens.SciToken(key = self._private_key, algorithm="doesnotexist")
+            scitokens.SciToken(key = self._private_key, algorithm="doesnotexist")
 
 
 if __name__ == '__main__':
