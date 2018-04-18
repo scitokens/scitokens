@@ -18,7 +18,7 @@ import uuid
 import cryptography.hazmat.backends as backends
 from .utils import keycache as KeyCache
 from .utils import config
-from .utils.errors import MissingIssuerException, InvalidTokenFormat, MissingKeyException
+from .utils.errors import MissingIssuerException, InvalidTokenFormat, MissingKeyException, UnsupportedKeyException
 from cryptography.hazmat.primitives.serialization import load_pem_public_key
 
 class SciToken(object):
@@ -40,7 +40,12 @@ class SciToken(object):
             raise NotImplementedError()
 
         self._key = key
-        self._key_alg = algorithm if algorithm is not None else "RS256"
+
+        # Make sure we support the key algorithm
+
+        self._key_alg = algorithm if algorithm is not None else config.get('default_alg')
+        if self._key_alg not in ["RS256", "ES256"]:
+            raise UnsupportedKeyException()
         self._key_id = key_id
         self._parent = parent
         self._claims = {}

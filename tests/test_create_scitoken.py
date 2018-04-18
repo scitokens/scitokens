@@ -18,6 +18,7 @@ import cryptography.hazmat.primitives.asymmetric.ec as ec
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 from jwt import DecodeError, InvalidAudienceError
+from scitokens.utils.errors import UnsupportedKeyException
 
 
 class TestCreation(unittest.TestCase):
@@ -241,6 +242,12 @@ class TestCreation(unittest.TestCase):
 
         token = scitokens.SciToken.deserialize(serialized_token, public_key = self._public_pem, insecure=True)
 
+    def test_unsupported_key(self):
+        """
+        Test a token with an unsupported key algorithm
+        """
+        with self.assertRaises(UnsupportedKeyException):
+            token = scitokens.SciToken(key = self._private_key, algorithm="doesnotexist")
 
 
 if __name__ == '__main__':

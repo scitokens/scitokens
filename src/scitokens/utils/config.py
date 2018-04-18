@@ -14,7 +14,8 @@ CONFIG_DEFAULTS = {
     'log_file': None,
     'log_level': "INFO",
     'cache_lifetime': "3600",
-    'cache_location': None
+    'cache_location': None,
+    'default_alg': "RS256"
 }
 
 configuration = configparser.SafeConfigParser(CONFIG_DEFAULTS) # pylint: disable=C0103
