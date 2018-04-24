@@ -134,7 +134,7 @@ claim with no registered validator.</p>
 
 <dl class="class">
 <dt id="scitokens.scitokens.SciToken">
-<em class="property">class </em><code class="descclassname">scitokens.scitokens.</code><code class="descname">SciToken</code><span class="sig-paren">(</span><em>key=None</em>, <em>key_id=None</em>, <em>parent=None</em>, <em>claims=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scitokens/scitokens.html#SciToken"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scitokens.scitokens.SciToken" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">scitokens.scitokens.</code><code class="descname">SciToken</code><span class="sig-paren">(</span><em>key=None</em>, <em>algorithm=None</em>, <em>key_id=None</em>, <em>parent=None</em>, <em>claims=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scitokens/scitokens.html#SciToken"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scitokens.scitokens.SciToken" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.6)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>An object representing the contents of a SciToken.</p>
 <dl class="method">
@@ -152,7 +152,7 @@ with the claims from the first token in the chain.</p>
 
 <dl class="staticmethod">
 <dt id="scitokens.scitokens.SciToken.deserialize">
-<em class="property">static </em><code class="descname">deserialize</code><span class="sig-paren">(</span><em>audience=None</em>, <em>require_key=False</em>, <em>insecure=False</em>, <em>public_key=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scitokens/scitokens.html#SciToken.deserialize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scitokens.scitokens.SciToken.deserialize" title="Permalink to this definition">¶</a></dt>
+<em class="property">static </em><code class="descname">deserialize</code><span class="sig-paren">(</span><em>serialized_token</em>, <em>audience=None</em>, <em>require_key=False</em>, <em>insecure=False</em>, <em>public_key=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scitokens/scitokens.html#SciToken.deserialize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scitokens.scitokens.SciToken.deserialize" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given a serialized SciToken, load it into a SciTokens object.</p>
 <p>Verifies the claims pass the current set of validation scripts.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -379,7 +379,7 @@ if the token is valid.</p>
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2017, Brian Bockelman and Derek Weitzel.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.1.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.3.
     </div>
   </body>
 </html>
