@@ -197,12 +197,12 @@ class TestKeyCache(unittest.TestCase):
 
         # Create a pem encoded public key, just to insert, want to make sure
         # it downloads from the server
-        private_key = generate_private_key(
+        tmp_private_key = generate_private_key(
             public_exponent=65537,
             key_size=2048,
             backend=default_backend()
         )
-        public_key = private_key.public_key()
+        public_key = tmp_private_key.public_key()
         public_pem = public_key.public_bytes(
             encoding=serialization.Encoding.PEM,
             format=serialization.PublicFormat.SubjectPublicKeyInfo

@@ -18,7 +18,7 @@ import uuid
 import cryptography.hazmat.backends as backends
 from .utils import keycache as KeyCache
 from .utils import config
-from .utils.errors import MissingIssuerException, InvalidTokenFormat, MissingKeyException
+from .utils.errors import MissingIssuerException, InvalidTokenFormat, MissingKeyException, UnsupportedKeyException
 from cryptography.hazmat.primitives.serialization import load_pem_public_key
 
 class SciToken(object):
@@ -26,11 +26,12 @@ class SciToken(object):
     An object representing the contents of a SciToken.
     """
 
-    def __init__(self, key=None, key_id=None, parent=None, claims=None):
+    def __init__(self, key=None, algorithm=None, key_id=None, parent=None, claims=None):
         """
         Construct a SciToken object.
 
         :param key: Private key to sign the SciToken with.  It should be the PEM contents.
+        :param algorithm: Private key algorithm to sign the SciToken with. Default: RS256
         :param str key_id: A string representing the Key ID that is used at the issuer
         :param parent: Parent SciToken that will be chained
         """
@@ -39,6 +40,12 @@ class SciToken(object):
             raise NotImplementedError()
 
         self._key = key
+
+        # Make sure we support the key algorithm
+
+        self._key_alg = algorithm if algorithm is not None else config.get('default_alg')
+        if self._key_alg not in ["RS256", "ES256"]:
+            raise UnsupportedKeyException()
         self._key_id = key_id
         self._parent = parent
         self._claims = {}
@@ -115,9 +122,9 @@ class SciToken(object):
             self._claims['jti'] = payload['jti']
 
         if self._key_id != None:
-            encoded = jwt.encode(payload, self._key, algorithm = "RS256", headers={'kid': self._key_id})
+            encoded = jwt.encode(payload, self._key, algorithm = self._key_alg, headers={'kid': self._key_id})
         else:
-            encoded = jwt.encode(payload, self._key, algorithm = "RS256")
+            encoded = jwt.encode(payload, self._key, algorithm = self._key_alg)
         self._serialized_token = encoded
 
         # Move claims over to verified claims
@@ -222,7 +229,7 @@ class SciToken(object):
         serialized_jwt = info[0] + "." + info[1] + "." + info[2]
 
         unverified_headers = jwt.get_unverified_header(serialized_jwt)
-        unverified_payload = jwt.decode(serialized_jwt, verify=False, algorithms=['RS256'])
+        unverified_payload = jwt.decode(serialized_jwt, verify=False, algorithms=['RS256', 'ES256'])
         
         # Get the public key from the issuer
         keycache = KeyCache.KeyCache().getinstance()
