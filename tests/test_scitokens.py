@@ -109,6 +109,40 @@ class TestEnforcer(unittest.TestCase):
         with self.assertRaises(scitokens.scitokens.InvalidPathError):
             print(enf.test(self._token, "write", "~/foo"))
 
+    def test_enforce_scope(self):
+        """
+        Test the Enforcer object.
+        """
+        with self.assertRaises(scitokens.scitokens.EnforcementError):
+            print(scitokens.Enforcer(None))
+
+        enf = scitokens.Enforcer(self._test_issuer)
+        enf.add_validator("foo", self.always_accept)
+
+        self.assertFalse(enf.test(self._token, "read", "/"), msg=enf.last_failure)
+
+        self._token["scope"] = "read:/"
+        self.assertTrue(enf.test(self._token, "read", "/"), msg=enf.last_failure)
+
+        enf = scitokens.Enforcer(self._test_issuer, audience = "https://example.unl.edu")
+        enf.add_validator("foo", self.always_accept)
+        self.assertTrue(enf.test(self._token, "read", "/"), msg=enf.last_failure)
+
+        self._token["scope"] = "read:/foo/bar"
+        self.assertFalse(enf.test(self._token, "read", "/foo"), msg=enf.last_failure)
+
+        self._token["site"] = "T2_US_Example"
+        self.assertFalse(enf.test(self._token, "read", "/foo/bar"), msg=enf.last_failure)
+        enf = scitokens.Enforcer(self._test_issuer, site="T2_US_Example")
+        enf.add_validator("foo", self.always_accept)
+        self.assertTrue(enf.test(self._token, "read", "/foo/bar"), msg=enf.last_failure)
+
+        self.assertFalse(enf.test(self._token, "write", "/foo/bar"), msg=enf.last_failure)
+
+        with self.assertRaises(scitokens.scitokens.InvalidPathError):
+            print(enf.test(self._token, "write", "~/foo"))
+
+
     def test_aud(self):
         """
         Test the audience claim
@@ -149,18 +183,18 @@ class TestEnforcer(unittest.TestCase):
         enf = scitokens.Enforcer(self._test_issuer)
         enf.add_validator("foo", self.always_accept)
 
-        self._token['scp'] = 'read:/'
+        self._token['scope'] = 'read:/'
         acls = enf.generate_acls(self._token)
         self.assertTrue(len(acls), 1)
         self.assertEqual(acls[0], ('read', '/'))
 
-        self._token['scp'] = ['read:/', 'write:/foo']
+        self._token['scope'] = 'read:/ write:/foo'
         acls = enf.generate_acls(self._token)
         self.assertTrue(len(acls), 2)
         self.assertTrue(('read', '/') in acls)
         self.assertTrue(('write', '/foo') in acls)
 
-        self._token['scp'] = ['read:/foo', 'read://bar', 'write:/foo', 'write://bar']
+        self._token['scope'] = 'read:/foo read://bar write:/foo write://bar'
         acls = enf.generate_acls(self._token)
         self.assertTrue(len(acls), 4)
         self.assertTrue(('read', '/foo') in acls)
@@ -174,11 +208,11 @@ class TestEnforcer(unittest.TestCase):
         self.assertTrue(enf.last_failure)
         self._token['exp'] = time.time() + 600
 
-        self._token['scp'] = 'read:foo'
+        self._token['scope'] = 'read:foo'
         with self.assertRaises(scitokens.scitokens.InvalidAuthorizationResource):
             print(enf.generate_acls(self._token))
 
-        self._token['scp'] = 'read'
+        self._token['scope'] = 'read'
         with self.assertRaises(scitokens.scitokens.InvalidAuthorizationResource):
             print(enf.generate_acls(self._token))
 
@@ -190,7 +224,7 @@ class TestEnforcer(unittest.TestCase):
         enf = scitokens.Enforcer(self._test_issuer)
         enf.add_validator("foo", self.always_accept)
 
-        self._token['scp'] = 'read:/'
+        self._token['scope'] = 'read:/'
         acls = enf.generate_acls(self._token)
         self.assertTrue(len(acls), 1)
 
