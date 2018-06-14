@@ -33,7 +33,7 @@ from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat,
 import cryptography.hazmat.backends as backends
 import cryptography.hazmat.primitives.asymmetric.ec as ec
 import cryptography.hazmat.primitives.asymmetric.rsa as rsa
-from scitokens.utils.errors import MissingKeyException, NonHTTPSIssuer, UnableToCreateCache
+from scitokens.utils.errors import MissingKeyException, NonHTTPSIssuer, UnableToCreateCache, UnsupportedKeyException
 from scitokens.utils import long_from_bytes
 import scitokens.utils.config as config
 
@@ -69,40 +69,79 @@ class KeyCache(object):
     def addkeyinfo(self, issuer, key_id, public_key, cache_timer=0, next_update=0):
         """
         Add a single, known public key to the cache.
-        
+
         :param str issuer: URI of the issuer
         :param str key_id: Key Identifier
         :param public_key: Cryptography public_key object
         :param int cache_timer: Cache lifetime of the public_key
         :param int next_update: Seconds until next update time
         """
-        
+
         # If the next_update is 0, then set it to 1 hour
         if next_update == 0:
             next_update = 3600
-        
+
         conn = sqlite3.connect(self.cache_location)
         conn.row_factory = sqlite3.Row
         curs = conn.cursor()
         curs.execute("DELETE FROM keycache WHERE issuer = '{}' AND key_id = '{}'".format(issuer, key_id))
-        KeyCache._addkeyinfo(curs, issuer, key_id, public_key, cache_timer=cache_timer, next_update = next_update)
+        KeyCache._addkeyinfo(curs, issuer, key_id, public_key, cache_timer=cache_timer, next_update=next_update)
         conn.commit()
         conn.close()
 
     @staticmethod
-    def _addkeyinfo(curs, issuer, key_id, public_key, cache_timer=0, next_update = 0):
+    def _addkeyinfo(curs, issuer, key_id, public_key, cache_timer=0, next_update=0):
         """
         Given an open database cursor to a key cache, insert a key.
         """
         # Add the key to the cache
         insert_key_statement = "INSERT INTO keycache VALUES('{issuer}', '{expiration}', '{key_id}', \
                                '{keydata}', '{next_update}')"
-        keydata = public_key.public_bytes(Encoding.PEM, PublicFormat.PKCS1).decode('ascii')
+        keydata = {
+            'pub_key': public_key.public_bytes(Encoding.PEM, PublicFormat.SubjectPublicKeyInfo).decode('ascii'),
+        }
 
         curs.execute(insert_key_statement.format(issuer=issuer, expiration=time.time()+cache_timer, key_id=key_id,
-                                                 keydata=keydata, next_update=time.time()+next_update))
+                                                 keydata=json.dumps(keydata), next_update=time.time()+next_update))
         if curs.rowcount != 1:
             raise UnableToWriteKeyCache("Unable to insert into key cache")
+
+    def _parse_key_data(self, issuer, kid, keydata):
+        """
+        Keydata is stored as a JSON object inside the DB.  Therefore, we must extract it.
+
+        :param str issuer: Token Issuer in keydata
+        :param str kid: Key ID
+        :param str keydata: Raw JSON key data (at least, it should be)
+        :param curs: SQLite cursor, in case it has to delete the row
+
+        :returns str: encoded public key, otherwise None
+        """
+
+        # First, get the key data
+        try:
+            return json.loads(keydata)['pub_key']
+        except ValueError:
+            logging.exception("Unable to parse JSON stored in keycache.  "
+                              "This likely means the database format needs"
+                              "to be updated, which we will now do automatically")
+
+            self._delete_cache_entry(issuer, kid)
+            return None
+
+
+    def _delete_cache_entry(self, issuer, key_id):
+        """
+        Delete a cache entry
+        """
+        # Open the connection to the database
+        conn = sqlite3.connect(self.cache_location)
+        curs = conn.cursor()
+        curs.execute("DELETE FROM keycache WHERE issuer = '{}' AND key_id = '{}'".format(issuer,
+                     key_id))
+        conn.commit()
+        conn.close()
+
 
     def getkeyinfo(self, issuer, key_id=None, insecure=False):
         """
@@ -124,34 +163,38 @@ class KeyCache(object):
         curs.execute(key_query.format(issuer=issuer, key_id=key_id))
 
         row = curs.fetchone()
+        conn.commit()
+        conn.close()
         if row != None:
             # If it's time to update the key, but the key is still valid
             if int(row['next_update']) < time.time() and self._check_validity(row):
                 # Try to update the key, but if it doesn't work, just return the saved one
                 try:
-                    # Close the sqllite lock
-                    conn.commit()
-                    conn.close()
-
                     # Get the public key, probably from a webserver
                     public_key, cache_timer = self._get_issuer_publickey(issuer, key_id, insecure)
 
                     # Get the sqllite connection again
-                    conn = sqlite3.connect(self.cache_location)
-                    curs = conn.cursor()
-                    self._addkeyinfo(curs, issuer, key_id, public_key, cache_timer)
-                    conn.commit()
-                    conn.close()
+                    self.addkeyinfo(issuer, key_id, public_key, cache_timer)
                     return public_key
                 except Exception as ex:
                     logger = logging.getLogger("scitokens")
                     logger.warning("Unable to get key triggered by next update: {0}".format(str(ex)))
-                    return load_pem_public_key(row['keydata'].encode(), backend=backends.default_backend())
+                    keydata = self._parse_key_data(row['issuer'], row['key_id'], row['keydata'])
+                    # Upgrade proof
+                    if keydata:
+                        return load_pem_public_key(keydata.encode(), backend=backends.default_backend())
 
             # If it's not time to update the key, but the key is still valid
             elif self._check_validity(row):
-                conn.close()
-                return load_pem_public_key(row['keydata'].encode(), backend=backends.default_backend())
+                keydata = self._parse_key_data(row['issuer'], row['key_id'], row['keydata'])
+                if keydata:
+                    return load_pem_public_key(keydata.encode(), backend=backends.default_backend())
+                
+                # update the keycache
+                public_key, cache_timer = self._get_issuer_publickey(issuer, key_id, insecure)
+                self.addkeyinfo(issuer, key_id, public_key, cache_timer)
+                return public_key
+
 
             # If it's not time to update the key, and the key is not valid
             else:
@@ -159,25 +202,13 @@ class KeyCache(object):
                 # Delete the row
                 # If it gets to this point, then there is a row for the key, but it's:
                 # - Not valid anymore
-                curs.execute("DELETE FROM keycache WHERE issuer = '{}' AND key_id = '{}'".format(row['issuer'],
-                             row['key_id']))
-
-        # Close the sqllite lock
-        conn.commit()
-        conn.close()
+                self._delete_cache_entry(row['issuer'], row['key_id'])
 
         # If it reaches here, then no key was found in the SQL
         # Try checking the issuer (negative cache?)
         public_key, cache_timer = self._get_issuer_publickey(issuer, key_id, insecure)
+        self.addkeyinfo(issuer, key_id, public_key, cache_timer)
 
-        # Get the sqllite connection again
-        conn = sqlite3.connect(self.cache_location)
-        curs = conn.cursor()
-        self._addkeyinfo(curs, issuer, key_id, public_key, cache_timer)
-
-        # Save (commit) the changes
-        conn.commit()
-        conn.close()
         return public_key
 
     @classmethod
@@ -194,13 +225,13 @@ class KeyCache(object):
     @staticmethod
     def _get_issuer_publickey(issuer, key_id=None, insecure=False):
         """
-        :return: Tuple containing (public_key, cache_lifetime).  Cache_lifetime how 
+        :return: Tuple containing (public_key, cache_lifetime).  Cache_lifetime how
             the public key is valid
         """
-        
+
         # Set the user agent so Cloudflare isn't mad at us
-        headers={'User-Agent': 'SciTokens/{}'.format(PKG_VERSION)}
-        
+        headers={'User-Agent' : 'SciTokens/{}'.format(PKG_VERSION)}
+
         # Go to the issuer's website, and download the OAuth well known bits
         # https://tools.ietf.org/html/draft-ietf-oauth-discovery-07
         well_known_uri = ".well-known/openid-configuration"
@@ -274,7 +305,7 @@ class KeyCache(object):
             public_key_numbers = ec.EllipticCurvePublicNumbers(
                    long_from_bytes(raw_key['x']),
                    long_from_bytes(raw_key['y']),
-                   ec.SECP256R1
+                   ec.SECP256R1()
                )
             public_key = public_key_numbers.public_key(backends.default_backend())
         else:
@@ -286,12 +317,12 @@ class KeyCache(object):
     def _get_cache_file(self):
         """
         Get the Cache file location
-        
+
         1. Configuration cache location
         2. $XDG_CACHE_HOME
         3. .cache subdirectory of home directory as returned by the password database
         """
-        
+
         config_cache_location = config.get('cache_location')
         xdg_cache_home = os.environ.get("XDG_CACHE_HOME", None)
         home_dir = pwd.getpwuid(os.geteuid()).pw_dir

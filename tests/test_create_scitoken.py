@@ -14,9 +14,11 @@ if os.path.exists("../src"):
 
 import scitokens
 from cryptography.hazmat.primitives.asymmetric.rsa import generate_private_key
+import cryptography.hazmat.primitives.asymmetric.ec as ec
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 from jwt import DecodeError, InvalidAudienceError
+from scitokens.utils.errors import UnsupportedKeyException
 
 
 class TestCreation(unittest.TestCase):
@@ -52,6 +54,58 @@ class TestCreation(unittest.TestCase):
         self.assertEqual(len(serialized_token.decode('utf8').split(".")), 3)
         print(serialized_token)
 
+    def test_ec_create(self):
+        """
+        Test the creation of a simple Elliptical Curve token
+        """
+        ec_private_key = ec.generate_private_key(
+            ec.SECP256R1(), default_backend()
+        )
+
+        token = scitokens.SciToken(key = ec_private_key, algorithm = "ES256")
+        self.assertTrue(isinstance(ec_private_key, ec.EllipticCurvePrivateKey))
+        token.update_claims({"test": "true"})
+        serialized_token = token.serialize(issuer = "local")
+
+        self.assertEqual(len(serialized_token.decode('utf8').split(".")), 3)
+        print(serialized_token)
+
+
+    def test_ec_public_key(self):
+        """
+        Test when the public key is provided to deserialize for Elliptical Curve
+        """
+
+        ec_private_key = ec.generate_private_key(
+            ec.SECP256R1(), default_backend()
+        )
+        ec_public_key = ec_private_key.public_key()
+        ec_public_pem = ec_public_key.public_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PublicFormat.SubjectPublicKeyInfo
+        )
+
+        token = scitokens.SciToken(key = ec_private_key, algorithm = "ES256")
+        serialized_token = token.serialize(issuer = "local")
+
+        new_token = scitokens.SciToken.deserialize(serialized_token, public_key = ec_public_pem, insecure = True)
+        self.assertIsInstance(new_token, scitokens.SciToken)
+
+        # With invalid key
+        with self.assertRaises(ValueError):
+            scitokens.SciToken.deserialize(serialized_token, insecure=True, public_key = "asdf".encode())
+
+        # With a proper key, but not the right one
+        private_key = ec.generate_private_key(
+            ec.SECP256R1(), default_backend()
+        )
+        public_key = private_key.public_key()
+        pem = public_key.public_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PublicFormat.SubjectPublicKeyInfo
+        )
+        with self.assertRaises(DecodeError):
+            scitokens.SciToken.deserialize(serialized_token, insecure=True, public_key = pem)
 
     def test_public_key(self):
         """
@@ -176,6 +230,17 @@ class TestCreation(unittest.TestCase):
         enf = scitokens.Enforcer(issuer="local")
         self.assertTrue(enf.test(self._token, "write", "/home/example/test_file"))
 
+    def test_contains(self):
+        """
+        Testing the contains attribute
+        """
+        self._token['opt'] = "This is optional information, and should always return true"
+        self._token['scp'] = "write:/home/example"
+
+        self.assertTrue('opt' in self._token)
+        self.assertTrue('scp' in self._token)
+        self.assertFalse('notin' in self._token)
+
     def test_no_kid(self):
         """
         Testing a token without a kid
@@ -190,6 +255,12 @@ class TestCreation(unittest.TestCase):
 
         token = scitokens.SciToken.deserialize(serialized_token, public_key = self._public_pem, insecure=True)
 
+    def test_unsupported_key(self):
+        """
+        Test a token with an unsupported key algorithm
+        """
+        with self.assertRaises(UnsupportedKeyException):
+            scitokens.SciToken(key = self._private_key, algorithm="doesnotexist")
 
 
 if __name__ == '__main__':
