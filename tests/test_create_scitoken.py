@@ -194,7 +194,7 @@ class TestCreation(unittest.TestCase):
         self.assertTrue(enf.test(token, "write", "/home/example/test_file"), msg=enf.last_failure)
         self.assertFalse(enf.test(token, "read", "/home/example/test_file"))
         self.assertFalse(enf.test(token, "write", "/home/other/test_file"))
-        
+
     def test_multiple_scopes(self):
         """
         End-to-end test of SciToken creation, verification, and validation with multiple scopes.
