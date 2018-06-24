@@ -103,6 +103,9 @@ def main():
     digest.update(bytes_from_long(public_numbers.n))
     kid = binascii.hexlify(digest.finalize())
 
+    # Shorten the kid to 4 characters
+    kid = kid[:4]
+
     if args.jwks_public:
         jwk_public_key = {'keys': [
             {
