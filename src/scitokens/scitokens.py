@@ -11,6 +11,7 @@ import time
 import jwt
 from . import urltools
 import logging
+from six import string_types
 
 LOGGER = logging.getLogger("scitokens")
 import uuid
@@ -162,13 +163,10 @@ class SciToken(object):
         if claim in self._verified_claims:
             return self._verified_claims[claim]
         raise KeyError(claim)
-        
+    
     def __contains__(self, claim):
         """
-        Access the value corresponding to a particular claim; will
-        return claims from both the verified and unverified claims.
-
-        If a claim is not present, then a KeyError is thrown.
+        Check if the claim exists in the SciToken
         """
         if claim in self._claims:
             return True
@@ -406,6 +404,7 @@ class Enforcer(object):
         self._validator.add_validator("site", self._validate_site)
         self._validator.add_validator("aud", self._validate_aud)
         self._validator.add_validator("scp", self._validate_scp)
+        self._validator.add_validator("scope", self._validate_scope)
         self._validator.add_validator("jti", self._validate_jti)
         self._validator.add_validator("sub", self._validate_sub)
         self._validator.add_validator("ver", self._validate_ver)
@@ -437,7 +436,11 @@ class Enforcer(object):
         self._reset_state()
         self._test_access = True
 
-        critical_claims = set(["scp"])
+        critical_claims = set(["scope"])
+        # Check for the older "scp" attribute
+        if 'scope' not in token and 'scp' in token:
+            critical_claims = set(["scp"])
+
         if not path and (authz in self._authz_requiring_path):
             raise InvalidPathError("Enforcer provided with an empty path.")
         if path and not path.startswith("/"):
@@ -459,7 +462,10 @@ class Enforcer(object):
         """
         self._reset_state()
 
-        critical_claims = set(["scp"])
+        critical_claims = set(["scope"])
+        # Check for the older "scp" attribute
+        if 'scope' not in token and 'scp' in token:
+            critical_claims = set(["scp"])
 
         try:
             self._validator.validate(token, critical_claims=critical_claims)
@@ -569,4 +575,24 @@ class Enforcer(object):
                 self._token_scopes.add((authz, norm_path))
             return True
 
+    def _validate_scope(self, value):
+        if not isinstance(value, string_types):
+            raise InvalidAuthorizationResource("Scope is invalid.  Must be a space separated string")
+        if self._test_access:
+            if not self._test_path:
+                norm_requested_path = '/'
+            else:
+                norm_requested_path = urltools.normalize_path(self._test_path)
+            # Split on spaces
+            for scope in value.split(" "):
+                authz, norm_path = self._check_scope(scope)
+                if (self._test_authz == authz) and norm_requested_path.startswith(norm_path):
+                    return True
+            return False
+        else:
+            # Split on spaces
+            for scope in value.split(" "):
+                authz, norm_path = self._check_scope(scope)
+                self._token_scopes.add((authz, norm_path))
+            return True
 
