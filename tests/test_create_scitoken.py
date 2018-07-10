@@ -187,7 +187,7 @@ class TestCreation(unittest.TestCase):
         """
         End-to-end test of SciToken creation, verification, and validation.
         """
-        self._token['scp'] = "write:/home/example"
+        self._token['scope'] = "write:/home/example"
         serialized_token = self._token.serialize(issuer="local")
         token = scitokens.SciToken.deserialize(serialized_token, public_key = self._public_pem, insecure=True)
         enf = scitokens.Enforcer(issuer="local")
@@ -195,12 +195,25 @@ class TestCreation(unittest.TestCase):
         self.assertFalse(enf.test(token, "read", "/home/example/test_file"))
         self.assertFalse(enf.test(token, "write", "/home/other/test_file"))
 
+    def test_multiple_scopes(self):
+        """
+        End-to-end test of SciToken creation, verification, and validation with multiple scopes.
+        """
+        self._token['scope'] = "write:/home/example read:/home/read"
+        serialized_token = self._token.serialize(issuer="local")
+        token = scitokens.SciToken.deserialize(serialized_token, public_key = self._public_pem, insecure=True)
+        enf = scitokens.Enforcer(issuer="local")
+        self.assertTrue(enf.test(token, "write", "/home/example/test_file"), msg=enf.last_failure)
+        self.assertFalse(enf.test(token, "read", "/home/example/test_file"))
+        self.assertFalse(enf.test(token, "write", "/home/other/test_file"))
+        self.assertTrue(enf.test(token, "read", "/home/read/test_file"))
+
     def test_ver(self):
         """
         Testing the version attribute
         """
         self._token['ver'] = 1
-        self._token['scp'] = "write:/home/example"
+        self._token['scope'] = "write:/home/example"
         enf = scitokens.Enforcer(issuer="local")
         self.assertTrue(enf.test(self._token, "write", "/home/example/test_file"))
 
@@ -213,7 +226,7 @@ class TestCreation(unittest.TestCase):
         Testing the version attribute
         """
         self._token['opt'] = "This is optional information, and should always return true"
-        self._token['scp'] = "write:/home/example"
+        self._token['scope'] = "write:/home/example"
         enf = scitokens.Enforcer(issuer="local")
         self.assertTrue(enf.test(self._token, "write", "/home/example/test_file"))
 
