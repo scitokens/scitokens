@@ -20,7 +20,8 @@ import cryptography.hazmat.backends as backends
 from .utils import keycache as KeyCache
 from .utils import config
 from .utils.errors import MissingIssuerException, InvalidTokenFormat, MissingKeyException, UnsupportedKeyException
-from cryptography.hazmat.primitives.serialization import load_pem_public_key
+from cryptography.hazmat.primitives.serialization import load_pem_public_key, load_pem_private_key
+from cryptography.hazmat.primitives.asymmetric import rsa, ec
 
 class SciToken(object):
     """
@@ -41,10 +42,28 @@ class SciToken(object):
             raise NotImplementedError()
 
         self._key = key
+        derived_alg = None
+        if key:
+            derived_alg = self._derive_algorithm(key)
 
         # Make sure we support the key algorithm
+        if key and not algorithm and not derived_alg:
+            # We don't know the key algorithm
+            raise UnsupportedKeyException("Key was given for SciToken, but algorithm was not "
+                                          "passed to SciToken creation and it cannot be derived "
+                                          "from the provided key")
+        elif derived_alg and not algorithm:
+            self._key_alg = derived_alg
+        elif derived_alg and algorithm and derived_alg != algorithm:
+            error_str = ("Key provided reports algorithm type: {0}, ".format(derived_alg) +
+                         "while scitoken creation argument was {0}".format(algorithm))
+            raise UnsupportedKeyException(error_str)
+        elif key and algorithm:
+            self._key_alg = algorithm
+        else:
+            # If key is not specified, and neither is algorithm
+            self._key_alg = algorithm if algorithm is not None else config.get('default_alg')
 
-        self._key_alg = algorithm if algorithm is not None else config.get('default_alg')
         if self._key_alg not in ["RS256", "ES256"]:
             raise UnsupportedKeyException()
         self._key_id = key_id
@@ -53,6 +72,24 @@ class SciToken(object):
         self._verified_claims = {}
         self.insecure = False
         self._serialized_token = None
+
+
+    def _derive_algorithm(self, key):
+        """
+        Derive the algorithm type from the PEM contents of the key
+
+        returns: Key algorithm if known, otherwise None
+        """
+
+        if isinstance(key, rsa.RSAPrivateKey):
+            return "RS256"
+        elif isinstance(key, ec.EllipticCurvePrivateKey):
+            if key.curve.name == "secp256r1":
+                return "ES256"
+
+        # If it gets here, we don't know what type of key
+        return None
+
 
     def claims(self):
         """

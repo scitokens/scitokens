@@ -262,6 +262,37 @@ class TestCreation(unittest.TestCase):
         with self.assertRaises(UnsupportedKeyException):
             scitokens.SciToken(key = self._private_key, algorithm="doesnotexist")
 
+    def test_autodetect_keytype(self):
+        """
+        Test the autodetection of the key type
+        """
+        private_key = generate_private_key(
+            public_exponent=65537,
+            key_size=2048,
+            backend=default_backend()
+        )
+
+        ec_private_key = ec.generate_private_key(
+            ec.SECP256R1(), default_backend()
+        )
+
+        # Test when we give it the wrong algorithm type
+        with self.assertRaises(scitokens.scitokens.UnsupportedKeyException):
+            token = scitokens.SciToken(key = private_key, algorithm="ES256")
+
+        # Test when we give it the wrong algorithm type
+        with self.assertRaises(scitokens.scitokens.UnsupportedKeyException):
+            token = scitokens.SciToken(key = ec_private_key, algorithm="RS256")
+
+        # Test when we give an unsupported algorithm
+        unsupported_private_key = ec.generate_private_key(
+            ec.SECP192R1(), default_backend()
+        )
+        with self.assertRaises(scitokens.scitokens.UnsupportedKeyException):
+            token = scitokens.SciToken(key = unsupported_private_key)
+
+        token = scitokens.SciToken(key = ec_private_key, algorithm="ES256")
+        token_str = token.serialize(issuer="local")
 
 if __name__ == '__main__':
     unittest.main()
