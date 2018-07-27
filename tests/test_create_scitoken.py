@@ -292,7 +292,7 @@ class TestCreation(unittest.TestCase):
             token = scitokens.SciToken(key = unsupported_private_key)
 
         token = scitokens.SciToken(key = ec_private_key, algorithm="ES256")
-        token_str = token.serialize(issuer="local")
+        token.serialize(issuer="local")
 
 if __name__ == '__main__':
     unittest.main()

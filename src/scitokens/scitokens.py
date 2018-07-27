@@ -20,7 +20,7 @@ import cryptography.hazmat.backends as backends
 from .utils import keycache as KeyCache
 from .utils import config
 from .utils.errors import MissingIssuerException, InvalidTokenFormat, MissingKeyException, UnsupportedKeyException
-from cryptography.hazmat.primitives.serialization import load_pem_public_key, load_pem_private_key
+from cryptography.hazmat.primitives.serialization import load_pem_public_key
 from cryptography.hazmat.primitives.asymmetric import rsa, ec
 
 class SciToken(object):
@@ -73,8 +73,8 @@ class SciToken(object):
         self.insecure = False
         self._serialized_token = None
 
-
-    def _derive_algorithm(self, key):
+    @staticmethod
+    def _derive_algorithm(key):
         """
         Derive the algorithm type from the PEM contents of the key
 
