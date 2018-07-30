@@ -59,6 +59,7 @@
 <span class="kn">from</span> <span class="nn">.utils</span> <span class="k">import</span> <span class="n">config</span>
 <span class="kn">from</span> <span class="nn">.utils.errors</span> <span class="k">import</span> <span class="n">MissingIssuerException</span><span class="p">,</span> <span class="n">InvalidTokenFormat</span><span class="p">,</span> <span class="n">MissingKeyException</span><span class="p">,</span> <span class="n">UnsupportedKeyException</span>
 <span class="kn">from</span> <span class="nn">cryptography.hazmat.primitives.serialization</span> <span class="k">import</span> <span class="n">load_pem_public_key</span>
+<span class="kn">from</span> <span class="nn">cryptography.hazmat.primitives.asymmetric</span> <span class="k">import</span> <span class="n">rsa</span><span class="p">,</span> <span class="n">ec</span>
 
 <div class="viewcode-block" id="SciToken"><a class="viewcode-back" href="../../scitokens.html#scitokens.scitokens.SciToken">[docs]</a><span class="k">class</span> <span class="nc">SciToken</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -79,10 +80,28 @@
             <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_key</span> <span class="o">=</span> <span class="n">key</span>
+        <span class="n">derived_alg</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">key</span><span class="p">:</span>
+            <span class="n">derived_alg</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_derive_algorithm</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
 
         <span class="c1"># Make sure we support the key algorithm</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">algorithm</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">derived_alg</span><span class="p">:</span>
+            <span class="c1"># We don&#39;t know the key algorithm</span>
+            <span class="k">raise</span> <span class="n">UnsupportedKeyException</span><span class="p">(</span><span class="s2">&quot;Key was given for SciToken, but algorithm was not &quot;</span>
+                                          <span class="s2">&quot;passed to SciToken creation and it cannot be derived &quot;</span>
+                                          <span class="s2">&quot;from the provided key&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">derived_alg</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">algorithm</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_key_alg</span> <span class="o">=</span> <span class="n">derived_alg</span>
+        <span class="k">elif</span> <span class="n">derived_alg</span> <span class="ow">and</span> <span class="n">algorithm</span> <span class="ow">and</span> <span class="n">derived_alg</span> <span class="o">!=</span> <span class="n">algorithm</span><span class="p">:</span>
+            <span class="n">error_str</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;Key provided reports algorithm type: </span><span class="si">{0}</span><span class="s2">, &quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">derived_alg</span><span class="p">)</span> <span class="o">+</span>
+                         <span class="s2">&quot;while scitoken creation argument was </span><span class="si">{0}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">algorithm</span><span class="p">))</span>
+            <span class="k">raise</span> <span class="n">UnsupportedKeyException</span><span class="p">(</span><span class="n">error_str</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">key</span> <span class="ow">and</span> <span class="n">algorithm</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_key_alg</span> <span class="o">=</span> <span class="n">algorithm</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># If key is not specified, and neither is algorithm</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_key_alg</span> <span class="o">=</span> <span class="n">algorithm</span> <span class="k">if</span> <span class="n">algorithm</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;default_alg&#39;</span><span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">_key_alg</span> <span class="o">=</span> <span class="n">algorithm</span> <span class="k">if</span> <span class="n">algorithm</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;default_alg&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_key_alg</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;RS256&quot;</span><span class="p">,</span> <span class="s2">&quot;ES256&quot;</span><span class="p">]:</span>
             <span class="k">raise</span> <span class="n">UnsupportedKeyException</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_key_id</span> <span class="o">=</span> <span class="n">key_id</span>
@@ -91,6 +110,24 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_verified_claims</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">insecure</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_serialized_token</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_derive_algorithm</span><span class="p">(</span><span class="n">key</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Derive the algorithm type from the PEM contents of the key</span>
+
+<span class="sd">        returns: Key algorithm if known, otherwise None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">rsa</span><span class="o">.</span><span class="n">RSAPrivateKey</span><span class="p">):</span>
+            <span class="k">return</span> <span class="s2">&quot;RS256&quot;</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">ec</span><span class="o">.</span><span class="n">EllipticCurvePrivateKey</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">key</span><span class="o">.</span><span class="n">curve</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;secp256r1&quot;</span><span class="p">:</span>
+                <span class="k">return</span> <span class="s2">&quot;ES256&quot;</span>
+
+        <span class="c1"># If it gets here, we don&#39;t know what type of key</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
 
 <div class="viewcode-block" id="SciToken.claims"><a class="viewcode-back" href="../../scitokens.html#scitokens.scitokens.SciToken.claims">[docs]</a>    <span class="k">def</span> <span class="nf">claims</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
