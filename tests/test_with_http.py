@@ -118,7 +118,7 @@ class TestDeserialization(unittest.TestCase):
         token.update_claims({"test": "true"})
         serialized_token = token.serialize(issuer=issuer)
 
-        with self.assertRaises(request.HTTPError):
+        with self.assertRaises(Exception):
             scitokens.SciToken.deserialize(serialized_token, insecure=True)
 
 

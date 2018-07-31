@@ -18,7 +18,7 @@ CONFIG_DEFAULTS = {
     'default_alg': "RS256"
 }
 
-configuration = configparser.SafeConfigParser(CONFIG_DEFAULTS) # pylint: disable=C0103
+configuration = configparser.SafeConfigParser(CONFIG_DEFAULTS, allow_no_value=True) # pylint: disable=C0103
 
 def set_config(config = None):
     """
@@ -29,13 +29,13 @@ def set_config(config = None):
     global configuration # pylint: disable=C0103
 
     if isinstance(config, six.string_types):
-        configuration = configparser.SafeConfigParser(CONFIG_DEFAULTS)
+        configuration = configparser.SafeConfigParser(CONFIG_DEFAULTS, allow_no_value=True)
         configuration.read([config])
     elif isinstance(config, configparser.RawConfigParser):
         configuration = config
     elif config is None:
         print("Using built-in defaults")
-        configuration = configparser.SafeConfigParser(CONFIG_DEFAULTS)
+        configuration = configparser.SafeConfigParser(CONFIG_DEFAULTS, allow_no_value=True)
         configuration.add_section("scitokens")
     else:
         pass

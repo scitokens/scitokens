@@ -255,7 +255,9 @@ class KeyCache(object):
 
             try:
                 response = request.urlopen(request.Request(meta_uri, headers=headers))
-            except (request.HTTPError, request.URLError) as error:
+            # I know, "Exception" is too general.  But python2 and python3 throw very, very different
+            # exceptions for url open issues.
+            except Exception as error:      # pylint: disable=W0703
                 logging.info("Unable to open URL: %s: %s", meta_uri, str(error))
                 last_exception = error
                 # Continue to the next URI, if there is one

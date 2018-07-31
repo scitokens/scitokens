@@ -125,7 +125,7 @@ class TestKeyCache(unittest.TestCase):
         self.assertEqual(public_pem, public_pem2)
 
         # Make sure it errors with urlerror when it should not exist
-        with self.assertRaises(URLError):
+        with self.assertRaises(Exception):
             self.keycache.getkeyinfo("https://doesnotexists.com/", "asdf")
 
 
