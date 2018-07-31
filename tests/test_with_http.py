@@ -6,6 +6,11 @@ import os
 import sys
 import unittest
 
+try:
+    import urllib.request as request
+except ImportError:
+    import urllib2 as request
+
 # Allow unittests to be run from within the project base.
 if os.path.exists("src"):
     sys.path.append("src")
@@ -98,6 +103,23 @@ class TestDeserialization(unittest.TestCase):
         serialized_token = token.serialize(issuer=issuer)
         with self.assertRaises(scitokens.utils.errors.MissingKeyException):
             scitoken = scitokens.SciToken.deserialize(serialized_token, insecure=True)
+
+
+    def test_failures(self):
+        """
+        Test HTTP failure routes
+        """
+        server_address = start_server(self.public_numbers.n, self.public_numbers.e, self.test_id)
+        print(server_address)
+
+        # Give it a bad issuer
+        issuer = "http://localhost:{}/asdf".format(server_address[1])
+        token = scitokens.SciToken(key=self.private_key, key_id=self.test_id)
+        token.update_claims({"test": "true"})
+        serialized_token = token.serialize(issuer=issuer)
+
+        with self.assertRaises(request.HTTPError):
+            scitokens.SciToken.deserialize(serialized_token, insecure=True)
 
 
 

@@ -50,12 +50,12 @@ class OauthRequestHandler(BaseHTTPRequestHandler):
         if not user_agent.startswith("SciTokens"):
             self.send_response(404)
             return
-        self._set_headers()
         to_write = ""
         if self.path == "/.well-known/openid-configuration":
+            self._set_headers()
             to_write = json.dumps({"jwks_uri": "http://localhost:{}/oauth2/certs".format(HTTPD.server_address[1])})
         elif self.path == "/oauth2/certs":
-
+            self._set_headers()
             # Dummy Key
             dummy_key = {
                 'kid': 'dummykey',
@@ -83,6 +83,10 @@ class OauthRequestHandler(BaseHTTPRequestHandler):
                 to_write = json.dumps({'keys': [dummy_key, key_info, ec_key_info]})
             else:
                 to_write = json.dumps({'keys': [dummy_key, key_info]})
+        # If the path isn't recognized, return 404
+        else:
+            self.send_response(404)
+            return
 
         self.wfile.write(to_write.encode())
 
