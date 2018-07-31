@@ -33,7 +33,8 @@ from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat,
 import cryptography.hazmat.backends as backends
 import cryptography.hazmat.primitives.asymmetric.ec as ec
 import cryptography.hazmat.primitives.asymmetric.rsa as rsa
-from scitokens.utils.errors import MissingKeyException, NonHTTPSIssuer, UnableToCreateCache, UnsupportedKeyException, MissingIssuerException
+from scitokens.utils.errors import MissingKeyException, NonHTTPSIssuer, UnableToCreateCache, \
+                                   UnsupportedKeyException, MissingIssuerException
 from scitokens.utils import long_from_bytes
 import scitokens.utils.config as config
 

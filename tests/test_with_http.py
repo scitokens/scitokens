@@ -6,11 +6,6 @@ import os
 import sys
 import unittest
 
-try:
-    import urllib.request as request
-except ImportError:
-    import urllib2 as request
-
 # Allow unittests to be run from within the project base.
 if os.path.exists("src"):
     sys.path.append("src")

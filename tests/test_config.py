@@ -18,7 +18,8 @@ class TestConfig(unittest.TestCase):
 
     def setUp(self):
         self.dir_path = os.path.dirname(os.path.realpath(__file__))
-        scitokens.utils.config.configuration = configparser.SafeConfigParser(scitokens.utils.config.CONFIG_DEFAULTS, allow_no_value=True)
+        scitokens.utils.config.configuration = configparser.SafeConfigParser(scitokens.utils.config.CONFIG_DEFAULTS,
+                                                                             allow_no_value=True)
 
     def tearDown(self):
         # Clear the config back to defaults each time
