@@ -531,6 +531,8 @@ class Enforcer(object):
         return value == self._site
 
     def _validate_aud(self, value):
+        if isinstance(self._audience, list):
+            return value in self._audience
         if not self._audience:
             return False
         return value == self._audience
