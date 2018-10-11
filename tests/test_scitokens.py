@@ -157,6 +157,21 @@ class TestEnforcer(unittest.TestCase):
         enf.add_validator("foo", lambda path : True)
         self.assertTrue(enf.test(self._token, "read", "/"), msg=enf.last_failure)
 
+    def test_multiple_aud(self):
+        """
+        Test multiple aud
+        """
+        self._token['scp'] = 'read:/'
+
+        # Test multiple audiences
+        enf = scitokens.Enforcer(self._test_issuer, audience = ["https://example.unl.edu", "https://another.com"])
+        enf.add_validator("foo", self.always_accept)
+        self.assertTrue(enf.test(self._token, "read", "/"), msg=enf.last_failure)
+        self._token['aud'] = "https://another.com"
+        self.assertTrue(enf.test(self._token, "read", "/"), msg=enf.last_failure)
+        self._token['aud'] = "https://doesnotwork.com"
+        self.assertFalse(enf.test(self._token, "read", "/"), msg=enf.last_failure)
+
     def test_getitem(self):
         """
         Test the getters for the SciTokens object.
