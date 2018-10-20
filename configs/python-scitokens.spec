@@ -2,7 +2,7 @@
 %global pypi_name scitokens
 
 Name:           python-%{pypi_name}
-Version:        1.2.0
+Version:        1.2.1
 Release:        1%{?dist}
 Summary:        SciToken reference implementation library
 
