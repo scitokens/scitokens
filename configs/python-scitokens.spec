@@ -21,7 +21,7 @@ SciToken reference implementation library
 Summary:        %{summary}
 Provides:       python-%{pypi_name}
  
-Requires:       python-jwt
+Requires:       python-jwt >= 1.6.1
 Requires:       python2-cryptography
 Requires:       python-setuptools
 %description -n python2-%{pypi_name}
