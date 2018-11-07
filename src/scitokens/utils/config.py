@@ -15,7 +15,8 @@ CONFIG_DEFAULTS = {
     'log_level': "INFO",
     'cache_lifetime': "3600",
     'cache_location': None,
-    'default_alg': "RS256"
+    'default_alg': "RS256",
+    'use_oauth_url': True
 }
 
 configuration = configparser.SafeConfigParser(CONFIG_DEFAULTS, allow_no_value=True) # pylint: disable=C0103
@@ -95,4 +96,23 @@ def get_int(key, default=None):
     :returns: The value in the configuration, or the default
     """
     return int(get(key, default))
+
+def get_boolean(key, default=None):
+    """
+    Get an integer from the configuration.
+
+    :param str key: The key in the configuration to retreive
+    :returns: The value in the configuration, or the default
+    """
+    del default
+    global configuration # pylint: disable=C0103
+
+    try:
+        return configuration.getboolean("scitokens", key)
+    except (configparser.NoOptionError, configparser.NoSectionError) as noe:
+        # Check the defaults
+        if key in CONFIG_DEFAULTS:
+            return CONFIG_DEFAULTS[key]
+        else:
+            raise noe
 

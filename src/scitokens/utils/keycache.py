@@ -314,9 +314,15 @@ class KeyCache(object):
         # Set the user agent so Cloudflare isn't mad at us
         headers={'User-Agent' : 'SciTokens/{}'.format(PKG_VERSION)}
         
-        jwks_uri = KeyCache._get_oauth_jwks_url(issuer, insecure)
-        if jwks_uri is None:
+        # Should we try oauth first, or oidc, specified in the config file
+        if config.get_boolean("use_oauth_url", True):
+            jwks_uri = KeyCache._get_oauth_jwks_url(issuer, insecure)
+            if jwks_uri is None:
+                jwks_uri = KeyCache._get_oidc_jwks_url(issuer, insecure)
+        else:
             jwks_uri = KeyCache._get_oidc_jwks_url(issuer, insecure)
+            if jwks_uri is None:
+                jwks_uri = KeyCache._get_oauth_jwks_url(issuer, insecure)
 
         # Now, get the keys
         if not insecure:
