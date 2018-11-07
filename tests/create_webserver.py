@@ -43,6 +43,7 @@ class OauthRequestHandler(BaseHTTPRequestHandler):
         global EC_TEST_ID
         global EC_TEST_X
         global EC_TEST_Y
+        global USE_OAUTH
 
 
         # Make sure the User-Agent is SciTokens*
@@ -52,6 +53,15 @@ class OauthRequestHandler(BaseHTTPRequestHandler):
             return
         to_write = ""
         if self.path == "/.well-known/openid-configuration":
+            if USE_OAUTH:
+                self.send_response(404)
+                return
+            self._set_headers()
+            to_write = json.dumps({"jwks_uri": "http://localhost:{}/oauth2/certs".format(HTTPD.server_address[1])})
+        elif self.path == "/.well-known/oauth-authorization-server":
+            if not USE_OAUTH:
+                self.send_response(404)
+                return
             self._set_headers()
             to_write = json.dumps({"jwks_uri": "http://localhost:{}/oauth2/certs".format(HTTPD.server_address[1])})
         elif self.path == "/oauth2/certs":
@@ -91,7 +101,7 @@ class OauthRequestHandler(BaseHTTPRequestHandler):
         self.wfile.write(to_write.encode())
 
 
-def start_server(test_n, test_e, test_id, test_ec = None):
+def start_server(test_n, test_e, test_id, test_ec = None, oauth = True):
     """
     Man this is ugly.  But you have to set global variables because it's
     impossible to send arguments to the HTTPServer, since you pass the HTTPServer
@@ -102,6 +112,7 @@ def start_server(test_n, test_e, test_id, test_ec = None):
     :param str test_id: Key ID for the test key
     :param dict test_ec: If you would like to test EC, then set the data structure to:
         kid, x, y
+    :param bool use_oauth: Use OAuth URL
     """
     global TEST_N
     global TEST_E
@@ -111,10 +122,12 @@ def start_server(test_n, test_e, test_id, test_ec = None):
     global EC_TEST_ID
     global EC_TEST_X
     global EC_TEST_Y
+    global USE_OAUTH
 
     TEST_N = test_n
     TEST_E = test_e
     TEST_ID = test_id
+    USE_OAUTH = oauth
 
     if test_ec:
         EC_TEST_ID = test_ec['kid']

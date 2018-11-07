@@ -223,6 +223,87 @@ class KeyCache(object):
         else:
             return True
 
+    def _retrieve_json_jwks(meta_uri, insecure):
+        """
+        Retrive the JWKS URL from the json
+        
+        :return str: jwks URL or None if failed to get the jwks URL
+        """
+        # Set the user agent so Cloudflare isn't mad at us
+        headers={'User-Agent' : 'SciTokens/{}'.format(PKG_VERSION)}
+
+        # Make sure the protocol is https
+        if not insecure:
+            parsed_url = urlparse.urlparse(meta_uri)
+            if parsed_url.scheme != "https":
+                raise NonHTTPSIssuer("Issuer is not over HTTPS.  RFC requires it to be over HTTPS")
+
+        try:
+            response = request.urlopen(request.Request(meta_uri, headers=headers))
+        # I know, "Exception" is too general.  But python2 and python3 throw very, very different
+        # exceptions for url open issues.
+        except Exception as error:      # pylint: disable=W0703
+            logging.info("Unable to open URL: %s: %s", meta_uri, str(error))
+            last_exception = error
+            return None
+
+        try:
+            data = json.loads(response.read().decode('utf-8'))
+            # Get the keys URL from the openid-configuration
+            jwks_uri = data['jwks_uri']
+        except ValueError as error:
+            logging.error("Unable to load JSON from URL: %s", meta_uri)
+            last_exception = error
+            return None
+
+        return jwks_uri
+
+    @staticmethod
+    def _get_oauth_jwks_url(issuer, insecure=False):
+        """
+        Get the oauth wellknown URI
+        :return: URI
+        """
+        well_known_uri = "/.well-known/oauth-authorization-server"
+
+        # Set the user agent so Cloudflare isn't mad at us
+        headers={'User-Agent' : 'SciTokens/{}'.format(PKG_VERSION)}
+
+        # Go to the issuer's website, and download the OAuth well known bits
+        # https://tools.ietf.org/html/rfc8414
+        parsed_url = urlparse.urlparse(issuer)
+        
+        # For OAuth path, the issuer path should be appended to the well known uri
+        if parsed_url.path is "/":
+            updated_url = well_known_uri
+        else:
+            updated_url = well_known_uri + parsed_url.path
+
+        parsed_url_list = list(parsed_url)
+        parsed_url_list[2] = updated_url
+        meta_uri = urlparse.urlunparse(parsed_url_list)
+        
+        return KeyCache._retrieve_json_jwks(meta_uri, insecure)
+
+    @staticmethod
+    def _get_oidc_jwks_url(issuer, insecure=False):
+        """
+        Get the JWKS URL
+        :return: (public_key, cache_lifetime)
+        """
+        well_known_uri = ".well-known/openid-configuration"
+
+        if not issuer.endswith("/"):
+            issuer = issuer + "/"
+        parsed_url = urlparse.urlparse(issuer)
+        updated_url = urlparse.urljoin(parsed_url.path, well_known_uri)
+        parsed_url_list = list(parsed_url)
+        parsed_url_list[2] = updated_url
+        meta_uri = urlparse.urlunparse(parsed_url_list)
+
+        return KeyCache._retrieve_json_jwks(meta_uri, insecure)
+        
+
     @staticmethod
     def _get_issuer_publickey(issuer, key_id=None, insecure=False):
         """
@@ -232,51 +313,10 @@ class KeyCache(object):
 
         # Set the user agent so Cloudflare isn't mad at us
         headers={'User-Agent' : 'SciTokens/{}'.format(PKG_VERSION)}
-
-        # Go to the issuer's website, and download the OAuth well known bits
-        # https://tools.ietf.org/html/rfc8414
-        # We first try the RFC's metadata location, then try the openid defined
-        well_known_uri = [".well-known/oauth-authorization-server", ".well-known/openid-configuration"]
-        last_exception = MissingIssuerException("Unable to retrieve public key from issuer")
-        jwks_uri = None
-        for uri in well_known_uri:
-            if not issuer.endswith("/"):
-                issuer = issuer + "/"
-            parsed_url = urlparse.urlparse(issuer)
-            updated_url = urlparse.urljoin(parsed_url.path, uri)
-            parsed_url_list = list(parsed_url)
-            parsed_url_list[2] = updated_url
-            meta_uri = urlparse.urlunparse(parsed_url_list)
-
-            # Make sure the protocol is https
-            if not insecure:
-                parsed_url = urlparse.urlparse(meta_uri)
-                if parsed_url.scheme != "https":
-                    raise NonHTTPSIssuer("Issuer is not over HTTPS.  RFC requires it to be over HTTPS")
-
-            try:
-                response = request.urlopen(request.Request(meta_uri, headers=headers))
-            # I know, "Exception" is too general.  But python2 and python3 throw very, very different
-            # exceptions for url open issues.
-            except Exception as error:      # pylint: disable=W0703
-                logging.info("Unable to open URL: %s: %s", meta_uri, str(error))
-                last_exception = error
-                # Continue to the next URI, if there is one
-                continue
-
-            try:
-                data = json.loads(response.read().decode('utf-8'))
-                # Get the keys URL from the openid-configuration
-                jwks_uri = data['jwks_uri']
-            except ValueError as error:
-                logging.error("Unable to load JSON from URL: %s", meta_uri)
-                last_exception = error
-                continue
-
-        # Tried both URIs above, didn't get a valid response from either,
-        # so throw an exception
+        
+        jwks_uri = KeyCache._get_oauth_jwks_url(issuer, insecure)
         if jwks_uri is None:
-            raise last_exception
+            jwks_uri = KeyCache._get_oidc_jwks_url(issuer, insecure)
 
         # Now, get the keys
         if not insecure:

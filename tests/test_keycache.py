@@ -96,6 +96,42 @@ class TestKeyCache(unittest.TestCase):
 
         create_webserver.shutdown_server()
 
+
+    def test_populated_oidc(self):
+        """
+        Test a populated cache with OIDC url
+        """
+        # Stand up an HTTP server
+        private_key = generate_private_key(
+            public_exponent=65537,
+            key_size=2048,
+            backend=default_backend()
+        )
+        public_numbers = private_key.public_key().public_numbers()
+        test_id = "thisisatestid"
+        server_address = create_webserver.start_server(public_numbers.n, public_numbers.e, test_id, oauth=False)
+        print(server_address)
+        # Now try to get the public key from the server
+        pubkey_from_keycache = self.keycache.getkeyinfo("http://localhost:{}/".format(server_address[1]),
+                                 test_id,
+                                 insecure=True)
+
+        # Now compare the 2 public keys
+        public_pem = private_key.public_key().public_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PublicFormat.SubjectPublicKeyInfo
+        )
+
+        pubkey_pem_from_keycache = pubkey_from_keycache.public_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PublicFormat.SubjectPublicKeyInfo
+        )
+
+        self.assertEqual(public_pem, pubkey_pem_from_keycache)
+
+        create_webserver.shutdown_server()
+
+
     def test_populated(self):
         """
         Test when there should be some entries populated in the sqllite DB
