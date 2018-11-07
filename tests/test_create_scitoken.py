@@ -248,11 +248,6 @@ class TestCreation(unittest.TestCase):
         serialized_token = self._no_kid_token.serialize(issuer = 'local')
         print(serialized_token)
 
-        # Make sure that without a kid, it throws a value error rather than
-        # a key error (there was a bug)
-        with self.assertRaises(ValueError):
-            token = scitokens.SciToken.deserialize(serialized_token, insecure=True)
-
         token = scitokens.SciToken.deserialize(serialized_token, public_key = self._public_pem, insecure=True)
 
     def test_unsupported_key(self):
