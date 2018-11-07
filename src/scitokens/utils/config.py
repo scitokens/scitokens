@@ -16,7 +16,7 @@ CONFIG_DEFAULTS = {
     'cache_lifetime': "3600",
     'cache_location': None,
     'default_alg': "RS256",
-    'use_oauth_url': True
+    'use_oauth_url': 'True'
 }
 
 configuration = configparser.SafeConfigParser(CONFIG_DEFAULTS, allow_no_value=True) # pylint: disable=C0103

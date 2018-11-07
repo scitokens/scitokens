@@ -223,6 +223,7 @@ class KeyCache(object):
         else:
             return True
 
+    @staticmethod
     def _retrieve_json_jwks(meta_uri, insecure):
         """
         Retrive the JWKS URL from the json
@@ -274,7 +275,7 @@ class KeyCache(object):
         parsed_url = urlparse.urlparse(issuer)
         
         # For OAuth path, the issuer path should be appended to the well known uri
-        if parsed_url.path is "/":
+        if parsed_url.path == "/":
             updated_url = well_known_uri
         else:
             updated_url = well_known_uri + parsed_url.path
@@ -323,6 +324,9 @@ class KeyCache(object):
             jwks_uri = KeyCache._get_oidc_jwks_url(issuer, insecure)
             if jwks_uri is None:
                 jwks_uri = KeyCache._get_oauth_jwks_url(issuer, insecure)
+
+        if jwks_uri is None:
+            raise MissingIssuerException("Unable to retrieve well-known URL from issuer")
 
         # Now, get the keys
         if not insecure:
