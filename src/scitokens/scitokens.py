@@ -533,6 +533,8 @@ class Enforcer(object):
     def _validate_aud(self, value):
         if not self._audience:
             return False
+        if isinstance(self._audience, list):
+            return value in self._audience
         return value == self._audience
 
     def _validate_ver(self, value):

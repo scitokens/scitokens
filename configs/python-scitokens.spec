@@ -2,7 +2,7 @@
 %global pypi_name scitokens
 
 Name:           python-%{pypi_name}
-Version:        1.2.0
+Version:        1.2.1
 Release:        1%{?dist}
 Summary:        SciToken reference implementation library
 
@@ -21,7 +21,7 @@ SciToken reference implementation library
 Summary:        %{summary}
 Provides:       python-%{pypi_name}
  
-Requires:       python-jwt
+Requires:       python-jwt >= 1.6.1
 Requires:       python2-cryptography
 Requires:       python-setuptools
 %description -n python2-%{pypi_name}
@@ -48,6 +48,9 @@ rm -rf %{pypi_name}.egg-info
 %{python2_sitelib}/%{pypi_name}-%{version}-py?.?.egg-info
 
 %changelog
+* Sun Oct 21 2018 Derek Weitzel <dweitzel@cse.unl.edu> - 1.2.1-1
+- Support multiple audiences in verifier
+
 * Tue Jul 10 2018 Derek Weitzel <dweitzel@cse.unl.edu> - 1.2.0-1
 - Merge in the "scope" change accidently mentioned in 1.1.0
 
