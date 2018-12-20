@@ -47,7 +47,7 @@ class TestKeyCreate(unittest.TestCase):
             key,
             backend=default_backend()
         )
-    
+
     @staticmethod
     def _test_ec_public_jwk(key):
         """
