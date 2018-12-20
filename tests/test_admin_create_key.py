@@ -152,7 +152,7 @@ class TestKeyCreate(unittest.TestCase):
         output = self._run_command(command)
         public_key = self._test_public_jwk(output)
         self.assertIsNotNone(public_key)
-    
+
     def test_ec_create(self):
         """
         Test the key creation
@@ -212,25 +212,29 @@ class TestKeyCreate(unittest.TestCase):
         """
         Test reading in the private key
         """
-        command = "python tools/scitokens-admin-create-key --ec --private-key=tests/simple_ec_private_key.pem --pem-private"
+        command = "python tools/scitokens-admin-create-key --ec --private-key=tests/simple_ec_private_key.pem " + \
+                  "--pem-private"
         output = self._run_command(command)
         private_key = self._test_private(output)
         self.assertIsNotNone(private_key)
 
         # Test public key
-        command = "python tools/scitokens-admin-create-key --ec --private-key=tests/simple_ec_private_key.pem --pem-public"
+        command = "python tools/scitokens-admin-create-key --ec --private-key=tests/simple_ec_private_key.pem " + \
+                  "--pem-public"
         output = self._run_command(command)
         public_key = self._test_public(output)
         self.assertIsNotNone(public_key)
 
         # Test public key
-        command = "python tools/scitokens-admin-create-key --ec --private-key=tests/simple_ec_private_key.pem --jwks-private"
+        command = "python tools/scitokens-admin-create-key --ec --private-key=tests/simple_ec_private_key.pem " + \
+                  "--jwks-private"
         output = self._run_command(command)
         private_key = self._test_ec_private_jwk(output)
         self.assertIsNotNone(public_key)
 
         # Test public key
-        command = "python tools/scitokens-admin-create-key --ec --private-key=tests/simple_ec_private_key.pem --jwks-public"
+        command = "python tools/scitokens-admin-create-key --ec --private-key=tests/simple_ec_private_key.pem " + \
+                  "--jwks-public"
         output = self._run_command(command)
         public_key = self._test_ec_public_jwk(output)
         self.assertIsNotNone(public_key)
