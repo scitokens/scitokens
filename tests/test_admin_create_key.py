@@ -10,7 +10,7 @@ import unittest
 import subprocess # nosec
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.primitives.asymmetric import rsa
+from cryptography.hazmat.primitives.asymmetric import rsa, ec
 import json
 import tempfile
 
@@ -31,6 +31,7 @@ class TestKeyCreate(unittest.TestCase):
 
     def setUp(self):
         os.environ['PYTHONPATH'] = ":".join(sys.path)
+        self.to_delete = []
 
     @staticmethod
     def _test_private(key):
@@ -48,6 +49,19 @@ class TestKeyCreate(unittest.TestCase):
         )
 
     @staticmethod
+    def _test_ec_public_jwk(key):
+        """
+        Attempt to read in the key into a key object
+        """
+        keys = json.loads(key.decode())
+        public_key_numbers = ec.EllipticCurvePublicNumbers(
+            long_from_bytes(keys['keys'][0]['x']),
+            long_from_bytes(keys['keys'][0]['y']),
+            ec.SECP256R1()
+        )
+        return public_key_numbers.public_key(default_backend())
+
+    @staticmethod
     def _test_public_jwk(key):
         """
         Attempt to read in the key into a key object
@@ -58,6 +72,24 @@ class TestKeyCreate(unittest.TestCase):
             long_from_bytes(keys['keys'][0]['n'])
         )
         return public_key_numbers.public_key(default_backend())
+
+
+    @staticmethod
+    def _test_ec_private_jwk(key):
+        """
+        Attempt to read in the key into a private key object
+        """
+        keys = json.loads(key.decode())
+        public_key_numbers = ec.EllipticCurvePublicNumbers(
+            long_from_bytes(keys['keys'][0]['x']),
+            long_from_bytes(keys['keys'][0]['y']),
+            ec.SECP256R1()
+        )
+        private_key_numbers = ec.EllipticCurvePrivateNumbers(
+            long_from_bytes(keys['keys'][0]['d']),
+            public_key_numbers
+        )
+        return private_key_numbers.private_key(default_backend())
 
     @staticmethod
     def _test_private_jwk(key):
@@ -121,6 +153,33 @@ class TestKeyCreate(unittest.TestCase):
         public_key = self._test_public_jwk(output)
         self.assertIsNotNone(public_key)
 
+    def test_ec_create(self):
+        """
+        Test the key creation
+        """
+        command = "python tools/scitokens-admin-create-key --ec --create-keys --pem-private"
+        output = self._run_command(command)
+        private_key = self._test_private(output)
+        self.assertIsNotNone(private_key)
+
+        # Test public key
+        command = "python tools/scitokens-admin-create-key --ec --create-keys --pem-public"
+        output = self._run_command(command)
+        public_key = self._test_public(output)
+        self.assertIsNotNone(public_key)
+
+        # Test public key
+        command = "python tools/scitokens-admin-create-key --ec --create-keys --jwks-private"
+        output = self._run_command(command)
+        private_key = self._test_ec_private_jwk(output)
+        self.assertIsNotNone(public_key)
+
+        # Test public key
+        command = "python tools/scitokens-admin-create-key --ec --create-keys --jwks-public"
+        output = self._run_command(command)
+        public_key = self._test_ec_public_jwk(output)
+        self.assertIsNotNone(public_key)
+
 
     def test_parse_private(self):
         """
@@ -147,6 +206,37 @@ class TestKeyCreate(unittest.TestCase):
         command = "python tools/scitokens-admin-create-key --private-key=tests/simple_private_key.pem --jwks-public"
         output = self._run_command(command)
         public_key = self._test_public_jwk(output)
+        self.assertIsNotNone(public_key)
+
+    def test_ec_parse_private(self):
+        """
+        Test reading in the private key
+        """
+        command = "python tools/scitokens-admin-create-key --ec --private-key=tests/simple_ec_private_key.pem " + \
+                  "--pem-private"
+        output = self._run_command(command)
+        private_key = self._test_private(output)
+        self.assertIsNotNone(private_key)
+
+        # Test public key
+        command = "python tools/scitokens-admin-create-key --ec --private-key=tests/simple_ec_private_key.pem " + \
+                  "--pem-public"
+        output = self._run_command(command)
+        public_key = self._test_public(output)
+        self.assertIsNotNone(public_key)
+
+        # Test public key
+        command = "python tools/scitokens-admin-create-key --ec --private-key=tests/simple_ec_private_key.pem " + \
+                  "--jwks-private"
+        output = self._run_command(command)
+        private_key = self._test_ec_private_jwk(output)
+        self.assertIsNotNone(public_key)
+
+        # Test public key
+        command = "python tools/scitokens-admin-create-key --ec --private-key=tests/simple_ec_private_key.pem " + \
+                  "--jwks-public"
+        output = self._run_command(command)
+        public_key = self._test_ec_public_jwk(output)
         self.assertIsNotNone(public_key)
 
     def test_parse_public(self):
@@ -181,6 +271,39 @@ class TestKeyCreate(unittest.TestCase):
         command = "python tools/scitokens-admin-create-key --public-key={} --jwks-public".format(tmpfile.name)
         output = self._run_command(command)
         public_key = self._test_public_jwk(output)
+        self.assertIsNotNone(public_key)
+
+    def test_ec_parse_public(self):
+        """
+        Test reading in the public key
+        """
+        # Create a temporary public key from the private key
+        private_key = ec.generate_private_key(
+            ec.SECP256R1(),
+            backend=default_backend()
+        )
+        public_key = private_key.public_key()
+
+        pem = public_key.public_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PublicFormat.SubjectPublicKeyInfo
+        )
+        tmpfile = tempfile.NamedTemporaryFile(delete=False)
+
+        tmpfile.write(pem)
+        tmpfile.close()
+        self.to_delete.append(tmpfile.name)
+
+        # Test public key
+        command = "python tools/scitokens-admin-create-key --ec --public-key={} --pem-public".format(tmpfile.name)
+        output = self._run_command(command)
+        public_key = self._test_public(output)
+        self.assertIsNotNone(public_key)
+
+        # Test public key
+        command = "python tools/scitokens-admin-create-key --ec --public-key={} --jwks-public".format(tmpfile.name)
+        output = self._run_command(command)
+        public_key = self._test_ec_public_jwk(output)
         self.assertIsNotNone(public_key)
 
     def tearDown(self):
