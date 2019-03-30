@@ -100,6 +100,23 @@ class TestDeserialization(unittest.TestCase):
             scitoken = scitokens.SciToken.deserialize(serialized_token, insecure=True)
 
 
+    def test_failures(self):
+        """
+        Test HTTP failure routes
+        """
+        server_address = start_server(self.public_numbers.n, self.public_numbers.e, self.test_id)
+        print(server_address)
+
+        # Give it a bad issuer
+        issuer = "http://localhost:{}/asdf".format(server_address[1])
+        token = scitokens.SciToken(key=self.private_key, key_id=self.test_id)
+        token.update_claims({"test": "true"})
+        serialized_token = token.serialize(issuer=issuer)
+
+        with self.assertRaises(Exception):
+            scitokens.SciToken.deserialize(serialized_token, insecure=True)
+
+
 
 if __name__ == '__main__':
     unittest.main()

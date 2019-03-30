@@ -33,7 +33,8 @@ from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat,
 import cryptography.hazmat.backends as backends
 import cryptography.hazmat.primitives.asymmetric.ec as ec
 import cryptography.hazmat.primitives.asymmetric.rsa as rsa
-from scitokens.utils.errors import MissingKeyException, NonHTTPSIssuer, UnableToCreateCache, UnsupportedKeyException
+from scitokens.utils.errors import MissingKeyException, NonHTTPSIssuer, UnableToCreateCache, \
+                                   UnsupportedKeyException, MissingIssuerException
 from scitokens.utils import long_from_bytes
 import scitokens.utils.config as config
 
@@ -223,18 +224,76 @@ class KeyCache(object):
             return True
 
     @staticmethod
-    def _get_issuer_publickey(issuer, key_id=None, insecure=False):
+    def _retrieve_json_jwks(meta_uri, insecure):
         """
-        :return: Tuple containing (public_key, cache_lifetime).  Cache_lifetime how
-            the public key is valid
+        Retrive the JWKS URL from the json
+        
+        :return str: jwks URL or None if failed to get the jwks URL
         """
+        # Set the user agent so Cloudflare isn't mad at us
+        headers={'User-Agent' : 'SciTokens/{}'.format(PKG_VERSION)}
+
+        # Make sure the protocol is https
+        if not insecure:
+            parsed_url = urlparse.urlparse(meta_uri)
+            if parsed_url.scheme != "https":
+                raise NonHTTPSIssuer("Issuer is not over HTTPS.  RFC requires it to be over HTTPS")
+
+        try:
+            response = request.urlopen(request.Request(meta_uri, headers=headers))
+        # I know, "Exception" is too general.  But python2 and python3 throw very, very different
+        # exceptions for url open issues.
+        except Exception as error:      # pylint: disable=W0703
+            logging.info("Unable to open URL: %s: %s", meta_uri, str(error))
+            last_exception = error
+            return None
+
+        try:
+            data = json.loads(response.read().decode('utf-8'))
+            # Get the keys URL from the openid-configuration
+            jwks_uri = data['jwks_uri']
+        except ValueError as error:
+            logging.error("Unable to load JSON from URL: %s", meta_uri)
+            last_exception = error
+            return None
+
+        return jwks_uri
+
+    @staticmethod
+    def _get_oauth_jwks_url(issuer, insecure=False):
+        """
+        Get the oauth wellknown URI
+        :return: URI
+        """
+        well_known_uri = "/.well-known/oauth-authorization-server"
 
         # Set the user agent so Cloudflare isn't mad at us
         headers={'User-Agent' : 'SciTokens/{}'.format(PKG_VERSION)}
 
         # Go to the issuer's website, and download the OAuth well known bits
-        # https://tools.ietf.org/html/draft-ietf-oauth-discovery-07
+        # https://tools.ietf.org/html/rfc8414
+        parsed_url = urlparse.urlparse(issuer)
+        
+        # For OAuth path, the issuer path should be appended to the well known uri
+        if parsed_url.path == "/":
+            updated_url = well_known_uri
+        else:
+            updated_url = well_known_uri + parsed_url.path
+
+        parsed_url_list = list(parsed_url)
+        parsed_url_list[2] = updated_url
+        meta_uri = urlparse.urlunparse(parsed_url_list)
+        
+        return KeyCache._retrieve_json_jwks(meta_uri, insecure)
+
+    @staticmethod
+    def _get_oidc_jwks_url(issuer, insecure=False):
+        """
+        Get the JWKS URL
+        :return: (public_key, cache_lifetime)
+        """
         well_known_uri = ".well-known/openid-configuration"
+
         if not issuer.endswith("/"):
             issuer = issuer + "/"
         parsed_url = urlparse.urlparse(issuer)
@@ -243,16 +302,31 @@ class KeyCache(object):
         parsed_url_list[2] = updated_url
         meta_uri = urlparse.urlunparse(parsed_url_list)
 
-        # Make sure the protocol is https
-        if not insecure:
-            parsed_url = urlparse.urlparse(meta_uri)
-            if parsed_url.scheme != "https":
-                raise NonHTTPSIssuer("Issuer is not over HTTPS.  RFC requires it to be over HTTPS")
-        response = request.urlopen(request.Request(meta_uri, headers=headers))
-        data = json.loads(response.read().decode('utf-8'))
+        return KeyCache._retrieve_json_jwks(meta_uri, insecure)
+        
 
-        # Get the keys URL from the openid-configuration
-        jwks_uri = data['jwks_uri']
+    @staticmethod
+    def _get_issuer_publickey(issuer, key_id=None, insecure=False):
+        """
+        :return: Tuple containing (public_key, cache_lifetime).  Cache_lifetime how
+            the public key is valid
+        """
+
+        # Set the user agent so Cloudflare isn't mad at us
+        headers={'User-Agent' : 'SciTokens/{}'.format(PKG_VERSION)}
+        
+        # Should we try oauth first, or oidc, specified in the config file
+        if config.get_boolean("use_oauth_url", True):
+            jwks_uri = KeyCache._get_oauth_jwks_url(issuer, insecure)
+            if jwks_uri is None:
+                jwks_uri = KeyCache._get_oidc_jwks_url(issuer, insecure)
+        else:
+            jwks_uri = KeyCache._get_oidc_jwks_url(issuer, insecure)
+            if jwks_uri is None:
+                jwks_uri = KeyCache._get_oauth_jwks_url(issuer, insecure)
+
+        if jwks_uri is None:
+            raise MissingIssuerException("Unable to retrieve well-known URL from issuer")
 
         # Now, get the keys
         if not insecure:

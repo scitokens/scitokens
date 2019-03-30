@@ -199,9 +199,9 @@ Configuration
 An optional configuration file can be provided that will alter the behavior of 
 the SciTokens library.  Configuration options include:
 
-================== ========================================================================================
+================== ==========================================================================================
 Key                Description
-================== ========================================================================================
+================== ==========================================================================================
 log_level          The log level for which to use.  Options include: CRITICAL, ERROR, WARNING, INFO, DEBUG.
                    Default: WARNING
 log_file           The full path to the file to log.
@@ -210,7 +210,9 @@ cache_lifetime     The minimum lifetime (in seconds) of keys in the keycache.
                    Default: 3600 seconds
 cache_location     The directory to store the KeyCache, used to store public keys across executions.
                    Default: $HOME/.cache/scitokens
-================== ========================================================================================
+use_oauth_url      Attempt to use the oauth URL before falling back to OIDC.  If False, try OIDC before Oauth
+                   Default: True
+================== ==========================================================================================
 
 The configuration file is in the ini format, and will look similar to:
 
