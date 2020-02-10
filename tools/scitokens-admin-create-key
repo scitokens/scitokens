@@ -120,6 +120,7 @@ def main():
         if args.ec:
             jwk_public_key = {'keys': [
                 {
+                    "alg": "ES256",
                     "crv": "P-256",
                     "x": string_from_long(public_numbers.x),
                     "y": string_from_long(public_numbers.y),
