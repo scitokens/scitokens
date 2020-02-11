@@ -267,7 +267,7 @@ class KeyCache(object):
         if "Cache-Control" in headers:
             # Parse out the max-age, if it's there.
             if "max-age" in headers['Cache-Control']:
-                match = re.search(".*max-age=(\d+)", headers['Cache-Control'])
+                match = re.search(r".*max-age=(\d+)", headers['Cache-Control'])
                 if match:
                     cache_timer = int(match.group(1))
         # Minimum cache time of 10 minutes, no matter what the remote says
