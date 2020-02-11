@@ -44,7 +44,7 @@ def set_config(config = None):
 
     if configuration.has_option("scitokens", "log_file"):
         log_file = configuration.get("scitokens", "log_file")
-        if log_file is not "":
+        if log_file != "":
             # Create loggers with 100MB files, rotated 5 times
             logger.addHandler(logging.handlers.RotatingFileHandler(log_file, maxBytes=100 * (1024*1000), backupCount=5))
 
