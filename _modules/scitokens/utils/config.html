@@ -52,14 +52,14 @@
 <span class="kn">import</span> <span class="nn">logging.handlers</span>
 
 <span class="n">CONFIG_DEFAULTS</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s1">&#39;log_file&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="s1">&#39;log_file&#39;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
     <span class="s1">&#39;log_level&#39;</span><span class="p">:</span> <span class="s2">&quot;INFO&quot;</span><span class="p">,</span>
     <span class="s1">&#39;cache_lifetime&#39;</span><span class="p">:</span> <span class="s2">&quot;3600&quot;</span><span class="p">,</span>
-    <span class="s1">&#39;cache_location&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="s1">&#39;cache_location&#39;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
     <span class="s1">&#39;default_alg&#39;</span><span class="p">:</span> <span class="s2">&quot;RS256&quot;</span>
 <span class="p">}</span>
 
-<span class="n">configuration</span> <span class="o">=</span> <span class="n">configparser</span><span class="o">.</span><span class="n">SafeConfigParser</span><span class="p">(</span><span class="n">CONFIG_DEFAULTS</span><span class="p">)</span> <span class="c1"># pylint: disable=C0103</span>
+<span class="n">configuration</span> <span class="o">=</span> <span class="n">configparser</span><span class="o">.</span><span class="n">ConfigParser</span><span class="p">(</span><span class="n">CONFIG_DEFAULTS</span><span class="p">)</span> <span class="c1"># pylint: disable=C0103</span>
 
 <div class="viewcode-block" id="set_config"><a class="viewcode-back" href="../../../scitokens.html#scitokens.utils.config.set_config">[docs]</a><span class="k">def</span> <span class="nf">set_config</span><span class="p">(</span><span class="n">config</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -70,13 +70,13 @@
     <span class="k">global</span> <span class="n">configuration</span> <span class="c1"># pylint: disable=C0103</span>
 
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">):</span>
-        <span class="n">configuration</span> <span class="o">=</span> <span class="n">configparser</span><span class="o">.</span><span class="n">SafeConfigParser</span><span class="p">(</span><span class="n">CONFIG_DEFAULTS</span><span class="p">)</span>
+        <span class="n">configuration</span> <span class="o">=</span> <span class="n">configparser</span><span class="o">.</span><span class="n">ConfigParser</span><span class="p">(</span><span class="n">CONFIG_DEFAULTS</span><span class="p">)</span>
         <span class="n">configuration</span><span class="o">.</span><span class="n">read</span><span class="p">([</span><span class="n">config</span><span class="p">])</span>
     <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">configparser</span><span class="o">.</span><span class="n">RawConfigParser</span><span class="p">):</span>
         <span class="n">configuration</span> <span class="o">=</span> <span class="n">config</span>
     <span class="k">elif</span> <span class="n">config</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Using built-in defaults&quot;</span><span class="p">)</span>
-        <span class="n">configuration</span> <span class="o">=</span> <span class="n">configparser</span><span class="o">.</span><span class="n">SafeConfigParser</span><span class="p">(</span><span class="n">CONFIG_DEFAULTS</span><span class="p">)</span>
+        <span class="n">configuration</span> <span class="o">=</span> <span class="n">configparser</span><span class="o">.</span><span class="n">ConfigParser</span><span class="p">(</span><span class="n">CONFIG_DEFAULTS</span><span class="p">)</span>
         <span class="n">configuration</span><span class="o">.</span><span class="n">add_section</span><span class="p">(</span><span class="s2">&quot;scitokens&quot;</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">pass</span>
@@ -85,7 +85,7 @@
 
     <span class="k">if</span> <span class="n">configuration</span><span class="o">.</span><span class="n">has_option</span><span class="p">(</span><span class="s2">&quot;scitokens&quot;</span><span class="p">,</span> <span class="s2">&quot;log_file&quot;</span><span class="p">):</span>
         <span class="n">log_file</span> <span class="o">=</span> <span class="n">configuration</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;scitokens&quot;</span><span class="p">,</span> <span class="s2">&quot;log_file&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">log_file</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">log_file</span> <span class="o">!=</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
             <span class="c1"># Create loggers with 100MB files, rotated 5 times</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">handlers</span><span class="o">.</span><span class="n">RotatingFileHandler</span><span class="p">(</span><span class="n">log_file</span><span class="p">,</span> <span class="n">maxBytes</span><span class="o">=</span><span class="mi">100</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1024</span><span class="o">*</span><span class="mi">1000</span><span class="p">),</span> <span class="n">backupCount</span><span class="o">=</span><span class="mi">5</span><span class="p">))</span>
 
