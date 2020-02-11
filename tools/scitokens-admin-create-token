@@ -38,7 +38,7 @@ def main():
         private_key_contents = file_pointer.read()
 
     loaded_private_key = serialization.load_pem_private_key(
-        private_key_contents,
+        private_key_contents.encode(),
         password=None, # Hey, it's a sample file committed to disk...
         backend=default_backend()
     )
@@ -50,7 +50,7 @@ def main():
         token.update_claims({key: value})
 
     serialized_token = token.serialize(issuer=args.issuer)
-    print(serialized_token)
+    print(serialized_token.decode())
 
 
 if __name__ == "__main__":
