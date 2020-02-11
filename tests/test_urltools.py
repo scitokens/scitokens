@@ -24,22 +24,22 @@ class TestUrltools(unittest.TestCase):
         """
         Run through the logic of the unquote function.
         """
-        self.assertEquals(unquote('foo%23bar'), 'foo#bar')
-        self.assertEquals(unquote('foo%23bar', ['#']), 'foo%23bar')
+        self.assertEqual(unquote('foo%23bar'), 'foo#bar')
+        self.assertEqual(unquote('foo%23bar', ['#']), 'foo%23bar')
         with self.assertRaises(TypeError):
             unquote(None)
-        self.assertEquals(unquote(""), "")
-        self.assertEquals(unquote("abc123"), "abc123")
+        self.assertEqual(unquote(""), "")
+        self.assertEqual(unquote("abc123"), "abc123")
 
     def test_normalize_path(self):
         """
         Run through the logic of the normalize_path function.
         """
-        self.assertEquals(normalize_path("//////"), "/")
-        self.assertEquals(normalize_path("//"), "/")
-        self.assertEquals(normalize_path("//foo/bar//baz"), "/foo/bar/baz")
-        self.assertEquals(normalize_path("//foo/bar//baz/"), "/foo/bar/baz/")
-        self.assertEquals(normalize_path("//f%20oo/bar"), "/f oo/bar")
+        self.assertEqual(normalize_path("//////"), "/")
+        self.assertEqual(normalize_path("//"), "/")
+        self.assertEqual(normalize_path("//foo/bar//baz"), "/foo/bar/baz")
+        self.assertEqual(normalize_path("//foo/bar//baz/"), "/foo/bar/baz/")
+        self.assertEqual(normalize_path("//f%20oo/bar"), "/f oo/bar")
 
 
 if __name__ == '__main__':

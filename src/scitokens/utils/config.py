@@ -11,14 +11,14 @@ import logging
 import logging.handlers
 
 CONFIG_DEFAULTS = {
-    'log_file': None,
+    'log_file': "",
     'log_level': "INFO",
     'cache_lifetime': "3600",
-    'cache_location': None,
+    'cache_location': "",
     'default_alg': "RS256"
 }
 
-configuration = configparser.SafeConfigParser(CONFIG_DEFAULTS) # pylint: disable=C0103
+configuration = configparser.ConfigParser(CONFIG_DEFAULTS) # pylint: disable=C0103
 
 def set_config(config = None):
     """
@@ -29,13 +29,13 @@ def set_config(config = None):
     global configuration # pylint: disable=C0103
 
     if isinstance(config, six.string_types):
-        configuration = configparser.SafeConfigParser(CONFIG_DEFAULTS)
+        configuration = configparser.ConfigParser(CONFIG_DEFAULTS)
         configuration.read([config])
     elif isinstance(config, configparser.RawConfigParser):
         configuration = config
     elif config is None:
         print("Using built-in defaults")
-        configuration = configparser.SafeConfigParser(CONFIG_DEFAULTS)
+        configuration = configparser.ConfigParser(CONFIG_DEFAULTS)
         configuration.add_section("scitokens")
     else:
         pass
@@ -44,7 +44,7 @@ def set_config(config = None):
 
     if configuration.has_option("scitokens", "log_file"):
         log_file = configuration.get("scitokens", "log_file")
-        if log_file is not None:
+        if log_file is not "":
             # Create loggers with 100MB files, rotated 5 times
             logger.addHandler(logging.handlers.RotatingFileHandler(log_file, maxBytes=100 * (1024*1000), backupCount=5))
 

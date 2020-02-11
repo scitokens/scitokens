@@ -327,7 +327,7 @@ class KeyCache(object):
         xdg_cache_home = os.environ.get("XDG_CACHE_HOME", None)
         home_dir = pwd.getpwuid(os.geteuid()).pw_dir
 
-        if config_cache_location != None:
+        if config_cache_location != "":
             cache_dir = config_cache_location
         elif xdg_cache_home != None:
             cache_dir = xdg_cache_home
