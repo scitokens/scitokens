@@ -53,7 +53,7 @@ class TestKeyCreate(unittest.TestCase):
         """
         Attempt to read in the key into a key object
         """
-        keys = json.loads(key.decode())
+        keys = json.loads(key.decode('utf-8'))
         public_key_numbers = ec.EllipticCurvePublicNumbers(
             long_from_bytes(keys['keys'][0]['x']),
             long_from_bytes(keys['keys'][0]['y']),
@@ -66,7 +66,7 @@ class TestKeyCreate(unittest.TestCase):
         """
         Attempt to read in the key into a key object
         """
-        keys = json.loads(key.decode())
+        keys = json.loads(key.decode('utf-8'))
         public_key_numbers = rsa.RSAPublicNumbers(
             long_from_bytes(keys['keys'][0]['e']),
             long_from_bytes(keys['keys'][0]['n'])
@@ -79,7 +79,7 @@ class TestKeyCreate(unittest.TestCase):
         """
         Attempt to read in the key into a private key object
         """
-        keys = json.loads(key.decode())
+        keys = json.loads(key.decode('utf-8'))
         public_key_numbers = ec.EllipticCurvePublicNumbers(
             long_from_bytes(keys['keys'][0]['x']),
             long_from_bytes(keys['keys'][0]['y']),
@@ -96,7 +96,7 @@ class TestKeyCreate(unittest.TestCase):
         """
         Attempt to read in the key into a private key object
         """
-        keys = json.loads(key.decode())
+        keys = json.loads(key.decode('utf-8'))
         public_key_numbers = rsa.RSAPublicNumbers(
             long_from_bytes(keys['keys'][0]['e']),
             long_from_bytes(keys['keys'][0]['n'])

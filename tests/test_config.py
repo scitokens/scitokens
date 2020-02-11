@@ -18,7 +18,7 @@ class TestConfig(unittest.TestCase):
 
     def setUp(self):
         self.dir_path = os.path.dirname(os.path.realpath(__file__))
-        scitokens.utils.config.configuration = configparser.SafeConfigParser(scitokens.utils.config.CONFIG_DEFAULTS)
+        scitokens.utils.config.configuration = configparser.ConfigParser(scitokens.utils.config.CONFIG_DEFAULTS)
 
     def tearDown(self):
         # Clear the config back to defaults each time
@@ -31,14 +31,14 @@ class TestConfig(unittest.TestCase):
         # Get the current directory and pass it the path of test_config.ini
         scitokens.set_config(os.path.join(self.dir_path, "test_config.ini"))
 
-        self.assertIsNone(scitokens.utils.config.get("log_file"))
+        self.assertEqual(scitokens.utils.config.get("log_file"), "")
         self.assertEqual(scitokens.utils.config.get("log_level"), "DEBUG")
 
     def test_passing_config(self):
         """
         Test the passing of a configuration parser object
         """
-        new_config = configparser.SafeConfigParser()
+        new_config = configparser.ConfigParser()
         new_config.add_section("scitokens")
         new_config.set("scitokens", "log_level", "WARNING")
 
@@ -51,7 +51,7 @@ class TestConfig(unittest.TestCase):
         Test the with log_file
         """
 
-        new_config = configparser.SafeConfigParser()
+        new_config = configparser.ConfigParser()
         new_config.add_section("scitokens")
         new_config.set("scitokens", "log_level", "WARNING")
         tmp_file = tempfile.NamedTemporaryFile()
@@ -77,4 +77,4 @@ class TestConfig(unittest.TestCase):
         """
 
         # This should throw an exception if there is an error
-        self.assertEqual(scitokens.utils.config.get("cache_location"), None)
+        self.assertEqual(scitokens.utils.config.get("cache_location"), "")

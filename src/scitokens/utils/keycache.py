@@ -267,7 +267,7 @@ class KeyCache(object):
         if "Cache-Control" in headers:
             # Parse out the max-age, if it's there.
             if "max-age" in headers['Cache-Control']:
-                match = re.search(".*max-age=(\d+)", headers['Cache-Control'])
+                match = re.search(r".*max-age=(\d+)", headers['Cache-Control'])
                 if match:
                     cache_timer = int(match.group(1))
         # Minimum cache time of 10 minutes, no matter what the remote says
@@ -327,7 +327,7 @@ class KeyCache(object):
         xdg_cache_home = os.environ.get("XDG_CACHE_HOME", None)
         home_dir = pwd.getpwuid(os.geteuid()).pw_dir
 
-        if config_cache_location != None:
+        if config_cache_location != "":
             cache_dir = config_cache_location
         elif xdg_cache_home != None:
             cache_dir = xdg_cache_home
