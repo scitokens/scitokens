@@ -32,7 +32,6 @@ def main():
     Given a set of command line parameters, generate a corresponding SciToken.
     """
     args = add_args()
-    print(args)
 
     with open(args.keyfile, "r") as file_pointer:
         private_key_contents = file_pointer.read()
