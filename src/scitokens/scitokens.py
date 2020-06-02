@@ -211,6 +211,23 @@ class SciToken(object):
             return True
         return False
 
+    def __delitem__(self, claim):
+        """
+        Delete the claim from the SciToken
+        """
+        deleted = False
+        if claim in self._claims:
+            del self._claims[claim]
+            deleted = True
+        if claim in self._verified_claims:
+            del self._verified_claims[claim]
+            deleted = True
+        
+        if deleted:
+            return deleted
+        else:
+            raise KeyError(claim)
+
     def get(self, claim, default=None, verified_only=False):
         """
         Return the value associated with a claim, returning the
@@ -276,9 +293,9 @@ class SciToken(object):
             issuer_public_key = load_pem_public_key(public_key, backend=backends.default_backend())
         
         if audience:
-            claims = jwt.decode(serialized_token, issuer_public_key, audience = audience)
+            claims = jwt.decode(serialized_token, issuer_public_key, audience = audience, algorithms=['RS256', 'ES256'])
         else:
-            claims = jwt.decode(serialized_token, issuer_public_key)
+            claims = jwt.decode(serialized_token, issuer_public_key, algorithms=['RS256', 'ES256'])
         # Do we have the private key?
         if len(info) == 4:
             to_return = SciToken(key = key)
@@ -371,7 +388,8 @@ class Validator(object):
                 critical_claims.remove(claim)
             validator_list = self._callbacks.setdefault(claim, [])
             if not validator_list:
-                raise NoRegisteredValidator("No validator was registered to handle encountered claim '%s'" % claim)
+                if "ver" not in token or token["ver"] != "scitoken:2.0":
+                    raise NoRegisteredValidator("No validator was registered to handle encountered claim '%s'" % claim)
             for validator in validator_list:
                 if not validator(value):
                     raise ClaimInvalid("Validator rejected value of '%s' for claim '%s'" % (value, claim))
@@ -419,15 +437,14 @@ class Enforcer(object):
     _authz_requiring_path = set(["read", "write"])
 
     # An array of versions of scitokens that we understand and can enforce
-    _versions_understood = [ 1 ]
+    _versions_understood = [ 1, "scitoken:2.0" ]
 
-    def __init__(self, issuer, site=None, audience=None):
+    def __init__(self, issuer, audience=None):
         self._issuer = issuer
         self.last_failure = None
         if not self._issuer:
             raise EnforcementError("Issuer must be specified.")
         self._audience = audience
-        self._site = site
         self._test_access = False
         self._test_authz = None
         self._test_path = None
@@ -438,7 +455,6 @@ class Enforcer(object):
         self._validator.add_validator("nbf", self._validate_nbf)
         self._validator.add_validator("iss", self._validate_iss)
         self._validator.add_validator("iat", self._validate_iat)
-        self._validator.add_validator("site", self._validate_site)
         self._validator.add_validator("aud", self._validate_aud)
         self._validator.add_validator("scp", self._validate_scp)
         self._validator.add_validator("scope", self._validate_scope)
@@ -477,6 +493,10 @@ class Enforcer(object):
         # Check for the older "scp" attribute
         if 'scope' not in token and 'scp' in token:
             critical_claims = set(["scp"])
+        
+        # In scitokens 2.0, some claims are required
+        if 'ver' in token and token['ver'] == "scitoken:2.0":
+            critical_claims.update(['aud', 'ver'])
 
         if not path and (authz in self._authz_requiring_path):
             raise InvalidPathError("Enforcer provided with an empty path.")
@@ -525,15 +545,14 @@ class Enforcer(object):
     def _validate_iat(self, value):
         return float(value) < self._now
 
-    def _validate_site(self, value):
-        if not self._site:
-            return False
-        return value == self._site
-
     def _validate_aud(self, value):
         if not self._audience:
             return False
-        if isinstance(self._audience, list):
+        elif self._audience == "ANY":
+            return False
+        elif value == "ANY":
+            return True
+        elif isinstance(self._audience, list):
             return value in self._audience
         return value == self._audience
 
