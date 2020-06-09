@@ -252,6 +252,23 @@
             <span class="k">return</span> <span class="kc">True</span>
         <span class="k">return</span> <span class="kc">False</span>
 
+    <span class="k">def</span> <span class="fm">__delitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">claim</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Delete the claim from the SciToken</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">deleted</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="n">claim</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_claims</span><span class="p">:</span>
+            <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">_claims</span><span class="p">[</span><span class="n">claim</span><span class="p">]</span>
+            <span class="n">deleted</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">if</span> <span class="n">claim</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_verified_claims</span><span class="p">:</span>
+            <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">_verified_claims</span><span class="p">[</span><span class="n">claim</span><span class="p">]</span>
+            <span class="n">deleted</span> <span class="o">=</span> <span class="kc">True</span>
+        
+        <span class="k">if</span> <span class="n">deleted</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="n">claim</span><span class="p">)</span>
+
 <div class="viewcode-block" id="SciToken.get"><a class="viewcode-back" href="../../scitokens.html#scitokens.scitokens.SciToken.get">[docs]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">claim</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verified_only</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return the value associated with a claim, returning the</span>
@@ -317,9 +334,9 @@
             <span class="n">issuer_public_key</span> <span class="o">=</span> <span class="n">load_pem_public_key</span><span class="p">(</span><span class="n">public_key</span><span class="p">,</span> <span class="n">backend</span><span class="o">=</span><span class="n">backends</span><span class="o">.</span><span class="n">default_backend</span><span class="p">())</span>
         
         <span class="k">if</span> <span class="n">audience</span><span class="p">:</span>
-            <span class="n">claims</span> <span class="o">=</span> <span class="n">jwt</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="n">serialized_token</span><span class="p">,</span> <span class="n">issuer_public_key</span><span class="p">,</span> <span class="n">audience</span> <span class="o">=</span> <span class="n">audience</span><span class="p">)</span>
+            <span class="n">claims</span> <span class="o">=</span> <span class="n">jwt</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="n">serialized_token</span><span class="p">,</span> <span class="n">issuer_public_key</span><span class="p">,</span> <span class="n">audience</span> <span class="o">=</span> <span class="n">audience</span><span class="p">,</span> <span class="n">algorithms</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;RS256&#39;</span><span class="p">,</span> <span class="s1">&#39;ES256&#39;</span><span class="p">])</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">claims</span> <span class="o">=</span> <span class="n">jwt</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="n">serialized_token</span><span class="p">,</span> <span class="n">issuer_public_key</span><span class="p">)</span>
+            <span class="n">claims</span> <span class="o">=</span> <span class="n">jwt</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="n">serialized_token</span><span class="p">,</span> <span class="n">issuer_public_key</span><span class="p">,</span> <span class="n">algorithms</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;RS256&#39;</span><span class="p">,</span> <span class="s1">&#39;ES256&#39;</span><span class="p">])</span>
         <span class="c1"># Do we have the private key?</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">info</span><span class="p">)</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
             <span class="n">to_return</span> <span class="o">=</span> <span class="n">SciToken</span><span class="p">(</span><span class="n">key</span> <span class="o">=</span> <span class="n">key</span><span class="p">)</span>
@@ -412,7 +429,8 @@
                 <span class="n">critical_claims</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">claim</span><span class="p">)</span>
             <span class="n">validator_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_callbacks</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">claim</span><span class="p">,</span> <span class="p">[])</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">validator_list</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="n">NoRegisteredValidator</span><span class="p">(</span><span class="s2">&quot;No validator was registered to handle encountered claim &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="n">claim</span><span class="p">)</span>
+                <span class="k">if</span> <span class="s2">&quot;ver&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">token</span> <span class="ow">or</span> <span class="n">token</span><span class="p">[</span><span class="s2">&quot;ver&quot;</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">&quot;scitoken:2.0&quot;</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="n">NoRegisteredValidator</span><span class="p">(</span><span class="s2">&quot;No validator was registered to handle encountered claim &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="n">claim</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">validator</span> <span class="ow">in</span> <span class="n">validator_list</span><span class="p">:</span>
                 <span class="k">if</span> <span class="ow">not</span> <span class="n">validator</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
                     <span class="k">raise</span> <span class="n">ClaimInvalid</span><span class="p">(</span><span class="s2">&quot;Validator rejected value of &#39;</span><span class="si">%s</span><span class="s2">&#39; for claim &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">claim</span><span class="p">))</span>
@@ -460,15 +478,14 @@
     <span class="n">_authz_requiring_path</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="s2">&quot;read&quot;</span><span class="p">,</span> <span class="s2">&quot;write&quot;</span><span class="p">])</span>
 
     <span class="c1"># An array of versions of scitokens that we understand and can enforce</span>
-    <span class="n">_versions_understood</span> <span class="o">=</span> <span class="p">[</span> <span class="mi">1</span> <span class="p">]</span>
+    <span class="n">_versions_understood</span> <span class="o">=</span> <span class="p">[</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;scitoken:2.0&quot;</span> <span class="p">]</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">issuer</span><span class="p">,</span> <span class="n">site</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">audience</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">issuer</span><span class="p">,</span> <span class="n">audience</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_issuer</span> <span class="o">=</span> <span class="n">issuer</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">last_failure</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_issuer</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">EnforcementError</span><span class="p">(</span><span class="s2">&quot;Issuer must be specified.&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_audience</span> <span class="o">=</span> <span class="n">audience</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_site</span> <span class="o">=</span> <span class="n">site</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_test_access</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_test_authz</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_test_path</span> <span class="o">=</span> <span class="kc">None</span>
@@ -479,7 +496,6 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_validator</span><span class="o">.</span><span class="n">add_validator</span><span class="p">(</span><span class="s2">&quot;nbf&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_validate_nbf</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_validator</span><span class="o">.</span><span class="n">add_validator</span><span class="p">(</span><span class="s2">&quot;iss&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_validate_iss</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_validator</span><span class="o">.</span><span class="n">add_validator</span><span class="p">(</span><span class="s2">&quot;iat&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_validate_iat</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_validator</span><span class="o">.</span><span class="n">add_validator</span><span class="p">(</span><span class="s2">&quot;site&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_validate_site</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_validator</span><span class="o">.</span><span class="n">add_validator</span><span class="p">(</span><span class="s2">&quot;aud&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_validate_aud</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_validator</span><span class="o">.</span><span class="n">add_validator</span><span class="p">(</span><span class="s2">&quot;scp&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_validate_scp</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_validator</span><span class="o">.</span><span class="n">add_validator</span><span class="p">(</span><span class="s2">&quot;scope&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_validate_scope</span><span class="p">)</span>
@@ -518,6 +534,10 @@
         <span class="c1"># Check for the older &quot;scp&quot; attribute</span>
         <span class="k">if</span> <span class="s1">&#39;scope&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">token</span> <span class="ow">and</span> <span class="s1">&#39;scp&#39;</span> <span class="ow">in</span> <span class="n">token</span><span class="p">:</span>
             <span class="n">critical_claims</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="s2">&quot;scp&quot;</span><span class="p">])</span>
+        
+        <span class="c1"># In scitokens 2.0, some claims are required</span>
+        <span class="k">if</span> <span class="s1">&#39;ver&#39;</span> <span class="ow">in</span> <span class="n">token</span> <span class="ow">and</span> <span class="n">token</span><span class="p">[</span><span class="s1">&#39;ver&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;scitoken:2.0&quot;</span><span class="p">:</span>
+            <span class="n">critical_claims</span><span class="o">.</span><span class="n">update</span><span class="p">([</span><span class="s1">&#39;aud&#39;</span><span class="p">,</span> <span class="s1">&#39;ver&#39;</span><span class="p">])</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">path</span> <span class="ow">and</span> <span class="p">(</span><span class="n">authz</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_authz_requiring_path</span><span class="p">):</span>
             <span class="k">raise</span> <span class="n">InvalidPathError</span><span class="p">(</span><span class="s2">&quot;Enforcer provided with an empty path.&quot;</span><span class="p">)</span>
@@ -566,15 +586,14 @@
     <span class="k">def</span> <span class="nf">_validate_iat</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_now</span>
 
-    <span class="k">def</span> <span class="nf">_validate_site</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_site</span><span class="p">:</span>
-            <span class="k">return</span> <span class="kc">False</span>
-        <span class="k">return</span> <span class="n">value</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_site</span>
-
     <span class="k">def</span> <span class="nf">_validate_aud</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_audience</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">False</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_audience</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_audience</span> <span class="o">==</span> <span class="s2">&quot;ANY&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">elif</span> <span class="n">value</span> <span class="o">==</span> <span class="s2">&quot;ANY&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_audience</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
             <span class="k">return</span> <span class="n">value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_audience</span>
         <span class="k">return</span> <span class="n">value</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_audience</span>
 
