@@ -224,7 +224,7 @@ class SciToken(object):
             deleted = True
         
         if deleted:
-            return deleted
+            return
         else:
             raise KeyError(claim)
 
