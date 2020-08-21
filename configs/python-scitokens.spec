@@ -3,7 +3,7 @@
 
 Name:           python-%{pypi_name}
 Version:        1.2.2
-Release:        2%{?dist}
+Release:        3%{?dist}
 Summary:        SciToken reference implementation library
 
 License:        Apache 2.0
@@ -11,10 +11,11 @@ URL:            https://scitokens.org
 Source0:        https://files.pythonhosted.org/packages/source/s/%{pypi_name}/%{pypi_name}-%{version}.tar.gz
 BuildArch:      noarch
  
-%if 0%{?rhel} >= 8
+%if 0%{?rhel} >= 7
 BuildRequires:  python3-devel
 BuildRequires:  python3-setuptools
-%else
+%endif
+%if 0%{?rhel} <= 7
 BuildRequires:  python2-devel
 BuildRequires:  python-setuptools
 %endif
@@ -23,33 +24,41 @@ BuildRequires:  python-setuptools
 %description
 SciToken reference implementation library
 
-%if 0%{?rhel} >= 8
+%if 0%{?rhel} >= 7
 %package -n     python3-%{pypi_name}
-%else
-%package -n     python2-%{pypi_name}
-%endif
 
 Summary:        %{summary}
 Provides:       python-%{pypi_name}
  
-%if 0%{?rhel} >= 8
+Requires:       python3-setuptools
+%if 0%{?rhel} == 7
+Requires:       epel-release
+Requires:       python36-jwt >= 1.6.1
+Requires:       python36-cryptography
+%else
 Requires:       python3-jwt >= 1.6.1
 Requires:       python3-cryptography
-Requires:       python3-setuptools
-%else
+%endif
+
+%description -n python3-%{pypi_name}
+
+SciToken reference implementation library
+%endif
+
+%if 0%{?rhel} <= 7
+%package -n     python2-%{pypi_name}
+
+Summary:        %{summary}
+Provides:       python-%{pypi_name}
+
 Requires:       python-jwt >= 1.6.1
 Requires:       python2-cryptography
 Requires:       python-setuptools
-%endif
 
-
-%if 0%{?rhel} >= 8
-%description -n python3-%{pypi_name}
-%else
 %description -n python2-%{pypi_name}
-%endif
 
 SciToken reference implementation library
+%endif
 
 %prep
 %autosetup -n %{pypi_name}-%{version}
@@ -57,39 +66,45 @@ SciToken reference implementation library
 rm -rf %{pypi_name}.egg-info
 
 %build
-%if 0%{?rhel} >= 8
+%if 0%{?rhel} >= 7
 %py3_build
-%else
+%endif
+%if 0%{?rhel} <= 7
 %py2_build
 %endif
 
 %install
 # Must do the subpackages' install first because the scripts in /usr/bin are
 # overwritten with every setup.py install.
-%if 0%{?rhel} >= 8
+%if 0%{?rhel} >= 7
 %py3_install
-%else
+%endif
+%if 0%{?rhel} <= 7
 %py2_install
 %endif
 
-%if 0%{?rhel} >= 8
+%if 0%{?rhel} >= 7
 %files -n python3-%{pypi_name}
-%else
-%files -n python2-%{pypi_name}
-%endif
-
 %doc README.rst
-%{_bindir}/scitokens-admin-create-key
-%{_bindir}/scitokens-admin-create-token
-%if 0%{?rhel} >= 8
 %{python3_sitelib}/%{pypi_name}
 %{python3_sitelib}/%{pypi_name}-%{version}-py?.?.egg-info
-%else
+%{_bindir}/scitokens-admin-create-key
+%{_bindir}/scitokens-admin-create-token
+%endif
+
+%if 0%{?rhel} <= 7
+%files -n python2-%{pypi_name}
+%doc README.rst
 %{python2_sitelib}/%{pypi_name}
 %{python2_sitelib}/%{pypi_name}-%{version}-py?.?.egg-info
+%{_bindir}/scitokens-admin-create-key
+%{_bindir}/scitokens-admin-create-token
 %endif
 
 %changelog
+* Fri Aug 21 2020 Jason Patton <jpatton@cs.wisc.edu> - 1.2.2-3
+- Add conditions to build for both python 2 and 3 on el7 (software-4233)
+
 * Mon Aug 10 2020 Diego Davila <didavila@ucsd.edu> - 1.2.2-2
 - Add conditions to build for el8 (software-4126)
 
