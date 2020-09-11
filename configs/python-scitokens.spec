@@ -3,7 +3,7 @@
 
 Name:           python-%{pypi_name}
 Version:        1.2.2
-Release:        2%{?dist}
+Release:        3%{?dist}
 Summary:        SciToken reference implementation library
 
 License:        Apache 2.0
@@ -15,6 +15,8 @@ BuildArch:      noarch
 BuildRequires:  python3-devel
 BuildRequires:  python3-setuptools
 %else
+BuildRequires:  python3-devel
+BuildRequires:  python3-setuptools
 BuildRequires:  python2-devel
 BuildRequires:  python-setuptools
 %endif
@@ -25,31 +27,35 @@ SciToken reference implementation library
 
 %if 0%{?rhel} >= 8
 %package -n     python3-%{pypi_name}
-%else
-%package -n     python2-%{pypi_name}
-%endif
-
-Summary:        %{summary}
-Provides:       python-%{pypi_name}
- 
-%if 0%{?rhel} >= 8
 Requires:       python3-jwt >= 1.6.1
 Requires:       python3-cryptography
-Requires:       python3-setuptools
+Summary:        %{summary}
+Provides:       python3-%{pypi_name}
 %else
+%package -n     python3-%{pypi_name}
+Requires:       python36-jwt >= 1.6.1
+Requires:       python36-cryptography
+Summary:        %{summary}
+Provides:       python3-%{pypi_name}
+
+%package -n     python2-%{pypi_name}
 Requires:       python-jwt >= 1.6.1
 Requires:       python2-cryptography
-Requires:       python-setuptools
-%endif
-
+Summary:        %{summary}
+Provides:       python2-%{pypi_name}
+%%endif
 
 %if 0%{?rhel} >= 8
 %description -n python3-%{pypi_name}
+SciToken reference implementation library
 %else
 %description -n python2-%{pypi_name}
+SciToken reference implementation library
+
+%description -n python3-%{pypi_name}
+SciToken reference implementation library
 %endif
 
-SciToken reference implementation library
 
 %prep
 %autosetup -n %{pypi_name}-%{version}
@@ -60,6 +66,7 @@ rm -rf %{pypi_name}.egg-info
 %if 0%{?rhel} >= 8
 %py3_build
 %else
+%py3_build
 %py2_build
 %endif
 
@@ -69,27 +76,38 @@ rm -rf %{pypi_name}.egg-info
 %if 0%{?rhel} >= 8
 %py3_install
 %else
+%py3_install
 %py2_install
 %endif
 
 %if 0%{?rhel} >= 8
 %files -n python3-%{pypi_name}
-%else
-%files -n python2-%{pypi_name}
-%endif
-
+%{python3_sitelib}/%{pypi_name}
+%{python3_sitelib}/%{pypi_name}-%{version}-py?.?.egg-info
 %doc README.rst
 %{_bindir}/scitokens-admin-create-key
 %{_bindir}/scitokens-admin-create-token
-%if 0%{?rhel} >= 8
+%else
+
+%files -n python3-%{pypi_name}
 %{python3_sitelib}/%{pypi_name}
 %{python3_sitelib}/%{pypi_name}-%{version}-py?.?.egg-info
-%else
+%doc README.rst
+%{_bindir}/scitokens-admin-create-key
+%{_bindir}/scitokens-admin-create-token
+
+%files -n python2-%{pypi_name}
 %{python2_sitelib}/%{pypi_name}
 %{python2_sitelib}/%{pypi_name}-%{version}-py?.?.egg-info
+%doc README.rst
+%{_bindir}/scitokens-admin-create-key
+%{_bindir}/scitokens-admin-create-token
 %endif
 
 %changelog
+* Fri Sep 11 2020 Diego Davila <didavila@ucsd.edu> - 1.2.2-3
+- Add conditions to build both py2 and py3 packages for el7 (software-4233)
+
 * Mon Aug 10 2020 Diego Davila <didavila@ucsd.edu> - 1.2.2-2
 - Add conditions to build for el8 (software-4126)
 
