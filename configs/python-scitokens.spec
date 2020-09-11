@@ -43,7 +43,7 @@ Requires:       python-jwt >= 1.6.1
 Requires:       python2-cryptography
 Summary:        %{summary}
 Provides:       python2-%{pypi_name}
-%%endif
+%endif
 
 %if 0%{?rhel} >= 8
 %description -n python3-%{pypi_name}
