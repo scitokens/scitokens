@@ -30,19 +30,19 @@ SciToken reference implementation library
 Requires:       python3-jwt >= 1.6.1
 Requires:       python3-cryptography
 Summary:        %{summary}
-Provides:       python3-%{pypi_name}
 %else
 %package -n     python3-%{pypi_name}
 Requires:       python36-jwt >= 1.6.1
 Requires:       python36-cryptography
 Summary:        %{summary}
-Provides:       python3-%{pypi_name}
+Provides:       python-%{pypi_name}
+Obsoletes:      python-%{pypi_name}
 
 %package -n     python2-%{pypi_name}
 Requires:       python-jwt >= 1.6.1
 Requires:       python2-cryptography
 Summary:        %{summary}
-Provides:       python2-%{pypi_name}
+Provides:       python-%{pypi_name}
 %endif
 
 %if 0%{?rhel} >= 8
