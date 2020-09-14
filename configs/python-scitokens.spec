@@ -35,14 +35,11 @@ Summary:        %{summary}
 Requires:       python36-jwt >= 1.6.1
 Requires:       python36-cryptography
 Summary:        %{summary}
-Provides:       python-%{pypi_name}
-Obsoletes:      python-%{pypi_name}
 
 %package -n     python2-%{pypi_name}
 Requires:       python-jwt >= 1.6.1
 Requires:       python2-cryptography
 Summary:        %{summary}
-Provides:       python-%{pypi_name}
 %endif
 
 %if 0%{?rhel} >= 8
