@@ -7,7 +7,8 @@ yum -y install yum-plugin-priorities
 
 rpm -Uvh https://repo.opensciencegrid.org/osg/3.5/osg-3.5-el7-release-latest.rpm
 
-yum -y install osg-build python2-devel python-setuptools python3-devel python3-setuptools
+yum -y install python2-devel python-setuptools python3-devel python3-setuptools
+yum -y --enablerepo=devops-itb install osg-build
 
 mkdir -p ~/rpmbuild/{BUILD,RPMS,SOURCES,SPECS,SRPMS}
 
