@@ -2,8 +2,8 @@
 %global pypi_name scitokens
 
 Name:           python-%{pypi_name}
-Version:        1.2.2
-Release:        3%{?dist}
+Version:        1.2.4
+Release:        1%{?dist}
 Summary:        SciToken reference implementation library
 
 License:        Apache 2.0
@@ -102,6 +102,9 @@ rm -rf %{pypi_name}.egg-info
 %endif
 
 %changelog
+* Tue Sep 22 2020 Derek Weitzel <dweitzel@cse.unl.edu> - 1.2.4-1
+- Same version in setup.py and spec
+
 * Fri Sep 11 2020 Diego Davila <didavila@ucsd.edu> - 1.2.2-3
 - Add conditions to build both py2 and py3 packages for el7 (software-4233)
 

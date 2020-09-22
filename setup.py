@@ -6,7 +6,7 @@ Install file for SciTokens project.
 import setuptools
 
 setuptools.setup(name="scitokens",
-                 version="1.2.2",
+                 version="1.2.4",
                  description="SciToken reference implementation library",
                  author_email="team@scitokens.org",
                  author="Brian Bockelman",
