@@ -74,7 +74,14 @@ rm -rf %{pypi_name}.egg-info
 %py3_install
 %else
 %py3_install
+mv %{buildroot}%{_bindir}/scitokens-admin-create-key %{buildroot}%{_bindir}/scitokens-admin-create-key3
+mv %{buildroot}%{_bindir}/scitokens-admin-create-token %{buildroot}%{_bindir}/scitokens-admin-create-token3
+
 %py2_install
+mv %{buildroot}%{_bindir}/scitokens-admin-create-key %{buildroot}%{_bindir}/scitokens-admin-create-key2
+mv %{buildroot}%{_bindir}/scitokens-admin-create-token %{buildroot}%{_bindir}/scitokens-admin-create-token2
+touch %{buildroot}%{_bindir}/scitokens-admin-create-key 
+touch %{buildroot}%{_bindir}/scitokens-admin-create-token 
 %endif
 
 %if 0%{?rhel} >= 8
@@ -90,18 +97,40 @@ rm -rf %{pypi_name}.egg-info
 %{python3_sitelib}/%{pypi_name}
 %{python3_sitelib}/%{pypi_name}-%{version}-py?.?.egg-info
 %doc README.rst
-%{_bindir}/scitokens-admin-create-key
-%{_bindir}/scitokens-admin-create-token
+%ghost %{_bindir}/scitokens-admin-create-key
+%ghost %{_bindir}/scitokens-admin-create-token
+%{_bindir}/scitokens-admin-create-key3
+%{_bindir}/scitokens-admin-create-token3
 
 %files -n python2-%{pypi_name}
 %{python2_sitelib}/%{pypi_name}
 %{python2_sitelib}/%{pypi_name}-%{version}-py?.?.egg-info
 %doc README.rst
-%{_bindir}/scitokens-admin-create-key
-%{_bindir}/scitokens-admin-create-token
+%ghost %{_bindir}/scitokens-admin-create-key
+%ghost %{_bindir}/scitokens-admin-create-token
+%{_bindir}/scitokens-admin-create-key2
+%{_bindir}/scitokens-admin-create-token2
 %endif
 
+%if 0%{?rhel} < 8
+%post -n python3-%{pypi_name}
+if [ ! -e %{_bindir}/scitokens-admin-create-key ]; then
+  ln -s scitokens-admin-create-key3 %{_bindir}/scitokens-admin-create-key
+  ln -s scitokens-admin-create-token3 %{_bindir}/scitokens-admin-create-token
+fi
+
+%post -n python2-%{pypi_name}
+if [ ! -e %{_bindir}/scitokens-admin-create-key ]; then
+  ln -s scitokens-admin-create-key2 %{_bindir}/scitokens-admin-create-key
+  ln -s scitokens-admin-create-token2 %{_bindir}/scitokens-admin-create-token
+fi
+%endif
+
+
 %changelog
+* Mon Sep 28 2020 Diego Davila <didavila@ucsd.edu> - 1.2.4-2
+- Avoid overwriting of scripts: scitokens-admin-create-* (software-4233) 
+
 * Tue Sep 22 2020 Derek Weitzel <dweitzel@cse.unl.edu> - 1.2.4-1
 - Same version in setup.py and spec
 
