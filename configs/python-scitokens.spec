@@ -114,13 +114,13 @@ touch %{buildroot}%{_bindir}/scitokens-admin-create-token
 
 %if 0%{?rhel} < 8
 %post -n python3-%{pypi_name}
-if [ ! -e %{_bindir}/scitokens-admin-create-key ]; then
+if [ ! -L %{_bindir}/scitokens-admin-create-key ]; then
   ln -sf scitokens-admin-create-key3 %{_bindir}/scitokens-admin-create-key
   ln -sf scitokens-admin-create-token3 %{_bindir}/scitokens-admin-create-token
 fi
 
 %post -n python2-%{pypi_name}
-if [ ! -e %{_bindir}/scitokens-admin-create-key ]; then
+if [ ! -L %{_bindir}/scitokens-admin-create-key ]; then
   ln -sf scitokens-admin-create-key2 %{_bindir}/scitokens-admin-create-key
   ln -sf scitokens-admin-create-token2 %{_bindir}/scitokens-admin-create-token
 fi
