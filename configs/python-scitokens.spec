@@ -3,7 +3,7 @@
 
 Name:           python-%{pypi_name}
 Version:        1.2.4
-Release:        2%{?dist}
+Release:        3%{?dist}
 Summary:        SciToken reference implementation library
 
 License:        Apache 2.0
@@ -114,20 +114,23 @@ touch %{buildroot}%{_bindir}/scitokens-admin-create-token
 
 %if 0%{?rhel} < 8
 %post -n python3-%{pypi_name}
-if [ ! -e %{_bindir}/scitokens-admin-create-key ]; then
-  ln -s scitokens-admin-create-key3 %{_bindir}/scitokens-admin-create-key
-  ln -s scitokens-admin-create-token3 %{_bindir}/scitokens-admin-create-token
+if [ ! -L %{_bindir}/scitokens-admin-create-key ]; then
+  ln -sf scitokens-admin-create-key3 %{_bindir}/scitokens-admin-create-key
+  ln -sf scitokens-admin-create-token3 %{_bindir}/scitokens-admin-create-token
 fi
 
 %post -n python2-%{pypi_name}
-if [ ! -e %{_bindir}/scitokens-admin-create-key ]; then
-  ln -s scitokens-admin-create-key2 %{_bindir}/scitokens-admin-create-key
-  ln -s scitokens-admin-create-token2 %{_bindir}/scitokens-admin-create-token
+if [ ! -L %{_bindir}/scitokens-admin-create-key ]; then
+  ln -sf scitokens-admin-create-key2 %{_bindir}/scitokens-admin-create-key
+  ln -sf scitokens-admin-create-token2 %{_bindir}/scitokens-admin-create-token
 fi
 %endif
 
 
 %changelog
+* Wed Sep 30 2020 Diego Davila <didavila@ucsd.edu> - 1.2.4-3
+- Force the creation of symlinks so it doesn't fail on update (software-4233)
+
 * Mon Sep 28 2020 Diego Davila <didavila@ucsd.edu> - 1.2.4-2
 - Avoid overwriting of scripts: scitokens-admin-create-* (software-4233) 
 
