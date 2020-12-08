@@ -70,7 +70,7 @@ callbacks marked the claim as invalid.</p>
 <dl class="class">
 <dt id="scitokens.scitokens.Enforcer">
 <em class="property">class </em><code class="descclassname">scitokens.scitokens.</code><code class="descname">Enforcer</code><span class="sig-paren">(</span><em>issuer</em>, <em>audience=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scitokens/scitokens.html#Enforcer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scitokens.scitokens.Enforcer" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>Enforce SciTokens-specific validation logic.</p>
 <p>Allows one to test if a given token has a particular authorization.</p>
 <p>This class is NOT thread safe; a separate object is needed for every thread.</p>
@@ -138,7 +138,7 @@ claim with no registered validator.</p>
 <dl class="class">
 <dt id="scitokens.scitokens.SciToken">
 <em class="property">class </em><code class="descclassname">scitokens.scitokens.</code><code class="descname">SciToken</code><span class="sig-paren">(</span><em>key=None</em>, <em>algorithm=None</em>, <em>key_id=None</em>, <em>parent=None</em>, <em>claims=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scitokens/scitokens.html#SciToken"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scitokens.scitokens.SciToken" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>An object representing the contents of a SciToken.</p>
 <dl class="method">
 <dt id="scitokens.scitokens.SciToken.claims">
@@ -163,12 +163,12 @@ with the claims from the first token in the chain.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>serialized_token</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – The serialized token.</li>
-<li><strong>audience</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – The audience URI that this principle is claiming.  Default: None</li>
-<li><strong>require_key</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – When True, require the key</li>
-<li><strong>insecure</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – When True, allow insecure methods to verify the issuer,
+<li><strong>serialized_token</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – The serialized token.</li>
+<li><strong>audience</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – The audience URI that this principle is claiming.  Default: None</li>
+<li><strong>require_key</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – When True, require the key</li>
+<li><strong>insecure</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – When True, allow insecure methods to verify the issuer,
 including allowing “localhost” issuer (useful in testing).  Default=False</li>
-<li><strong>public_key</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – A PEM formatted public key string to be used to validate the token</li>
+<li><strong>public_key</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – A PEM formatted public key string to be used to validate the token</li>
 </ul>
 </td>
 </tr>
@@ -193,10 +193,10 @@ True, then a claim is returned only if it is in the verified claims</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>include_key</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – When true, include the public key to the serialized token.  Default=False</li>
-<li><strong>issuer</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – A string indicating the issuer for the token.  It should be an HTTPS address,
+<li><strong>include_key</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – When true, include the public key to the serialized token.  Default=False</li>
+<li><strong>issuer</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – A string indicating the issuer for the token.  It should be an HTTPS address,
 as specified in <a class="reference external" href="https://tools.ietf.org/html/draft-ietf-oauth-discovery-07">https://tools.ietf.org/html/draft-ietf-oauth-discovery-07</a></li>
-<li><strong>lifetime</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><em>int</em></a>) – Number of seconds that the token should be valid</li>
+<li><strong>lifetime</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – Number of seconds that the token should be valid</li>
 </ul>
 </td>
 </tr>
@@ -240,7 +240,7 @@ as specified in <a class="reference external" href="https://tools.ietf.org/html/
 <dl class="class">
 <dt id="scitokens.scitokens.Validator">
 <em class="property">class </em><code class="descclassname">scitokens.scitokens.</code><code class="descname">Validator</code><a class="reference internal" href="_modules/scitokens/scitokens.html#Validator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scitokens.scitokens.Validator" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>Validate the contents of a SciToken.</p>
 <p>Given a SciToken, validate the contents of its claims.  Unlike verification,
 which checks that the token is correctly signed, validation provides an easy-to-use
@@ -287,7 +287,7 @@ if the token is valid.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>key</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – The key in the configuration to retreive</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>key</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – The key in the configuration to retreive</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The value in the configuration, or the default</td>
 </tr>
@@ -303,7 +303,7 @@ if the token is valid.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>key</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – The key in the configuration to retreive</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>key</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – The key in the configuration to retreive</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The value in the configuration, or the default</td>
 </tr>
