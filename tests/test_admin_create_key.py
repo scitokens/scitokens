@@ -27,6 +27,7 @@ class TestKeyCreate(unittest.TestCase):
     Test the admin-create-key tool
     """
 
+    tool = "tools/scitokens-admin-create-key"
     to_delete = []
 
     def setUp(self):
@@ -130,25 +131,25 @@ class TestKeyCreate(unittest.TestCase):
         """
         Test the key creation
         """
-        command = "python tools/scitokens-admin-create-key --create-keys --pem-private"
+        command = "{} {} --create-keys --pem-private".format(sys.executable, self.tool)
         output = self._run_command(command)
         private_key = self._test_private(output)
         self.assertIsNotNone(private_key)
 
         # Test public key
-        command = "python tools/scitokens-admin-create-key --create-keys --pem-public"
+        command = "{} {} --create-keys --pem-public".format(sys.executable, self.tool)
         output = self._run_command(command)
         public_key = self._test_public(output)
         self.assertIsNotNone(public_key)
 
         # Test public key
-        command = "python tools/scitokens-admin-create-key --create-keys --jwks-private"
+        command = "{} {} --create-keys --jwks-private".format(sys.executable, self.tool)
         output = self._run_command(command)
         private_key = self._test_private_jwk(output)
         self.assertIsNotNone(public_key)
 
         # Test public key
-        command = "python tools/scitokens-admin-create-key --create-keys --jwks-public"
+        command = "{} {} --create-keys --jwks-public".format(sys.executable, self.tool)
         output = self._run_command(command)
         public_key = self._test_public_jwk(output)
         self.assertIsNotNone(public_key)
@@ -157,25 +158,25 @@ class TestKeyCreate(unittest.TestCase):
         """
         Test the key creation
         """
-        command = "python tools/scitokens-admin-create-key --ec --create-keys --pem-private"
+        command = "{} {} --ec --create-keys --pem-private".format(sys.executable, self.tool)
         output = self._run_command(command)
         private_key = self._test_private(output)
         self.assertIsNotNone(private_key)
 
         # Test public key
-        command = "python tools/scitokens-admin-create-key --ec --create-keys --pem-public"
+        command = "{} {} --ec --create-keys --pem-public".format(sys.executable, self.tool)
         output = self._run_command(command)
         public_key = self._test_public(output)
         self.assertIsNotNone(public_key)
 
         # Test public key
-        command = "python tools/scitokens-admin-create-key --ec --create-keys --jwks-private"
+        command = "{} {} --ec --create-keys --jwks-private".format(sys.executable, self.tool)
         output = self._run_command(command)
         private_key = self._test_ec_private_jwk(output)
         self.assertIsNotNone(public_key)
 
         # Test public key
-        command = "python tools/scitokens-admin-create-key --ec --create-keys --jwks-public"
+        command = "{} {} --ec --create-keys --jwks-public".format(sys.executable, self.tool)
         output = self._run_command(command)
         public_key = self._test_ec_public_jwk(output)
         self.assertIsNotNone(public_key)
@@ -185,25 +186,25 @@ class TestKeyCreate(unittest.TestCase):
         """
         Test reading in the private key
         """
-        command = "python tools/scitokens-admin-create-key --private-key=tests/simple_private_key.pem --pem-private"
+        command = "{} {} --private-key=tests/simple_private_key.pem --pem-private".format(sys.executable, self.tool)
         output = self._run_command(command)
         private_key = self._test_private(output)
         self.assertIsNotNone(private_key)
 
         # Test public key
-        command = "python tools/scitokens-admin-create-key --private-key=tests/simple_private_key.pem --pem-public"
+        command = "{} {} --private-key=tests/simple_private_key.pem --pem-public".format(sys.executable, self.tool)
         output = self._run_command(command)
         public_key = self._test_public(output)
         self.assertIsNotNone(public_key)
 
         # Test public key
-        command = "python tools/scitokens-admin-create-key --private-key=tests/simple_private_key.pem --jwks-private"
+        command = "{} {} --private-key=tests/simple_private_key.pem --jwks-private".format(sys.executable, self.tool)
         output = self._run_command(command)
         private_key = self._test_private_jwk(output)
         self.assertIsNotNone(public_key)
 
         # Test public key
-        command = "python tools/scitokens-admin-create-key --private-key=tests/simple_private_key.pem --jwks-public"
+        command = "{} {} --private-key=tests/simple_private_key.pem --jwks-public".format(sys.executable, self.tool)
         output = self._run_command(command)
         public_key = self._test_public_jwk(output)
         self.assertIsNotNone(public_key)
@@ -212,29 +213,25 @@ class TestKeyCreate(unittest.TestCase):
         """
         Test reading in the private key
         """
-        command = "python tools/scitokens-admin-create-key --ec --private-key=tests/simple_ec_private_key.pem " + \
-                  "--pem-private"
+        command = "{} {} --ec --private-key=tests/simple_ec_private_key.pem --pem-private".format(sys.executable, self.tool)
         output = self._run_command(command)
         private_key = self._test_private(output)
         self.assertIsNotNone(private_key)
 
         # Test public key
-        command = "python tools/scitokens-admin-create-key --ec --private-key=tests/simple_ec_private_key.pem " + \
-                  "--pem-public"
+        command = "{} {} --ec --private-key=tests/simple_ec_private_key.pem --pem-public".format(sys.executable, self.tool)
         output = self._run_command(command)
         public_key = self._test_public(output)
         self.assertIsNotNone(public_key)
 
         # Test public key
-        command = "python tools/scitokens-admin-create-key --ec --private-key=tests/simple_ec_private_key.pem " + \
-                  "--jwks-private"
+        command = "{} {} --ec --private-key=tests/simple_ec_private_key.pem --jwks-private".format(sys.executable, self.tool)
         output = self._run_command(command)
         private_key = self._test_ec_private_jwk(output)
         self.assertIsNotNone(public_key)
 
         # Test public key
-        command = "python tools/scitokens-admin-create-key --ec --private-key=tests/simple_ec_private_key.pem " + \
-                  "--jwks-public"
+        command = "{} {} --ec --private-key=tests/simple_ec_private_key.pem --jwks-public".format(sys.executable, self.tool)
         output = self._run_command(command)
         public_key = self._test_ec_public_jwk(output)
         self.assertIsNotNone(public_key)
@@ -262,13 +259,13 @@ class TestKeyCreate(unittest.TestCase):
         self.to_delete.append(tmpfile.name)
 
         # Test public key
-        command = "python tools/scitokens-admin-create-key --public-key={} --pem-public".format(tmpfile.name)
+        command = "{} {} --public-key={} --pem-public".format(sys.executable, self.tool, tmpfile.name)
         output = self._run_command(command)
         public_key = self._test_public(output)
         self.assertIsNotNone(public_key)
 
         # Test public key
-        command = "python tools/scitokens-admin-create-key --public-key={} --jwks-public".format(tmpfile.name)
+        command = "{} {} --public-key={} --jwks-public".format(sys.executable, self.tool, tmpfile.name)
         output = self._run_command(command)
         public_key = self._test_public_jwk(output)
         self.assertIsNotNone(public_key)
@@ -295,13 +292,13 @@ class TestKeyCreate(unittest.TestCase):
         self.to_delete.append(tmpfile.name)
 
         # Test public key
-        command = "python tools/scitokens-admin-create-key --ec --public-key={} --pem-public".format(tmpfile.name)
+        command = "{} {} --ec --public-key={} --pem-public".format(sys.executable, self.tool, tmpfile.name)
         output = self._run_command(command)
         public_key = self._test_public(output)
         self.assertIsNotNone(public_key)
 
         # Test public key
-        command = "python tools/scitokens-admin-create-key --ec --public-key={} --jwks-public".format(tmpfile.name)
+        command = "{} {} --ec --public-key={} --jwks-public".format(sys.executable, self.tool, tmpfile.name)
         output = self._run_command(command)
         public_key = self._test_ec_public_jwk(output)
         self.assertIsNotNone(public_key)
