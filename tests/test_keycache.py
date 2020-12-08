@@ -46,6 +46,10 @@ class TestKeyCache(unittest.TestCase):
         if self.old_xdg:
             os.environ['XDG_CACHE_HOME'] = self.old_xdg
 
+    @unittest.skipIf(
+        os.name == "nt",
+        "makedirs('/does/not/exists') dosen't fail on windows",
+    )
     def test_cannot_make_cache(self):
         """
         Test when the keycache shouldn't be able to make the cache

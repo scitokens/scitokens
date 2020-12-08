@@ -46,6 +46,10 @@ class TestConfig(unittest.TestCase):
 
         self.assertEqual(scitokens.utils.config.get("log_level"), "WARNING")
 
+    @unittest.skipIf(
+        os.name == "nt",
+        "opening a NamedTemporaryFile twice doesn't work on windows",
+    )
     def test_passing_config_log(self):
         """
         Test the with log_file
