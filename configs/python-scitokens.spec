@@ -86,6 +86,7 @@ touch %{buildroot}%{_bindir}/scitokens-admin-create-token
 
 %if 0%{?rhel} >= 8
 %files -n python3-%{pypi_name}
+%license LICENSE
 %{python3_sitelib}/%{pypi_name}
 %{python3_sitelib}/%{pypi_name}-%{version}-py?.?.egg-info
 %doc README.rst
@@ -94,6 +95,7 @@ touch %{buildroot}%{_bindir}/scitokens-admin-create-token
 %else
 
 %files -n python3-%{pypi_name}
+%license LICENSE
 %{python3_sitelib}/%{pypi_name}
 %{python3_sitelib}/%{pypi_name}-%{version}-py?.?.egg-info
 %doc README.rst
@@ -103,6 +105,7 @@ touch %{buildroot}%{_bindir}/scitokens-admin-create-token
 %{_bindir}/scitokens-admin-create-token3
 
 %files -n python2-%{pypi_name}
+%license LICENSE
 %{python2_sitelib}/%{pypi_name}
 %{python2_sitelib}/%{pypi_name}-%{version}-py?.?.egg-info
 %doc README.rst
