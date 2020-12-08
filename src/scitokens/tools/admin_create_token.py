@@ -1,4 +1,4 @@
-#!/usr/bin/python
+
 """
 Generate a SciToken from command-line inputs (and a local signing key).
 """

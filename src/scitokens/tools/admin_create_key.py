@@ -1,4 +1,4 @@
-#!/usr/bin/python
+
 """
 Create the oauth2 certs file from a given private or public key.  The resulting format
 should be something like:
