@@ -7,7 +7,6 @@ import os
 import sqlite3
 import time
 import pkg_resources  # part of setuptools
-import pwd
 import re
 import logging
 try:
@@ -325,7 +324,7 @@ class KeyCache(object):
 
         config_cache_location = config.get('cache_location')
         xdg_cache_home = os.environ.get("XDG_CACHE_HOME", None)
-        home_dir = pwd.getpwuid(os.geteuid()).pw_dir
+        home_dir = os.path.expanduser("~")
 
         if config_cache_location != "":
             cache_dir = config_cache_location
