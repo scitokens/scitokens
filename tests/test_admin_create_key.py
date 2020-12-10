@@ -27,7 +27,7 @@ class TestKeyCreate(unittest.TestCase):
     Test the admin-create-key tool
     """
 
-    tool = "tools/scitokens-admin-create-key"
+    tool = "-m scitokens.tools.admin_create_key"
     to_delete = []
 
     def setUp(self):
