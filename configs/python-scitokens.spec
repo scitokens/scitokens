@@ -2,8 +2,8 @@
 %global pypi_name scitokens
 
 Name:           python-%{pypi_name}
-Version:        1.2.4
-Release:        3%{?dist}
+Version:        1.3.1
+Release:        1%{?dist}
 Summary:        SciToken reference implementation library
 
 License:        Apache 2.0
@@ -131,6 +131,10 @@ fi
 
 
 %changelog
+* Mon Jan 25 2021 Derek Weitzel <dweitzel@cse.unl.edu> - 1.3.1-1
+- Fix dependency change of behavior in PyJWT
+- Add lifetime argument to scitokens-admin-create-token
+
 * Wed Sep 30 2020 Diego Davila <didavila@ucsd.edu> - 1.2.4-3
 - Force the creation of symlinks so it doesn't fail on update (software-4233)
 
