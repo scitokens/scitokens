@@ -114,7 +114,7 @@ class SciToken(object):
         raise NotImplementedError()
 
 
-    def serialize(self, include_key=False, issuer=None, lifetime=600):
+    def serialize(self, include_key=False, issuer=None, lifetime=600) -> bytes:
         """
         Serialize the existing SciToken.
         
@@ -171,8 +171,10 @@ class SciToken(object):
         
         global LOGGER
         LOGGER.info("Signed Token: {0}".format(str(payload)))
-        
-        return encoded
+
+        # Encode the returned string for backwards compatibility.
+        # Previous versions of PyJWT returned bytes
+        return str.encode(encoded)
 
     def update_claims(self, claims):
         """
