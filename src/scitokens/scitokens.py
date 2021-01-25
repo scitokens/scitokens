@@ -114,7 +114,7 @@ class SciToken(object):
         raise NotImplementedError()
 
 
-    def serialize(self, include_key=False, issuer=None, lifetime=600) -> bytes:
+    def serialize(self, include_key=False, issuer=None, lifetime=600):
         """
         Serialize the existing SciToken.
         
