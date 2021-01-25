@@ -171,8 +171,10 @@ class SciToken(object):
         
         global LOGGER
         LOGGER.info("Signed Token: {0}".format(str(payload)))
-        
-        return encoded
+
+        # Encode the returned string for backwards compatibility.
+        # Previous versions of PyJWT returned bytes
+        return str.encode(encoded)
 
     def update_claims(self, claims):
         """
@@ -281,7 +283,8 @@ class SciToken(object):
         serialized_jwt = info[0] + "." + info[1] + "." + info[2]
 
         unverified_headers = jwt.get_unverified_header(serialized_jwt)
-        unverified_payload = jwt.decode(serialized_jwt, verify=False, algorithms=['RS256', 'ES256'])
+        unverified_payload = jwt.decode(serialized_jwt, verify=False, algorithms=['RS256', 'ES256'],
+                                        options={"verify_signature": False})
         
         # Get the public key from the issuer
         keycache = KeyCache.KeyCache().getinstance()
