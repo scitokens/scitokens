@@ -22,6 +22,8 @@ def add_args():
                         help='Location of the private key file')
     parser.add_argument('--key_id', help='The string key identifier')
     parser.add_argument('--issuer', help="Issuer for the token")
+    parser.add_argument('--lifetime', help="Lifetime of the token, in seconds from now. Default: 1200 seconds (20 minutes)",
+                        type=int, default=1200)
 
     args = parser.parse_args()
     return args
@@ -48,7 +50,7 @@ def main():
         (key, value) = claim.split('=', 1)
         token.update_claims({key: value})
 
-    serialized_token = token.serialize(issuer=args.issuer)
+    serialized_token = token.serialize(issuer=args.issuer, lifetime=args.lifetime)
     print(serialized_token.decode())
 
 
