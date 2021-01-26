@@ -299,12 +299,8 @@ class SciToken(object):
             claims = jwt.decode(serialized_token, issuer_public_key, audience = audience, algorithms=['RS256', 'ES256'])
         else:
             claims = jwt.decode(serialized_token, issuer_public_key, algorithms=['RS256', 'ES256'])
-        # Do we have the private key?
-        if len(info) == 4:
-            to_return = SciToken(key = key)
-        else:
-            to_return = SciToken()
-            
+
+        to_return = SciToken()
         to_return._verified_claims = claims
         to_return._serialized_token = serialized_token
         return to_return
