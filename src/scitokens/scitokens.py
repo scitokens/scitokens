@@ -8,6 +8,7 @@ authorization tokens.
 
 import time
 
+import os
 import jwt
 from . import urltools
 import logging
@@ -304,6 +305,47 @@ class SciToken(object):
         to_return._verified_claims = claims
         to_return._serialized_token = serialized_token
         return to_return
+
+    @staticmethod
+    def discover(audience=None, require_key=False, insecure=False, public_key=None):
+        """
+        Create a SciToken by looking for a token with WLCG Bearer Token Discovery protocol
+
+        https://github.com/WLCG-AuthZ-WG/bearer-token-discovery/blob/master/specification.md
+        
+        The serialized token is read in and passed to the deserialize() method to load it 
+        into a SciTokens object. Raises FileNotFound is a token cannot be found or the errors
+        of SciTokens.deserialize() if there is an error reading the discovered token.
+        
+        :param str audience: The audience URI that this principle is claiming.  Default: None
+        :param bool require_key: When True, require the key
+        :param bool insecure: When True, allow insecure methods to verify the issuer,
+                              including allowing "localhost" issuer (useful in testing).  Default=False
+        :param str public_key: A PEM formatted public key string to be used to validate the token
+        """
+        if os.environ.get('BEARER_TOKEN'):
+            return SciToken.deserialize(os.environ['BEARER_TOKEN'].strip(),
+                                        audience, require_key, insecure, public_key)
+        
+        if os.environ.get('BEARER_TOKEN_FILE') and os.path.isfile(os.environ.get('BEARER_TOKEN_FILE')):
+            with open(os.environ.get('BEARER_TOKEN_FILE')) as t:
+                token_data = t.read().strip()
+                return SciToken.deserialize(token_data,
+                                            audience, require_key, insecure, public_key)
+
+        bt_file = 'bt_u{}'.format(os.geteuid())
+        if os.environ.get('XDG_RUNTIME_DIR'):
+            bt_path = os.path.join(os.environ.get('XDG_RUNTIME_DIR'), bt_file)
+        else:
+            bt_path = os.path.join('/tmp', bt_file)
+
+        if os.path.isfile(bt_path):
+            with open(bt_path) as t:
+                token_data = t.read().strip()
+                return SciToken.deserialize(token_data,
+                                            audience, require_key, insecure, public_key)
+
+        raise FileNotFoundError
 
 
 class ValidationFailure(Exception):
