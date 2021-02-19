@@ -322,7 +322,7 @@ class TestCreation(unittest.TestCase):
             os.rename(bt_path, bt_tmp)
 
         # check that the function fails properly
-        with self.assertRaises(FileNotFoundError):
+        with self.assertRaises(IOError):
             print(self._token.discover())
 
         # generate a token and save it as /tmp/bt_u$ID

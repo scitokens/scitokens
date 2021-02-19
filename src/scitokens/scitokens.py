@@ -314,7 +314,7 @@ class SciToken(object):
         https://github.com/WLCG-AuthZ-WG/bearer-token-discovery/blob/master/specification.md
         
         The serialized token is read in and passed to the deserialize() method to load it 
-        into a SciTokens object. Raises FileNotFound is a token cannot be found or the errors
+        into a SciTokens object. Raises IOError is a token cannot be found or the errors
         of SciTokens.deserialize() if there is an error reading the discovered token.
         
         :param str audience: The audience URI that this principle is claiming.  Default: None
@@ -345,7 +345,7 @@ class SciToken(object):
                 return SciToken.deserialize(token_data,
                                             audience, require_key, insecure, public_key)
 
-        raise FileNotFoundError
+        raise IOError
 
 
 class ValidationFailure(Exception):
