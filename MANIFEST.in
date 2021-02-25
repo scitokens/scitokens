@@ -1,1 +1,2 @@
 include LICENSE README.rst
+recursive-include tests *.py *.pem *.ini
