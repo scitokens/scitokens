@@ -5,6 +5,8 @@ Test for creating a simple scitoken.
 import os
 import sys
 import unittest
+import tempfile
+import shutil
 
 # Allow unittests to be run from within the project base.
 if os.path.exists("src"):
@@ -293,6 +295,109 @@ class TestCreation(unittest.TestCase):
 
         token = scitokens.SciToken(key = ec_private_key, algorithm="ES256")
         token.serialize(issuer="local")
+
+
+    def test_discover(self):
+        """
+        Test wlcg bearer token discovery
+        """
+        # unset any wlcg discovery environment variables
+        try:
+           del os.environ['BEARER_TOKEN']
+        except KeyError:
+           pass
+        try:
+           del os.environ['BEARER_TOKEN_FILE']
+        except KeyError:
+           pass
+        try:
+           del os.environ['XDG_RUNTIME_DIR']
+        except KeyError:
+           pass
+
+        # move any /tmp/bt_u$ID file out of the way
+        bt_file = 'bt_u{}'.format(os.geteuid())
+        bt_path = os.path.join('/tmp', bt_file)
+        (bt_fd, bt_tmp) = tempfile.mkstemp()
+        os.close(bt_fd)
+        if os.path.isfile(bt_path):
+            os.rename(bt_path, bt_tmp)
+
+        # check that the function fails properly
+        with self.assertRaises(IOError):
+            print(self._token.discover())
+
+        # generate a token and save it as /tmp/bt_u$ID
+        tmp_file_token = scitokens.SciToken(key = self._private_key, key_id="tmp_file")
+        tmp_file_token['scope'] = 'tmp_file'
+        tmp_file_token_s = tmp_file_token.serialize(issuer="local")
+        with open(bt_path, 'w') as f:
+            f.write(tmp_file_token_s.decode('utf-8'))
+
+        # discover a token and check we found /tmp/bt_u$ID
+        token = self._token.discover(public_key = self._public_pem)
+        self.assertEqual(token._serialized_token, tmp_file_token._serialized_token)
+
+        # generate a token and save it as $XDG_RUNTIME_DIR/bt_u$ID
+        xdg_file_token = scitokens.SciToken(key = self._private_key, key_id="xdg_file")
+        xdg_file_token['scope'] = 'xdg_file'
+        xdg_file_token_s = xdg_file_token.serialize(issuer="local")
+        xdg_dir = tempfile.mkdtemp()
+        xdg_path = os.path.join(xdg_dir, bt_file)
+        with open(xdg_path, 'w') as f:
+            f.write(xdg_file_token_s.decode('utf-8'))
+
+        # set the wlcg discovery environment variable
+        os.environ['XDG_RUNTIME_DIR'] = xdg_dir
+
+        # discover a token and check we found $XDG_RUNTIME_DIR/bt_u$ID
+        # and not /tmp/bt_u$ID
+        token = self._token.discover(public_key = self._public_pem, insecure=True)
+        self.assertNotEqual(token._serialized_token, tmp_file_token._serialized_token)
+        self.assertEqual(token._serialized_token, xdg_file_token._serialized_token)
+
+        # generate a token and save it in BEARER_TOKEN_FILE
+        bearer_file_token = scitokens.SciToken(key = self._private_key, key_id="bearer_file")
+        bearer_file_token['scope'] = 'bearer_file'
+        bearer_file_token_s = bearer_file_token.serialize(issuer="local")
+        (fd, bearer_token_file) = tempfile.mkstemp()
+        with open(bearer_token_file, 'w') as f:
+            f.write(bearer_file_token_s.decode('utf-8'))
+        os.close(fd)
+
+        # set the wlcg discovery environment variable
+        os.environ['BEARER_TOKEN_FILE'] = bearer_token_file
+
+        # discover a token and check we found BEARER_TOKEN_FILE
+        # and not $XDG_RUNTIME_DIR/bt_u$ID or /tmp/bt_u$ID
+        token = self._token.discover(public_key = self._public_pem, insecure=True)
+        self.assertNotEqual(token._serialized_token, tmp_file_token._serialized_token)
+        self.assertNotEqual(token._serialized_token, xdg_file_token._serialized_token)
+        self.assertEqual(token._serialized_token, bearer_file_token._serialized_token)
+
+        # generate a token
+        bearer_token = scitokens.SciToken(key = self._private_key, key_id="bearer")
+        bearer_token['scope'] = 'bearer'
+        bearer_token_s = bearer_token.serialize(issuer="local")
+
+        # set the wlcg discovery environment variable
+        os.environ['BEARER_TOKEN'] = bearer_token_s.decode('utf-8')
+
+        # discover a token and check we found BEARER_TOKEN
+        # and not BEARER_TOKEN_FILE, $XDG_RUNTIME_DIR/bt_u$ID or /tmp/bt_u$ID
+        token = self._token.discover(public_key = self._public_pem, insecure=True)
+        self.assertNotEqual(token._serialized_token, tmp_file_token._serialized_token)
+        self.assertNotEqual(token._serialized_token, xdg_file_token._serialized_token)
+        self.assertNotEqual(token._serialized_token, bearer_file_token._serialized_token)
+        self.assertEqual(token._serialized_token, bearer_token._serialized_token)
+
+        # clean up the files and directories created
+        shutil.rmtree(xdg_dir)
+        os.remove(bearer_token_file)
+        os.remove(bt_path)
+        if os.path.isfile(bt_tmp):
+            os.rename(bt_tmp, bt_path)
+
 
 if __name__ == '__main__':
     unittest.main()
