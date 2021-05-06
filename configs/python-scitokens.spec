@@ -11,48 +11,20 @@ URL:            https://scitokens.org
 Source0:        https://files.pythonhosted.org/packages/source/s/%{pypi_name}/%{pypi_name}-%{version}.tar.gz
 BuildArch:      noarch
  
-%if 0%{?rhel} >= 8
 BuildRequires:  python3-devel
 BuildRequires:  python3-setuptools
-%else
-BuildRequires:  python3-devel
-BuildRequires:  python3-setuptools
-BuildRequires:  python2-devel
-BuildRequires:  python-setuptools
-%endif
 
 
 %description
 SciToken reference implementation library
 
-%if 0%{?rhel} >= 8
 %package -n     python3-%{pypi_name}
-Requires:       python3-jwt >= 1.6.1
+Requires:       python3-jwt >= 2.0.0
 Requires:       python3-cryptography
 Summary:        %{summary}
-%else
-%package -n     python3-%{pypi_name}
-Requires:       python36-jwt >= 1.6.1
-Requires:       python36-cryptography
-Summary:        %{summary}
-
-%package -n     python2-%{pypi_name}
-Requires:       python-jwt >= 1.6.1
-Requires:       python2-cryptography
-Summary:        %{summary}
-%endif
-
-%if 0%{?rhel} >= 8
-%description -n python3-%{pypi_name}
-SciToken reference implementation library
-%else
-%description -n python2-%{pypi_name}
-SciToken reference implementation library
 
 %description -n python3-%{pypi_name}
 SciToken reference implementation library
-%endif
-
 
 %prep
 %autosetup -n %{pypi_name}-%{version}
@@ -60,31 +32,13 @@ SciToken reference implementation library
 rm -rf %{pypi_name}.egg-info
 
 %build
-%if 0%{?rhel} >= 8
 %py3_build
-%else
-%py3_build
-%py2_build
-%endif
 
 %install
 # Must do the subpackages' install first because the scripts in /usr/bin are
 # overwritten with every setup.py install.
-%if 0%{?rhel} >= 8
 %py3_install
-%else
-%py3_install
-mv %{buildroot}%{_bindir}/scitokens-admin-create-key %{buildroot}%{_bindir}/scitokens-admin-create-key3
-mv %{buildroot}%{_bindir}/scitokens-admin-create-token %{buildroot}%{_bindir}/scitokens-admin-create-token3
 
-%py2_install
-mv %{buildroot}%{_bindir}/scitokens-admin-create-key %{buildroot}%{_bindir}/scitokens-admin-create-key2
-mv %{buildroot}%{_bindir}/scitokens-admin-create-token %{buildroot}%{_bindir}/scitokens-admin-create-token2
-touch %{buildroot}%{_bindir}/scitokens-admin-create-key 
-touch %{buildroot}%{_bindir}/scitokens-admin-create-token 
-%endif
-
-%if 0%{?rhel} >= 8
 %files -n python3-%{pypi_name}
 %license LICENSE
 %{python3_sitelib}/%{pypi_name}
@@ -92,42 +46,6 @@ touch %{buildroot}%{_bindir}/scitokens-admin-create-token
 %doc README.rst
 %{_bindir}/scitokens-admin-create-key
 %{_bindir}/scitokens-admin-create-token
-%else
-
-%files -n python3-%{pypi_name}
-%license LICENSE
-%{python3_sitelib}/%{pypi_name}
-%{python3_sitelib}/%{pypi_name}-%{version}-py?.?.egg-info
-%doc README.rst
-%ghost %{_bindir}/scitokens-admin-create-key
-%ghost %{_bindir}/scitokens-admin-create-token
-%{_bindir}/scitokens-admin-create-key3
-%{_bindir}/scitokens-admin-create-token3
-
-%files -n python2-%{pypi_name}
-%license LICENSE
-%{python2_sitelib}/%{pypi_name}
-%{python2_sitelib}/%{pypi_name}-%{version}-py?.?.egg-info
-%doc README.rst
-%ghost %{_bindir}/scitokens-admin-create-key
-%ghost %{_bindir}/scitokens-admin-create-token
-%{_bindir}/scitokens-admin-create-key2
-%{_bindir}/scitokens-admin-create-token2
-%endif
-
-%if 0%{?rhel} < 8
-%post -n python3-%{pypi_name}
-if [ ! -L %{_bindir}/scitokens-admin-create-key ]; then
-  ln -sf scitokens-admin-create-key3 %{_bindir}/scitokens-admin-create-key
-  ln -sf scitokens-admin-create-token3 %{_bindir}/scitokens-admin-create-token
-fi
-
-%post -n python2-%{pypi_name}
-if [ ! -L %{_bindir}/scitokens-admin-create-key ]; then
-  ln -sf scitokens-admin-create-key2 %{_bindir}/scitokens-admin-create-key
-  ln -sf scitokens-admin-create-token2 %{_bindir}/scitokens-admin-create-token
-fi
-%endif
 
 
 %changelog
