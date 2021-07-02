@@ -2,7 +2,14 @@
 Error and Exceptions in the SciTokens library
 """
 
-class MissingKeyException(Exception):
+
+class SciTokensException(Exception):
+    """
+    Base class for exceptions in the SciTokens library
+    """
+    pass
+
+class MissingKeyException(SciTokensException):
     """
     No private key is present.
 
@@ -11,7 +18,7 @@ class MissingKeyException(Exception):
     """
     pass
 
-class UnsupportedKeyException(Exception):
+class UnsupportedKeyException(SciTokensException):
     """
     Key is present but is of an unsupported format.
 
@@ -20,26 +27,26 @@ class UnsupportedKeyException(Exception):
     """
     pass
 
-class MissingIssuerException(Exception):
+class MissingIssuerException(SciTokensException):
     """
     Missing the issuer in the SciToken, unable to verify token
     """
     pass
 
-class NonHTTPSIssuer(Exception):
+class NonHTTPSIssuer(SciTokensException):
     """
     Non HTTPs issuer, as required by draft-ietf-oauth-discovery-07
     https://tools.ietf.org/html/draft-ietf-oauth-discovery-07
     """
     pass
 
-class InvalidTokenFormat(Exception):
+class InvalidTokenFormat(SciTokensException):
     """
     Encoded token has an invalid format.
     """
     pass
 
-class UnableToCreateCache(Exception):
+class UnableToCreateCache(SciTokensException):
     """
     Unable to make the KeyCache
     """
