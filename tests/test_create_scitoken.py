@@ -316,7 +316,10 @@ class TestCreation(unittest.TestCase):
            pass
 
         # move any /tmp/bt_u$ID file out of the way
-        bt_file = 'bt_u{}'.format(os.geteuid())
+        try:
+            bt_file = 'bt_u{}'.format(os.geteuid())
+        except AttributeError as exc:  # windows doesn't have geteuid
+            self.skipTest(str(exc))
         bt_path = os.path.join('/tmp', bt_file)
         (bt_fd, bt_tmp) = tempfile.mkstemp()
         os.close(bt_fd)
