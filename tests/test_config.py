@@ -46,10 +46,6 @@ class TestConfig(unittest.TestCase):
 
         self.assertEqual(scitokens.utils.config.get("log_level"), "WARNING")
 
-    @unittest.skipIf(
-        os.name == "nt",
-        "opening a NamedTemporaryFile twice doesn't work on windows",
-    )
     def test_passing_config_log(self):
         """
         Test the with log_file
@@ -58,22 +54,24 @@ class TestConfig(unittest.TestCase):
         new_config = configparser.ConfigParser()
         new_config.add_section("scitokens")
         new_config.set("scitokens", "log_level", "WARNING")
-        tmp_file = tempfile.NamedTemporaryFile()
-        new_config.set("scitokens", "log_file", tmp_file.name)
 
-        scitokens.set_config(new_config)
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            tmp_file = os.path.join(tmp_dir, "tmp.log")
+            new_config.set("scitokens", "log_file", tmp_file)
 
-        self.assertEqual(scitokens.utils.config.get("log_level"), "WARNING")
-        self.assertEqual(scitokens.utils.config.get("log_file"), tmp_file.name)
+            scitokens.set_config(new_config)
 
-        # Log a line
-        logger = logging.getLogger("scitokens")
-        logger.error("This is an error")
-        tmp_file.flush()
-        print(os.path.getsize(tmp_file.name))
-        self.assertTrue(os.path.getsize(tmp_file.name) > 0)
+            self.assertEqual(scitokens.utils.config.get("log_level"), "WARNING")
+            self.assertEqual(scitokens.utils.config.get("log_file"), tmp_file)
 
-        tmp_file.close()
+            # Log a line
+            logger = logging.getLogger("scitokens")
+            logger.error("This is an error")
+            self.assertTrue(os.path.getsize(tmp_file) > 0)
+
+            # close the log files so that TemporaryDirectory can delete itself
+            for handler in logger.handlers:
+                handler.close()
 
     def test_no_config(self):
         """
