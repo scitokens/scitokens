@@ -31,7 +31,7 @@ class TestKeyCreate(unittest.TestCase):
     to_delete = []
 
     def setUp(self):
-        os.environ['PYTHONPATH'] = ":".join(sys.path)
+        os.environ['PYTHONPATH'] = os.pathsep.join(sys.path)
         self.to_delete = []
 
     @staticmethod
