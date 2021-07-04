@@ -133,11 +133,11 @@ class SciToken(object):
             raise MissingKeyException("Unable to serialize, missing private key")
 
         # Issuer needs to be available, otherwise throw an error
-        if issuer == None and 'iss' not in self._claims:
+        if issuer is None and 'iss' not in self:
             raise MissingIssuerException("Issuer not specific in claims or as argument")
 
         if not issuer:
-            issuer = self._claims['iss']
+            issuer = self['iss']
 
         # Set the issue and expiration time of the token
         issue_time = int(time.time())
