@@ -3,10 +3,29 @@
 Install file for SciTokens project.
 """
 
+import os.path
+import re
+
 import setuptools
 
+
+def find_version(path, varname="__version__"):
+    """Parse the version metadata variable in the given file.
+    """
+    with open(path, 'r') as fobj:
+        version_file = fobj.read()
+    version_match = re.search(
+        r"^{0} = ['\"]([^'\"]*)['\"]".format(varname),
+        version_file,
+        re.M,
+    )
+    if version_match:
+        return version_match.group(1)
+    raise RuntimeError("Unable to find version string.")
+
+
 setuptools.setup(name="scitokens",
-                 version="1.4.0",
+                 version=find_version(os.path.join("src", "scitokens", "__init__.py")),
                  description="SciToken reference implementation library",
                  author_email="team@scitokens.org",
                  author="Brian Bockelman",
