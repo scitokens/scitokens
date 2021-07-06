@@ -32,7 +32,7 @@ from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat,
 import cryptography.hazmat.backends as backends
 import cryptography.hazmat.primitives.asymmetric.ec as ec
 import cryptography.hazmat.primitives.asymmetric.rsa as rsa
-from scitokens.utils.errors import MissingKeyException, NonHTTPSIssuer, UnableToCreateCache, UnsupportedKeyException
+from scitokens.utils.errors import SciTokensException, MissingKeyException, NonHTTPSIssuer, UnableToCreateCache, UnsupportedKeyException
 from scitokens.utils import long_from_bytes
 import scitokens.utils.config as config
 
@@ -40,7 +40,7 @@ import scitokens.utils.config as config
 CACHE_FILENAME = "scitokens_keycache.sqllite"
 KEYCACHE_INSTANCE = None
 
-class UnableToWriteKeyCache(Exception):
+class UnableToWriteKeyCache(SciTokensException):
     """
     For whatever reason, unable to write to the Key Cache
     """
