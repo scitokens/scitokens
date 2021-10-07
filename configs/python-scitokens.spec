@@ -12,18 +12,19 @@ Source0:        https://files.pythonhosted.org/packages/source/s/%{pypi_name}/%{
 BuildArch:      noarch
  
 BuildRequires:  python3-devel
-BuildRequires:  python3-setuptools
+BuildRequires:  python%{python3_pkgversion}-setuptools
 
 
 %description
 SciToken reference implementation library
 
-%package -n     python3-%{pypi_name}
-Requires:       python3-jwt >= 2.0.0
-Requires:       python3-cryptography
+%package -n     python%{python3_pkgversion}-%{pypi_name}
+Requires:       python%{python3_pkgversion}-jwt >= 2.0.0
+Requires:       python%{python3_pkgversion}-cryptography
 Summary:        %{summary}
+%{?python_provide:%python_provide python%{python3_pkgversion}-%{pypi_name}}
 
-%description -n python3-%{pypi_name}
+%description -n python%{python3_pkgversion}-%{pypi_name}
 SciToken reference implementation library
 
 %prep
@@ -39,7 +40,7 @@ rm -rf %{pypi_name}.egg-info
 # overwritten with every setup.py install.
 %py3_install
 
-%files -n python3-%{pypi_name}
+%files -n python%{python3_pkgversion}-%{pypi_name}
 %license LICENSE
 %{python3_sitelib}/%{pypi_name}
 %{python3_sitelib}/%{pypi_name}-%{version}-py?.?.egg-info
