@@ -80,7 +80,7 @@ def main():
     #numbers = loaded_private_key.private_numbers()
 
     flattened = {}
-    flattened['payload'] = jwt.decode(token_encoded, verify=False)
+    flattened['payload'] = jwt.decode(token_encoded)
     flattened['protected'] = jwt.get_unverified_header(token_encoded)
     flattened['signature'] = token_encoded.split(".")[-1]
 
@@ -105,7 +105,7 @@ def main():
     child_token_encoded = jwt.encode({"read": "/ligo/brian"}, serialized_child_private, algorithm="ES256",
                                      headers={"pwt": pwt})
     flattened = {}
-    flattened['payload'] = jwt.decode(child_token_encoded, verify=False)
+    flattened['payload'] = jwt.decode(child_token_encoded)
     flattened['protected'] = jwt.get_unverified_header(child_token_encoded)
     flattened['signature'] = child_token_encoded.split(".")[-1]
     flattened['key'] = private_jwk
