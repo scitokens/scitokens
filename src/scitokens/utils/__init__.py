@@ -11,7 +11,7 @@ def long_from_bytes(data):
     :param data: UTF-8 string containing base64-encoded data.
     :returns: Corresponding decoded integer.
     """
-    return cryptography.utils.int_from_bytes(decode_base64(data.encode("ascii")), 'big')
+    return int.from_bytes(decode_base64(data.encode("ascii")), 'big')
 
 def decode_base64(data):
     """Decode base64, padding being optional.
