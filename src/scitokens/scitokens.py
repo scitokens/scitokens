@@ -284,7 +284,7 @@ class SciToken(object):
         serialized_jwt = info[0] + "." + info[1] + "." + info[2]
 
         unverified_headers = jwt.get_unverified_header(serialized_jwt)
-        unverified_payload = jwt.decode(serialized_jwt, verify=False, algorithms=['RS256', 'ES256'],
+        unverified_payload = jwt.decode(serialized_jwt, algorithms=['RS256', 'ES256'],
                                         options={"verify_signature": False})
         
         # Get the public key from the issuer
