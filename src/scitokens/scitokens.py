@@ -175,7 +175,9 @@ class SciToken(object):
 
         # Encode the returned string for backwards compatibility.
         # Previous versions of PyJWT returned bytes
-        return str.encode(encoded)
+        if not isinstance(encoded, bytes):
+            encoded = str.encode(encoded)
+        return encoded
 
     def update_claims(self, claims):
         """
