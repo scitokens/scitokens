@@ -123,6 +123,8 @@ class TestEnforcer(unittest.TestCase):
 
         with self.assertRaises(scitokens.scitokens.InvalidPathError):
             print(enf.test(self._token2, "write", "~/foo"))
+        
+        
     
 
     def test_v2(self):
@@ -252,6 +254,25 @@ class TestEnforcer(unittest.TestCase):
         self.assertTrue(enf.test(self._token, "read", "/"), msg=enf.last_failure)
         self._token['aud'] = "https://doesnotwork.com"
         self.assertFalse(enf.test(self._token, "read", "/"), msg=enf.last_failure)
+
+        self._token2['scope'] = 'read:/'
+        self._token2["aud"] = ["https://example.com", "https://another.com"]
+        enf = scitokens.Enforcer(self._test_issuer, audience = "https://example.com")
+        self.assertTrue(enf.test(self._token2, "read", "/foo"), msg=enf.last_failure)
+        self._token2["aud"] = ["notexist", "https://another.com"]
+        self.assertFalse(enf.test(self._token2, "read", "/foo"), msg=enf.last_failure)
+
+        self._token2["aud"] = ["https://example.com", "https://another.com"]
+        enf = scitokens.Enforcer(self._test_issuer, audience = ["https://example.com", "blah.com"])
+        self.assertTrue(enf.test(self._token2, "read", "/foo"), msg=enf.last_failure)
+        self._token2["aud"] = ["notexist", "https://another.com"]
+        self.assertFalse(enf.test(self._token2, "read", "/foo"), msg=enf.last_failure)
+
+        self._token2["aud"] = ["https://example.com", "https://another.com"]
+        enf = scitokens.Enforcer(self._test_issuer, audience = ["https://example.com", "blah.com"])
+        self.assertTrue(enf.test(self._token2, "read", "/foo"), msg=enf.last_failure)
+        enf = scitokens.Enforcer(self._test_issuer, audience = ["foo.com", "blah.com"])
+        self.assertFalse(enf.test(self._token2, "read", "/foo"), msg=enf.last_failure)
 
     def test_getitem(self):
         """
