@@ -593,9 +593,26 @@ class Enforcer(object):
             return False
         elif value == "ANY":
             return True
-        elif isinstance(self._audience, list):
-            return value in self._audience
-        return value == self._audience
+        
+        # Convert the value and self._audience both to sets
+        # Then perform set intersection
+        values = []
+        if not isinstance(value, list):
+            values = [value]
+        else:
+            values = value
+        set_value = set(values)
+        audiences = []
+        if not isinstance(self._audience, list):
+            audiences = [self._audience]
+        else:
+            audiences = self._audience
+        set_aud = set(audiences)
+        if len(set_value.intersection(set_aud)) > 0:
+            return True
+        else:
+            return False
+
 
     def _validate_ver(self, value):
         if value in self._versions_understood:
