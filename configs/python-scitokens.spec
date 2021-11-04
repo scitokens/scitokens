@@ -2,8 +2,8 @@
 %global pypi_name scitokens
 
 Name:           python-%{pypi_name}
-Version:        1.6.0
-Release:        2%{?dist}
+Version:        1.6.1
+Release:        1%{?dist}
 Summary:        SciToken reference implementation library
 
 License:        Apache 2.0
@@ -50,7 +50,7 @@ rm -rf %{pypi_name}.egg-info
 
 
 %changelog
-* Wed Nov 3 2021 Brian Lin <blin@cs.wisc.edu> - 1.6.0-2
+* Wed Nov 3 2021 Brian Lin <blin@cs.wisc.edu> - 1.6.1-1
 - Reduce PyJWT version requirement made possible by #121 (SOFTWARE-4879)
 
 * Mon Oct 11 2021 Derek Weitzel <dweitzel@cse.unl.edu> - 1.6.0-1
