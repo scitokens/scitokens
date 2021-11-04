@@ -2,7 +2,7 @@
 %global pypi_name scitokens
 
 Name:           python-%{pypi_name}
-Version:        1.3.1
+Version:        1.6.1
 Release:        1%{?dist}
 Summary:        SciToken reference implementation library
 
@@ -19,7 +19,7 @@ BuildRequires:  python%{python3_pkgversion}-setuptools
 SciToken reference implementation library
 
 %package -n     python%{python3_pkgversion}-%{pypi_name}
-Requires:       python%{python3_pkgversion}-jwt >= 2.0.0
+Requires:       python%{python3_pkgversion}-jwt >= 1.6.1
 Requires:       python%{python3_pkgversion}-cryptography
 Summary:        %{summary}
 %{?python_provide:%python_provide python%{python3_pkgversion}-%{pypi_name}}
@@ -50,6 +50,29 @@ rm -rf %{pypi_name}.egg-info
 
 
 %changelog
+* Wed Nov 3 2021 Brian Lin <blin@cs.wisc.edu> - 1.6.1-1
+- Reduce PyJWT version requirement made possible by #121 (SOFTWARE-4879)
+
+* Mon Oct 11 2021 Derek Weitzel <dweitzel@cse.unl.edu> - 1.6.0-1
+- Ensure compatibility with older versions of PyJWT
+- Adding multiple aud in token support
+
+* Mon Oct 11 2021 Derek Weitzel <dweitzel@cse.unl.edu> - 1.5.0-1
+- Include tests in distribution
+- Bump pyjwt version
+- Add test run with minimum dependencies
+- Run continuous integration on macOS and windows
+- Check verified claims for issuer in SciToken.serialize
+- Add base SciTokensException class
+- Remove verify=False keyword from calls to decode()
+- Print package list in CI jobs
+- Use python3_pkgversion macro in RPM package names
+- Move package version declaration into 'scitokens' module
+- Fix deprecation warning from cryptography.utils.int_from_bytes
+
+* Mon Apr 19 2021 Derek Weitzel <dweitzel@cse.unl.edu> - 1.4.0-1
+- Add WLCG Token Discovery static function
+
 * Mon Jan 25 2021 Derek Weitzel <dweitzel@cse.unl.edu> - 1.3.1-1
 - Fix dependency change of behavior in PyJWT
 - Add lifetime argument to scitokens-admin-create-token
