@@ -2,7 +2,7 @@
 %global pypi_name scitokens
 
 Name:           python-%{pypi_name}
-Version:        1.6.1
+Version:        1.6.2
 Release:        1%{?dist}
 Summary:        SciToken reference implementation library
 
@@ -50,6 +50,9 @@ rm -rf %{pypi_name}.egg-info
 
 
 %changelog
+* Wed Nov 3 2021 Brian Lin <blin@cs.wisc.edu> - 1.6.2-1
+- Fix Python library version (SOFTWARE-4879)
+
 * Wed Nov 3 2021 Brian Lin <blin@cs.wisc.edu> - 1.6.1-1
 - Reduce PyJWT version requirement made possible by #121 (SOFTWARE-4879)
 
