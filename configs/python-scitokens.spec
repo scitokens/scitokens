@@ -3,7 +3,7 @@
 
 Name:           python-%{pypi_name}
 Version:        1.6.0
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        SciToken reference implementation library
 
 License:        Apache 2.0
@@ -19,7 +19,7 @@ BuildRequires:  python%{python3_pkgversion}-setuptools
 SciToken reference implementation library
 
 %package -n     python%{python3_pkgversion}-%{pypi_name}
-Requires:       python%{python3_pkgversion}-jwt >= 2.0.0
+Requires:       python%{python3_pkgversion}-jwt >= 1.6.1
 Requires:       python%{python3_pkgversion}-cryptography
 Summary:        %{summary}
 %{?python_provide:%python_provide python%{python3_pkgversion}-%{pypi_name}}
@@ -50,6 +50,9 @@ rm -rf %{pypi_name}.egg-info
 
 
 %changelog
+* Wed Nov 3 2021 Brian Lin <blin@cs.wisc.edu> - 1.6.0-2
+- Reduce PyJWT version requirement made possible by #121 (SOFTWARE-4879)
+
 * Mon Oct 11 2021 Derek Weitzel <dweitzel@cse.unl.edu> - 1.6.0-1
 - Ensure compatibility with older versions of PyJWT
 - Adding multiple aud in token support
