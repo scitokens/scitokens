@@ -5,6 +5,7 @@ Test the admin-create-key tool
 import os
 import sys
 import unittest
+from pathlib import Path
 
 # Codacy has issues with subprocess, but this is only in the tests!
 import subprocess # nosec
@@ -21,6 +22,9 @@ if os.path.exists("../src"):
     sys.path.append("../src")
 
 from scitokens.utils import long_from_bytes
+
+TESTS_DIR = Path(__file__).parent
+
 
 class TestKeyCreate(unittest.TestCase):
     """
@@ -186,25 +190,41 @@ class TestKeyCreate(unittest.TestCase):
         """
         Test reading in the private key
         """
-        command = "{} {} --private-key=tests/simple_private_key.pem --pem-private".format(sys.executable, self.tool)
+        command = "{} {} --private-key={}/simple_private_key.pem --pem-private".format(
+            sys.executable,
+            self.tool,
+            TESTS_DIR,
+        )
         output = self._run_command(command)
         private_key = self._test_private(output)
         self.assertIsNotNone(private_key)
 
         # Test public key
-        command = "{} {} --private-key=tests/simple_private_key.pem --pem-public".format(sys.executable, self.tool)
+        command = "{} {} --private-key={}/simple_private_key.pem --pem-public".format(
+            sys.executable,
+            self.tool,
+            TESTS_DIR,
+        )
         output = self._run_command(command)
         public_key = self._test_public(output)
         self.assertIsNotNone(public_key)
 
         # Test public key
-        command = "{} {} --private-key=tests/simple_private_key.pem --jwks-private".format(sys.executable, self.tool)
+        command = "{} {} --private-key={}/simple_private_key.pem --jwks-private".format(
+            sys.executable,
+            self.tool,
+            TESTS_DIR,
+        )
         output = self._run_command(command)
         private_key = self._test_private_jwk(output)
         self.assertIsNotNone(public_key)
 
         # Test public key
-        command = "{} {} --private-key=tests/simple_private_key.pem --jwks-public".format(sys.executable, self.tool)
+        command = "{} {} --private-key={}/simple_private_key.pem --jwks-public".format(
+            sys.executable,
+            self.tool,
+            TESTS_DIR,
+        )
         output = self._run_command(command)
         public_key = self._test_public_jwk(output)
         self.assertIsNotNone(public_key)
@@ -213,25 +233,41 @@ class TestKeyCreate(unittest.TestCase):
         """
         Test reading in the private key
         """
-        command = "{} {} --ec --private-key=tests/simple_ec_private_key.pem --pem-private".format(sys.executable, self.tool)
+        command = "{} {} --ec --private-key={}/simple_ec_private_key.pem --pem-private".format(
+            sys.executable,
+            self.tool,
+            TESTS_DIR,
+        )
         output = self._run_command(command)
         private_key = self._test_private(output)
         self.assertIsNotNone(private_key)
 
         # Test public key
-        command = "{} {} --ec --private-key=tests/simple_ec_private_key.pem --pem-public".format(sys.executable, self.tool)
+        command = "{} {} --ec --private-key={}/simple_ec_private_key.pem --pem-public".format(
+            sys.executable,
+            self.tool,
+            TESTS_DIR,
+        )
         output = self._run_command(command)
         public_key = self._test_public(output)
         self.assertIsNotNone(public_key)
 
         # Test public key
-        command = "{} {} --ec --private-key=tests/simple_ec_private_key.pem --jwks-private".format(sys.executable, self.tool)
+        command = "{} {} --ec --private-key={}/simple_ec_private_key.pem --jwks-private".format(
+            sys.executable,
+            self.tool,
+            TESTS_DIR,
+        )
         output = self._run_command(command)
         private_key = self._test_ec_private_jwk(output)
         self.assertIsNotNone(public_key)
 
         # Test public key
-        command = "{} {} --ec --private-key=tests/simple_ec_private_key.pem --jwks-public".format(sys.executable, self.tool)
+        command = "{} {} --ec --private-key={}/simple_ec_private_key.pem --jwks-public".format(
+            sys.executable,
+            self.tool,
+            TESTS_DIR,
+        )
         output = self._run_command(command)
         public_key = self._test_ec_public_jwk(output)
         self.assertIsNotNone(public_key)
