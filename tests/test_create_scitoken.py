@@ -15,6 +15,7 @@ if os.path.exists("../src"):
     sys.path.append("../src")
 
 import scitokens
+from cryptography import __version__ as cryptography_version
 from cryptography.hazmat.primitives.asymmetric.rsa import generate_private_key
 import cryptography.hazmat.primitives.asymmetric.ec as ec
 from cryptography.hazmat.backends import default_backend
@@ -264,6 +265,10 @@ class TestCreation(unittest.TestCase):
         with self.assertRaises(UnsupportedKeyException):
             scitokens.SciToken(key = self._private_key, algorithm="doesnotexist")
 
+    @unittest.skipIf(
+        cryptography_version < "2.4.1",
+        reason="cryptography {} does not support SECP192R1".format(cryptography_version),
+    )
     def test_autodetect_keytype(self):
         """
         Test the autodetection of the key type
