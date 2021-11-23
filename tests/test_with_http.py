@@ -5,6 +5,7 @@ Test the full HTTP to SciToken serialize and deserialize
 import os
 import sys
 import unittest
+from pathlib import Path
 
 # Allow unittests to be run from within the project base.
 if os.path.exists("src"):
@@ -19,13 +20,16 @@ from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 from create_webserver import start_server
 
+TESTS_DIR = Path(__file__).parent
+
+
 class TestDeserialization(unittest.TestCase):
     """
     Test the deserialization of a SciToken
     """
 
     def setUp(self):
-        with open('tests/simple_private_key.pem', 'rb') as key_file:
+        with open(TESTS_DIR / 'simple_private_key.pem', 'rb') as key_file:
             self.private_key = serialization.load_pem_private_key(
                 key_file.read(),
                 password=None,
@@ -34,7 +38,7 @@ class TestDeserialization(unittest.TestCase):
         self.test_id = "stuffblah"
         self.public_numbers = self.private_key.public_key().public_numbers()
 
-        with open('tests/simple_ec_private_key.pem', 'rb') as key_file:
+        with open(TESTS_DIR / 'simple_ec_private_key.pem', 'rb') as key_file:
             self.ec_private_key = serialization.load_pem_private_key(
                 key_file.read(),
                 password=None,
