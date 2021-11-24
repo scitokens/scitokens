@@ -10,10 +10,15 @@ License:        Apache 2.0
 URL:            https://scitokens.org
 Source0:        https://files.pythonhosted.org/packages/source/s/%{pypi_name}/%{pypi_name}-%{version}.tar.gz
 BuildArch:      noarch
- 
+
+# build requirements
 BuildRequires:  python3-devel
 BuildRequires:  python%{python3_pkgversion}-setuptools
 
+# test requirements
+BuildRequires:  python%{python3_pkgversion}-cryptography
+BuildRequires:  python%{python3_pkgversion}-pytest
+BuildRequires:  python%{python3_pkgversion}-jwt >= 1.6.1
 
 %description
 SciToken reference implementation library
@@ -40,6 +45,10 @@ rm -rf %{pypi_name}.egg-info
 # Must do the subpackages' install first because the scripts in /usr/bin are
 # overwritten with every setup.py install.
 %py3_install
+
+%check
+export PYTHONPATH="%{buildroot}%{python3_sitelib}"
+(cd tests/ && %{__python3} -m pytest --verbose -ra .)
 
 %files -n python%{python3_pkgversion}-%{pypi_name}
 %license LICENSE
