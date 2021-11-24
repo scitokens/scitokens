@@ -347,7 +347,9 @@ class SciToken(object):
                 return SciToken.deserialize(token_data,
                                             audience, require_key, insecure, public_key)
 
-        raise IOError
+        raise OSError(
+            "failed to identify a valid bearer token",
+        )
 
 
 class ValidationFailure(Exception):
