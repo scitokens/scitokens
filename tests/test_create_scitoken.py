@@ -324,7 +324,7 @@ class TestCreation(unittest.TestCase):
         (bt_fd, bt_tmp) = tempfile.mkstemp()
         os.close(bt_fd)
         if os.path.isfile(bt_path):
-            os.rename(bt_path, bt_tmp)
+            shutil.move(bt_path, bt_tmp)
 
         # check that the function fails properly
         with self.assertRaises(IOError):
@@ -399,7 +399,7 @@ class TestCreation(unittest.TestCase):
         os.remove(bearer_token_file)
         os.remove(bt_path)
         if os.path.isfile(bt_tmp):
-            os.rename(bt_tmp, bt_path)
+            shutil.move(bt_tmp, bt_path)
 
 
 if __name__ == '__main__':
