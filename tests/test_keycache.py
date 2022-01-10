@@ -116,10 +116,10 @@ class TestKeyCache(unittest.TestCase):
             format=serialization.PublicFormat.SubjectPublicKeyInfo
         )
 
-        self.keycache.addkeyinfo("https://doesnotexists.com/", "blahstuff", public_key, cache_timer=60)
+        self.keycache.addkeyinfo("https://doesnotexists.edu/", "blahstuff", public_key, cache_timer=60)
 
         # Now extract the just inserted key
-        pubkey = self.keycache.getkeyinfo("https://doesnotexists.com/", "blahstuff")
+        pubkey = self.keycache.getkeyinfo("https://doesnotexists.edu/", "blahstuff")
 
         public_pem2 = pubkey.public_bytes(
             encoding=serialization.Encoding.PEM,
@@ -130,7 +130,7 @@ class TestKeyCache(unittest.TestCase):
 
         # Make sure it errors with urlerror when it should not exist
         with self.assertRaises(URLError):
-            self.keycache.getkeyinfo("https://doesnotexists.com/", "asdf")
+            self.keycache.getkeyinfo("https://doesnotexists.edu/", "asdf")
 
 
     def test_cache_timer(self):
@@ -170,12 +170,12 @@ class TestKeyCache(unittest.TestCase):
             format=serialization.PublicFormat.SubjectPublicKeyInfo
         )
 
-        self.keycache.addkeyinfo("https://doesnotexists.com/", "blahstuff", public_key, cache_timer=60, next_update=-1)
+        self.keycache.addkeyinfo("https://doesnotexists.edu/", "blahstuff", public_key, cache_timer=60, next_update=-1)
 
         # Even though the cache is still valid, the next update is triggered
         # We should still get the key, even though the next update fails
         # (invalid url)
-        pubkey = self.keycache.getkeyinfo("https://doesnotexists.com/", "blahstuff")
+        pubkey = self.keycache.getkeyinfo("https://doesnotexists.edu/", "blahstuff")
 
         public_pem2 = pubkey.public_bytes(
             encoding=serialization.Encoding.PEM,
