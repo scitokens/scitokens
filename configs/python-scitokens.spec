@@ -43,7 +43,7 @@ rm -rf %{pypi_name}.egg-info
 %files -n python%{python3_pkgversion}-%{pypi_name}
 %license LICENSE
 %{python3_sitelib}/%{pypi_name}
-%{python3_sitelib}/%{pypi_name}-%{version}-py?.?.egg-info
+%{python3_sitelib}/%{pypi_name}-%{version}-py*.egg-info
 %doc README.rst
 %{_bindir}/scitokens-admin-create-key
 %{_bindir}/scitokens-admin-create-token
