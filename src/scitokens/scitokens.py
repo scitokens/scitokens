@@ -123,7 +123,7 @@ class SciToken(object):
         :param str issuer: A string indicating the issuer for the token.  It should be an HTTPS address,
                            as specified in https://tools.ietf.org/html/draft-ietf-oauth-discovery-07
         :param int lifetime: Number of seconds that the token should be valid
-        :return str: base64 encoded token
+        :return bytes: base64 encoded token
         """
 
         if include_key is not False:
@@ -164,6 +164,8 @@ class SciToken(object):
             encoded = jwt.encode(payload, self._key, algorithm = self._key_alg, headers={'kid': self._key_id})
         else:
             encoded = jwt.encode(payload, self._key, algorithm = self._key_alg)
+        if isinstance(encoded, bytes):  # pyjwt < 2 returns bytes
+            encoded = encoded.decode("utf-8")
         self._serialized_token = encoded
 
         # Move claims over to verified claims
@@ -175,9 +177,7 @@ class SciToken(object):
 
         # Encode the returned string for backwards compatibility.
         # Previous versions of PyJWT returned bytes
-        if not isinstance(encoded, bytes):
-            encoded = str.encode(encoded)
-        return encoded
+        return str.encode(encoded, encoding="utf-8")
 
     def update_claims(self, claims):
         """
