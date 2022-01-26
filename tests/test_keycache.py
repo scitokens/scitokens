@@ -6,6 +6,7 @@ import os
 import tempfile
 import shutil
 import unittest
+from unittest import mock
 from scitokens.utils.keycache import KeyCache
 from scitokens.utils.errors import UnableToCreateCache
 from cryptography.hazmat.primitives.asymmetric.rsa import generate_private_key
@@ -46,25 +47,18 @@ class TestKeyCache(unittest.TestCase):
         if self.old_xdg:
             os.environ['XDG_CACHE_HOME'] = self.old_xdg
 
-    @unittest.skipIf(
-        os.name == "nt",
-        "makedirs('/does/not/exists') dosen't fail on windows",
-    )
-    def test_cannot_make_cache(self):
+    @mock.patch("os.makedirs", side_effect=OSError)
+    @mock.patch.dict("os.environ")
+    def test_cannot_make_cache(self, _):
         """
         Test when the keycache shouldn't be able to make the cache
         """
-        # A directory that shouldn't exist
-        old_xdg = os.environ.get('XDG_CACHE_HOME', None)
         os.environ['XDG_CACHE_HOME'] = "/does/not/exists"
 
         # Make sure it raises an unable to create cache exception
         with self.assertRaises(UnableToCreateCache):
             keycache = KeyCache()
             del keycache
-
-        if old_xdg:
-            os.environ['XDG_CACHE_HOME'] = old_xdg
 
     def test_empty(self):
         """
