@@ -288,7 +288,7 @@ class TestCreation(unittest.TestCase):
 
         # Test when we give an unsupported algorithm
         unsupported_private_key = ec.generate_private_key(
-            ec.SECP192R1(), default_backend()
+            ec.SECP521R1(), default_backend()
         )
         with self.assertRaises(scitokens.scitokens.UnsupportedKeyException):
             token = scitokens.SciToken(key = unsupported_private_key)
