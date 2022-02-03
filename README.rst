@@ -103,7 +103,7 @@ Validating Tokens
 -----------------
 
 In SciTokens, we try to distinguish between *validating* and *verifying*
-tokings. Here, verification refers to determining the integrity and
+tokens. Here, verification refers to determining the integrity and
 authenticity of the token: can we validate the token came from a known
 source without tampering? Can we validate the chain of trust? Validation
 is determining whether the claims of the token are satisfied in a given
