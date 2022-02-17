@@ -145,7 +145,7 @@ class TestKeyCache(unittest.TestCase):
                                             key_id=test_id,
                                             insecure=True)
 
-        self.assertEqual(cache_timer, 3600)
+        self.assertEqual(cache_timer, 345600)
         create_webserver.shutdown_server()
 
     def test_cache_update_time(self):

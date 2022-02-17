@@ -10,10 +10,11 @@ import six
 import logging
 import logging.handlers
 
+# Set the default cache lifetime fo 4 days
 CONFIG_DEFAULTS = {
     'log_file': "",
     'log_level': "INFO",
-    'cache_lifetime': "3600",
+    'cache_lifetime': "345600",
     'cache_location': "",
     'default_alg': "RS256"
 }
