@@ -67,7 +67,7 @@ jobs:
           - dist: centos
             name: CentOS
             version: 8
-            container: centos:8
+            container: quay.io/centos/centos:stream8
           - dist: fedora
             name: Fedora
             version: latest
