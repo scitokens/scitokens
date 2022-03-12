@@ -1,6 +1,12 @@
 SciTokens Library
 =================
 
+|pic1| |pic2|
+
+.. |pic1| image:: https://img.shields.io/pypi/dd/scitokens
+
+.. |pic2| image:: https://img.shields.io/github/workflow/status/scitokens/scitokens/Python%20package
+
 This library aims to be a reference implementation of the SciTokens'
 JSON Web Token (JWT) token format.
 
