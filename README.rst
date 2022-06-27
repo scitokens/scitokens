@@ -256,6 +256,7 @@ Project Status
    :target: https://www.codacy.com/app/scitokens/scitokens?utm_source=github.com&utm_medium=referral&utm_content=scitokens/scitokens&utm_campaign=Badge_Coverage
    :alt: Code Test Coverage
 
-.. |quality| image:: https://api.codacy.com/project/badge/Grade/ad1f7b31145f4b9a96d58ec736d6f00c
-   :target: https://www.codacy.com/app/scitokens/scitokens?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=scitokens/scitokens&amp;utm_campaign=Badge_Grade
-   :alt: Codacy Grade
+.. |quality| image:: https://app.codacy.com/project/badge/Grade/753108a9f8ab450d8f5598e1b639ecfd    
+    :target: https://www.codacy.com/gh/scitokens/scitokens/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=scitokens/scitokens&amp;utm_campaign=Badge_Grade
+    :alt: Code Quality
+
