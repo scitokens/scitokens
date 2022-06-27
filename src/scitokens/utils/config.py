@@ -24,8 +24,9 @@ configuration = configparser.ConfigParser(CONFIG_DEFAULTS) # pylint: disable=C01
 def set_config(config = None):
     """
     Set the configuration of SciTokens library
+
     :param config: config may be: A full path to a ini configuration file,
-        A ConfigParser instance, or None, which will use all defaults.
+        a ConfigParser instance, or None, which will use all defaults.
     """
     global configuration # pylint: disable=C0103
 
