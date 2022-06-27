@@ -1,11 +1,7 @@
 SciTokens Library
 =================
 
-|pic1| |pic2|
-
-.. |pic1| image:: https://img.shields.io/pypi/dd/scitokens
-
-.. |pic2| image:: https://img.shields.io/github/workflow/status/scitokens/scitokens/Python%20package
+|pypi| |downloads| |license|
 
 This library aims to be a reference implementation of the SciTokens'
 JSON Web Token (JWT) token format.
@@ -239,15 +235,27 @@ See :py:func:`~scitokens.utils.config.set_config`
 Project Status
 ==============
 
-.. image:: https://travis-ci.org/scitokens/scitokens.svg?branch=master
-   :target: https://travis-ci.org/scitokens/scitokens
-   :alt: Travis-CI Build Status
+|pypi| |build| |coverage| |quality|
 
-.. image:: https://api.codacy.com/project/badge/Coverage/ad1f7b31145f4b9a96d58ec736d6f00c
+.. |pypi| image:: https://badge.fury.io/py/scitokens.svg
+   :target: https://pypi.org/project/scitokens/
+
+.. |downloads| image:: https://img.shields.io/pypi/dd/scitokens
+   :target: https://pypi.org/project/scitokens
+   :alt: Downloads per month
+
+.. |license| image:: https://img.shields.io/pypi/l/scitokens.svg
+   :target: https://choosealicense.com/licenses/apache-2.0/)
+   :alt: License information
+
+.. |build| image:: https://img.shields.io/github/workflow/status/scitokens/scitokens/Python%20package
+   :target: https://github.com/scitokens/scitokens/actions/workflows/python-package.yml
+   :alt: Build pipeline status
+
+.. |coverage| image:: https://api.codacy.com/project/badge/Coverage/ad1f7b31145f4b9a96d58ec736d6f00c
    :target: https://www.codacy.com/app/scitokens/scitokens?utm_source=github.com&utm_medium=referral&utm_content=scitokens/scitokens&utm_campaign=Badge_Coverage
    :alt: Code Test Coverage
 
-.. image:: https://api.codacy.com/project/badge/Grade/ad1f7b31145f4b9a96d58ec736d6f00c
+.. |quality| image:: https://api.codacy.com/project/badge/Grade/ad1f7b31145f4b9a96d58ec736d6f00c
    :target: https://www.codacy.com/app/scitokens/scitokens?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=scitokens/scitokens&amp;utm_campaign=Badge_Grade
    :alt: Codacy Grade
-
