@@ -33,6 +33,10 @@ setuptools.setup(
     author="Brian Bockelman",
     license="Apache-2.0",
     url="https://scitokens.org",
+    project_urls={
+        "Issue Tracker": "https://github.com/scitokens/scitokens/issues",
+        "Source Code": "https://github.com/scitokens/scitokens",
+    },
     # contents
     package_dir={
         "": "src",
