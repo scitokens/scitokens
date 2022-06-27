@@ -24,20 +24,34 @@ def find_version(path, varname="__version__"):
     raise RuntimeError("Unable to find version string.")
 
 
-setuptools.setup(name="scitokens",
-                 version=find_version(os.path.join("src", "scitokens", "__init__.py")),
-                 description="SciToken reference implementation library",
-                 author_email="team@scitokens.org",
-                 author="Brian Bockelman",
-                 license="Apache-2.0",
-                 url="https://scitokens.org",
-                 package_dir={"": "src"},
-                 packages=["scitokens", "scitokens.tools", "scitokens.utils"],
-                 entry_points={"console_scripts": [
-                     "scitokens-admin-create-key=scitokens.tools.admin_create_key:main",
-                     "scitokens-admin-create-token=scitokens.tools.admin_create_token:main",
-                 ]},
-                 install_requires=['cryptography',
-                                   'PyJWT>=1.6.1',
-                                   'six'],
-                )
+setuptools.setup(
+    # metadata
+    name="scitokens",
+    version=find_version(os.path.join("src", "scitokens", "__init__.py")),
+    description="SciToken reference implementation library",
+    author_email="team@scitokens.org",
+    author="Brian Bockelman",
+    license="Apache-2.0",
+    url="https://scitokens.org",
+    # contents
+    package_dir={
+        "": "src",
+    },
+    packages=[
+        "scitokens",
+        "scitokens.tools",
+        "scitokens.utils",
+    ],
+    entry_points={
+        "console_scripts": [
+            "scitokens-admin-create-key=scitokens.tools.admin_create_key:main",
+            "scitokens-admin-create-token=scitokens.tools.admin_create_token:main",
+        ],
+    },
+    # requirements
+    install_requires=[
+        'cryptography',
+        'PyJWT>=1.6.1',
+        'six',
+    ],
+)
