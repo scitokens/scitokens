@@ -2,7 +2,7 @@
 %global pypi_name scitokens
 
 Name:           python-%{pypi_name}
-Version:        1.6.2
+Version:        1.7.0
 Release:        1%{?dist}
 Summary:        SciToken reference implementation library
 
@@ -60,6 +60,13 @@ export PYTHONPATH="%{buildroot}%{python3_sitelib}"
 
 
 %changelog
+* Fri Feb 18 2022 Derek Weitzel <dweitzel@unl.edu> - 1.7.0-1
+- Fix serialize mismatch between Python 3 and Python 2
+- Fix bug decoding a token with no audience
+- Update algorithm used to test UnsupportedKeyException
+- Update pyjwt version in requirements.txt
+- Default cached public keys set to 4 days
+
 * Wed Nov 3 2021 Brian Lin <blin@cs.wisc.edu> - 1.6.2-1
 - Fix Python library version (SOFTWARE-4879)
 
