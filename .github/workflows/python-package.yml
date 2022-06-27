@@ -65,7 +65,8 @@ jobs:
         fi
     - name: Test with pytest
       run: |
-        coverage xml run -m pytest
+        coverage run -m pytest
+        covreage xml
     - name: Run codacy-coverage-reporter
       uses: codacy/codacy-coverage-reporter-action@v1
       with:
