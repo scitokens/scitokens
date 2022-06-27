@@ -244,8 +244,8 @@ Project Status
    :target: https://pypi.org/project/scitokens
    :alt: Downloads per month
 
-.. |license| image:: https://img.shields.io/pypi/l/scitokens.svg
-   :target: https://choosealicense.com/licenses/apache-2.0/)
+.. |license| image:: https://img.shields.io/github/license/scitokens/scitokens
+   :target: https://choosealicense.com/licenses/apache-2.0/
    :alt: License information
 
 .. |build| image:: https://img.shields.io/github/workflow/status/scitokens/scitokens/Python%20package
