@@ -1,6 +1,10 @@
 SciTokens Library
 =================
 
+.. image:: https://api.codacy.com/project/badge/Grade/e2b28794a1a74dcdad9caea95de24e10
+   :alt: Codacy Badge
+   :target: https://app.codacy.com/gh/scitokens/scitokens?utm_source=github.com&utm_medium=referral&utm_content=scitokens/scitokens&utm_campaign=Badge_Grade_Settings
+
 |pypi| |downloads| |license|
 
 This library aims to be a reference implementation of the SciTokens'
