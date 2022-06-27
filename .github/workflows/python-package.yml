@@ -66,7 +66,7 @@ jobs:
     - name: Test with pytest
       run: |
         coverage run -m pytest
-        covreage xml
+        coverage xml
     - name: Run codacy-coverage-reporter
       if: ${{ matrix.python-version }} == 3.9
       uses: codacy/codacy-coverage-reporter-action@v1
