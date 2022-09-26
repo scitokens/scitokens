@@ -59,6 +59,11 @@ setuptools.setup(
         'PyJWT>=1.6.1',
         'six',
     ],
+    extras_require={
+        "docs": [
+            "Sphinx",
+        ],
+    },
     # classifiers
     classifiers=[
         "Development Status :: 5 - Production/Stable",
