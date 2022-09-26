@@ -58,6 +58,7 @@ setuptools.setup(
         'cryptography',
         'PyJWT>=1.6.1',
         'six',
+        'setuptools'
     ],
     # classifiers
     classifiers=[
