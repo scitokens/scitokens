@@ -2,7 +2,7 @@
 %global pypi_name scitokens
 
 Name:           python-%{pypi_name}
-Version:        1.7.0
+Version:        1.7.1
 Release:        1%{?dist}
 Summary:        SciToken reference implementation library
 
@@ -60,6 +60,10 @@ export PYTHONPATH="%{buildroot}%{python3_sitelib}"
 
 
 %changelog
+* Wed Sep 28 2022 Derek Weitzel <dweitzel@unl.edu> - 1.7.1-1
+- Documentation updates
+- Fix setup tools and add pyproject.toml
+
 * Fri Feb 18 2022 Derek Weitzel <dweitzel@unl.edu> - 1.7.0-1
 - Fix serialize mismatch between Python 3 and Python 2
 - Fix bug decoding a token with no audience
