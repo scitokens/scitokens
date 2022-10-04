@@ -8,6 +8,11 @@ import re
 
 import setuptools
 
+# read the contents of your README file
+from pathlib import Path
+this_directory = Path(__file__).parent
+long_description = (this_directory / "README.rst").read_text()
+
 
 def find_version(path, varname="__version__"):
     """Parse the version metadata variable in the given file.
@@ -29,6 +34,8 @@ setuptools.setup(
     name="scitokens",
     version=find_version(os.path.join("src", "scitokens", "__init__.py")),
     description="SciToken reference implementation library",
+    long_description=long_description,
+    long_description_content_type="text/x-rst",
     author_email="team@scitokens.org",
     author="Brian Bockelman",
     license="Apache-2.0",

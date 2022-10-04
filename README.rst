@@ -229,7 +229,6 @@ You may set the configuration by passing a file name to ``scitokens.set_config``
     >> import scitokens
     >> scitokens.set_config("/etc/scitokens/scitokens.ini")
     
-See :py:func:`~scitokens.utils.config.set_config`
 
 
 Project Status
