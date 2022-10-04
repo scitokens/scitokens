@@ -67,6 +67,11 @@ setuptools.setup(
         'six',
         'setuptools'
     ],
+    extras_require={
+        "docs": [
+            "Sphinx",
+        ],
+    },
     # classifiers
     classifiers=[
         "Development Status :: 5 - Production/Stable",
