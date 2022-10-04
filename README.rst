@@ -234,7 +234,7 @@ You may set the configuration by passing a file name to ``scitokens.set_config``
 Project Status
 ==============
 
-|pypi| |build| |coverage| |quality|
+|pypi| |build| |coverage| |quality| |docs|
 
 .. |pypi| image:: https://badge.fury.io/py/scitokens.svg
    :target: https://pypi.org/project/scitokens/
@@ -259,3 +259,6 @@ Project Status
     :target: https://www.codacy.com/gh/scitokens/scitokens/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=scitokens/scitokens&amp;utm_campaign=Badge_Grade
     :alt: Code Quality
 
+.. |docs| image:: https://readthedocs.org/projects/scitokens/badge/?version=latest
+    :target: https://scitokens.readthedocs.io/en/latest/?badge=latest
+    :alt: Documentation Status

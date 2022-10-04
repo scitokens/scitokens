@@ -41,6 +41,7 @@ setuptools.setup(
     license="Apache-2.0",
     url="https://scitokens.org",
     project_urls={
+        "Documentation": "https://scitokens.readthedocs.io/",
         "Issue Tracker": "https://github.com/scitokens/scitokens/issues",
         "Source Code": "https://github.com/scitokens/scitokens",
     },
