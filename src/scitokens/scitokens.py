@@ -263,7 +263,7 @@ class SciToken(object):
         Verifies the claims pass the current set of validation scripts.
         
         :param str serialized_token: The serialized token.
-        :param str audience: (Legacy, not checked) The audience URI that this principle is claiming.  Default: None.  
+        :param str audience: (Legacy, not checked) The audience URI that this principle is claiming.  Default: None.
                              Audience is not checked no matter the value.
         :param bool require_key: When True, require the key
         :param bool insecure: When True, allow insecure methods to verify the issuer,
