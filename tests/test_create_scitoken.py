@@ -150,13 +150,31 @@ class TestCreation(unittest.TestCase):
 
         serialized_token = token.serialize(issuer = 'local')
 
-        with self.assertRaises(InvalidAudienceError):
-            scitokens.SciToken.deserialize(serialized_token, public_key = self._public_pem, insecure = True)
-
         new_token = scitokens.SciToken.deserialize(serialized_token,
                                                    public_key = self._public_pem,
                                                    insecure = True,
                                                    audience = 'local')
+        self.assertIsInstance(new_token, scitokens.SciToken)
+
+
+    def test_any_aud(self):
+        """
+        Test the audience argument with a ANY token to deserialize
+
+        A token with ANY audience should be accepted by all audiences.
+        """
+        token = scitokens.SciToken(key = self._private_key)
+        token.update_claims({'aud': 'ANY'})
+
+        serialized_token = token.serialize(issuer = 'ANY')
+
+        #with self.assertRaises(InvalidAudienceError):
+        #    scitokens.SciToken.deserialize(serialized_token, public_key = self._public_pem, insecure = True)
+
+        new_token = scitokens.SciToken.deserialize(serialized_token,
+                                                   public_key = self._public_pem,
+                                                   insecure = True,
+                                                   audience = 'https://doesnotexist.edu')
         self.assertIsInstance(new_token, scitokens.SciToken)
 
     def test_serialize(self):
