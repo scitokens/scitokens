@@ -263,7 +263,8 @@ class SciToken(object):
         Verifies the claims pass the current set of validation scripts.
         
         :param str serialized_token: The serialized token.
-        :param str audience: The audience URI that this principle is claiming.  Default: None
+        :param str audience: (Legacy, not checked) The audience URI that this principle is claiming.  Default: None.
+                             Audience is not checked no matter the value.
         :param bool require_key: When True, require the key
         :param bool insecure: When True, allow insecure methods to verify the issuer,
                               including allowing "localhost" issuer (useful in testing).  Default=False
@@ -288,7 +289,8 @@ class SciToken(object):
         unverified_headers = jwt.get_unverified_header(serialized_jwt)
         unverified_payload = jwt.decode(serialized_jwt, algorithms=['RS256', 'ES256'],
                                         audience=audience,
-                                        options={"verify_signature": False})
+                                        options={"verify_signature": False,
+                                                 "verify_aud": False})
         
         # Get the public key from the issuer
         keycache = KeyCache.KeyCache().getinstance()
@@ -299,10 +301,8 @@ class SciToken(object):
         else:
             issuer_public_key = load_pem_public_key(public_key, backend=backends.default_backend())
         
-        if audience:
-            claims = jwt.decode(serialized_token, issuer_public_key, audience = audience, algorithms=['RS256', 'ES256'])
-        else:
-            claims = jwt.decode(serialized_token, issuer_public_key, algorithms=['RS256', 'ES256'])
+        claims = jwt.decode(serialized_token, issuer_public_key, algorithms=['RS256', 'ES256'],
+                            options={"verify_aud": False})
 
         to_return = SciToken()
         to_return._verified_claims = claims
