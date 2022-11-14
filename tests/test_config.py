@@ -8,8 +8,7 @@ import tempfile
 import logging
 import scitokens
 import scitokens.utils.config
-
-from six.moves import configparser
+import configparser
 
 class TestConfig(unittest.TestCase):
     """

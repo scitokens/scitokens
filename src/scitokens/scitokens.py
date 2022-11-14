@@ -12,7 +12,6 @@ import os
 import jwt
 from . import urltools
 import logging
-from six import string_types
 
 LOGGER = logging.getLogger("scitokens")
 import uuid
@@ -697,7 +696,7 @@ class Enforcer(object):
             return True
 
     def _validate_scope(self, value):
-        if not isinstance(value, string_types):
+        if not isinstance(value, str):
             raise InvalidAuthorizationResource("Scope is invalid.  Must be a space separated string")
         if self._test_access:
             if not self._test_path:
