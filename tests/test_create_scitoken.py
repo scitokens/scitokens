@@ -7,6 +7,7 @@ import sys
 import unittest
 import tempfile
 import shutil
+import datetime
 
 # Allow unittests to be run from within the project base.
 if os.path.exists("src"):
