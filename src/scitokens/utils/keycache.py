@@ -340,8 +340,11 @@ class KeyCache(object):
                 raise UnableToCreateCache("Unable to create cache: {}".format(str(ose)))
 
         keycache_dir = os.path.join(cache_dir, "scitokens")
-        if not os.path.exists(keycache_dir):
-            os.makedirs(keycache_dir)
+        try:
+            if not os.path.exists(keycache_dir):
+                os.makedirs(keycache_dir)
+        except OSError as ose:
+            raise UnableToCreateCache("Unable to create cache: {}".format(str(ose)))
 
         keycache_file = os.path.join(keycache_dir, CACHE_FILENAME)
         if not os.path.exists(keycache_file):
