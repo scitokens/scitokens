@@ -14,6 +14,7 @@ if os.path.exists("src"):
 if os.path.exists("../src"):
     sys.path.append("../src")
 
+import jwt
 import scitokens
 from cryptography.hazmat.primitives.asymmetric.rsa import generate_private_key
 import cryptography.hazmat.primitives.asymmetric.ec as ec
@@ -418,6 +419,29 @@ class TestCreation(unittest.TestCase):
         os.remove(bt_path)
         if os.path.isfile(bt_tmp):
             shutil.move(bt_tmp, bt_path)
+
+    def test_noiss(self):
+        """
+        Verify that tokens without the `iss` are not accepted.
+        """
+        encoded_jwt = jwt.encode(
+            {
+                "ver": "scitoken:2.0",
+                "aud": "https://demo.scitokens.org",
+                "exp": 1668462237,
+                "iat": 1668461637,
+                "nbf": 1668461637,
+                "jti": "eab04181-b63a-42aa-b77d-804742829fc5",
+                "kid": "key-rs256"
+            },
+            "secret",
+            algorithm="HS256",
+            headers={"typ": "JWT", "alg": "HS256", "kid": "key-hs256"}
+        )
+
+        # Test when we give it without issuer
+        with self.assertRaises(scitokens.scitokens.MissingIssuerException):
+            stoken = scitokens.SciToken.deserialize(encoded_jwt)
 
 
 if __name__ == '__main__':
