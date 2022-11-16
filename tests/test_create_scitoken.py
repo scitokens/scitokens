@@ -428,9 +428,9 @@ class TestCreation(unittest.TestCase):
             {
                 "ver": "scitoken:2.0",
                 "aud": "https://demo.scitokens.org",
-                "exp": 1668462237,
-                "iat": 1668461637,
-                "nbf": 1668461637,
+                "exp": datetime.datetime.now(tz=timezone.utc) + datetime.timedelta(seconds=30),
+                "iat": datetime.datetime.now(tz=timezone.utc),
+                "nbf": datetime.datetime.now(tz=timezone.utc),
                 "jti": "eab04181-b63a-42aa-b77d-804742829fc5",
                 "kid": "key-rs256"
             },
