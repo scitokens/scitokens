@@ -8,6 +8,7 @@ import unittest
 import tempfile
 import shutil
 import datetime
+import datetime.timezone as timezone
 
 # Allow unittests to be run from within the project base.
 if os.path.exists("src"):
