@@ -441,7 +441,7 @@ class TestCreation(unittest.TestCase):
 
         # Test when we give it without issuer
         with self.assertRaises(scitokens.scitokens.MissingIssuerException):
-            stoken = scitokens.SciToken.deserialize(encoded_jwt)
+           scitokens.SciToken.deserialize(encoded_jwt)
 
 
 if __name__ == '__main__':
