@@ -60,6 +60,7 @@ class TestKeyCache(unittest.TestCase):
             keycache = KeyCache()
             del keycache
 
+    @unittest.skipIf(sys.platform.startswith("win"), "Test doesn't work on windows")
     def test_cannot_make_cache_permission_denied(self):
         """
         Test when the keycache shouldn't be able to make the cache due to access privilege
