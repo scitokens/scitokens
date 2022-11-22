@@ -294,6 +294,9 @@ class SciToken(object):
         # Get the public key from the issuer
         keycache = KeyCache.KeyCache().getinstance()
         if public_key == None:
+            if 'iss' not in unverified_payload:
+                raise MissingIssuerException('Issuer not provided')
+
             issuer_public_key = keycache.getkeyinfo(unverified_payload['iss'],
                                 key_id=unverified_headers['kid'] if 'kid' in unverified_headers else None,
                                 insecure=insecure)
