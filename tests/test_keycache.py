@@ -3,6 +3,7 @@ Test the keycache
 """
 
 import os, stat
+import sys
 import tempfile
 import shutil
 import unittest
