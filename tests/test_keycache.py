@@ -60,7 +60,7 @@ class TestKeyCache(unittest.TestCase):
             keycache = KeyCache()
             del keycache
 
-    def test_cannot_make_cache(self):
+    def test_cannot_make_cache_permission_denied(self):
         """
         Test when the keycache shouldn't be able to make the cache due to access privilege
         """
