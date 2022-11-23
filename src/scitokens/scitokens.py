@@ -12,7 +12,6 @@ import os
 import jwt
 from . import urltools
 import logging
-from six import string_types
 
 LOGGER = logging.getLogger("scitokens")
 import uuid
@@ -295,6 +294,9 @@ class SciToken(object):
         # Get the public key from the issuer
         keycache = KeyCache.KeyCache().getinstance()
         if public_key == None:
+            if 'iss' not in unverified_payload:
+                raise MissingIssuerException('Issuer not provided')
+
             issuer_public_key = keycache.getkeyinfo(unverified_payload['iss'],
                                 key_id=unverified_headers['kid'] if 'kid' in unverified_headers else None,
                                 insecure=insecure)
@@ -697,7 +699,7 @@ class Enforcer(object):
             return True
 
     def _validate_scope(self, value):
-        if not isinstance(value, string_types):
+        if not isinstance(value, str):
             raise InvalidAuthorizationResource("Scope is invalid.  Must be a space separated string")
         if self._test_access:
             if not self._test_path:
