@@ -2,7 +2,7 @@
 %global pypi_name scitokens
 
 Name:           python-%{pypi_name}
-Version:        1.7.2
+Version:        1.7.5
 Release:        1%{?dist}
 Summary:        SciToken reference implementation library
 
@@ -60,6 +60,11 @@ export PYTHONPATH="%{buildroot}%{python3_sitelib}"
 
 
 %changelog
+* Tue Nov 22 2022 Derek Weitzel <dweitzel@unl.edu> - 1.7.3-1
+- Remove aud enforcement from deserailize function
+- Add configuration for readthedocs
+- Remove six dependency
+
 * Tue Oct 04 2022 Derek Weitzel <dweitzel@unl.edu> - 1.7.2-1
 - Documentation updates
 
