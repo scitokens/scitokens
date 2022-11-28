@@ -54,7 +54,7 @@ def main():
     except InvalidTokenFormat as itfe:
         print("Serialized token is not a readable format.")
     except UnableToCreateCache as utcce:
-        print("Unable to create cache: {}".format(str(unablecrtcache_exc)))
+        print("Unable to create cache: {}".format(str(utcce)))
     except SciTokensException as scite:
         print("An error raised from SciTokens library while verifying the token: {}".format(str(scite)))
     except Exception as exc:
