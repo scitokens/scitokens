@@ -3,11 +3,7 @@ Verify a SciToken from command-line inputs.
 """
 
 import argparse
-import cryptography.hazmat.backends
-import cryptography.hazmat.primitives.asymmetric.rsa
 import scitokens
-from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.primitives import serialization
 from scitokens.utils.errors import InvalidTokenFormat
 from scitokens.utils.errors import MissingIssuerException
 from scitokens.utils.errors import MissingKeyException
@@ -43,15 +39,15 @@ def main():
             for claim in stoken.claims():
                 print("{}".format(claim))
 
-    except MissingKeyException as mke:
+    except MissingKeyException:
         print("No private key is present.")
-    except UnsupportedKeyException as uke:
+    except UnsupportedKeyException:
         print("The provided algorithm in the token is not the one supported by SciToken library (RS256, ES256).")
-    except MissingIssuerException as mie:
+    except MissingIssuerException:
         print("Issuer not specific in claims or as argument.")
-    except NonHTTPSIssuer as nhie:
+    except NonHTTPSIssuer:
         print("Issuer is not over HTTPS. RFC requires it to be over HTTPS.")
-    except InvalidTokenFormat as itfe:
+    except InvalidTokenFormat:
         print("Serialized token is not a readable format.")
     except UnableToCreateCache as utcce:
         print("Unable to create cache: {}".format(str(utcce)))
