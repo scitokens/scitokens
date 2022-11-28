@@ -58,6 +58,7 @@ setuptools.setup(
         "console_scripts": [
             "scitokens-admin-create-key=scitokens.tools.admin_create_key:main",
             "scitokens-admin-create-token=scitokens.tools.admin_create_token:main",
+            "scitokens-verify-token=scitokens.tools.verify_token:main",
         ],
     },
     # requirements
