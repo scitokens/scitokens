@@ -5,8 +5,7 @@ Module for configuration management
 
 
 # Config parser is renamed in python 3
-from six.moves import configparser
-import six
+import configparser
 import logging
 import logging.handlers
 
@@ -30,7 +29,7 @@ def set_config(config = None):
     """
     global configuration # pylint: disable=C0103
 
-    if isinstance(config, six.string_types):
+    if isinstance(config, str):
         configuration = configparser.ConfigParser(CONFIG_DEFAULTS)
         configuration.read([config])
     elif isinstance(config, configparser.RawConfigParser):
