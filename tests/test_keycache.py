@@ -61,19 +61,23 @@ class TestKeyCache(unittest.TestCase):
             keycache = KeyCache()
             del keycache
 
-    @unittest.skipIf(sys.platform.startswith("win"), "Test doesn't work on windows")
+    # @unittest.skipIf(sys.platform.startswith("win"), "Test doesn't work on windows")
     def test_cannot_make_cache_permission_denied(self):
         """
         Test when the keycache shouldn't be able to make the cache due to access privilege
         """
         os.environ['XDG_CACHE_HOME'] = self.tmp_dir
+        mode = os.stat(self.tmp_dir).st_mode
+        # ro_mask = 0o777 ^ (stat.S_IWRITE | stat.S_IWGRP | stat.S_IWOTH)
 
         # Limiting access privilege to read-only for the $XDG_CACHE_HOME
         os.chmod(
             self.tmp_dir,
-            stat.S_IRUSR |  # Read for user
-            stat.S_IRGRP |  # Read for group
-            stat.S_IROTH    # Read for other
+            0o444
+            # mode & ro_mask
+            # stat.S_IRUSR |  # Read for user
+            # stat.S_IRGRP |  # Read for group
+            # stat.S_IROTH    # Read for other
         )
 
         # Make sure it raises an unable to create cache exception
@@ -84,9 +88,10 @@ class TestKeyCache(unittest.TestCase):
         # Revert the access privilege alteration for the $XDG_CACHE_HOME
         os.chmod(
             self.tmp_dir,
-            stat.S_IRWXU |  # Read, write, and execute for user
-            stat.S_IRWXG |  # Read, write, and execute for group
-            stat.S_IRWXO    # Read, write, and execute for other
+            mode
+            # stat.S_IRWXU |  # Read, write, and execute for user
+            # stat.S_IRWXG |  # Read, write, and execute for group
+            # stat.S_IRWXO    # Read, write, and execute for other
         )
 
     def test_empty(self):
