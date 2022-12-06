@@ -62,13 +62,20 @@ class TestKeyCache(unittest.TestCase):
             del keycache
 
     @unittest.skipIf(sys.platform.startswith("win"), "Test doesn't work on Windows")
-    @unittest.skipIf(sys.platform.startswith("fed"), "Test doesn't work on Fedora")
-    @unittest.skipIf(sys.platform.startswith("cent"), "Test doesn't work on CentOS")
     def test_cannot_make_cache_permission_denied(self):
         """
         Test when the keycache shouldn't be able to make the cache due to access privilege
         """
         os.environ['XDG_CACHE_HOME'] = self.tmp_dir
+        # print("self.tmp_dir: {}".format(self.tmp_dir))
+        # shutil.rmtree(os.path.join(self.tmp_dir, "scitokens"))
+        for filename in os.listdir(os.path.join(self.tmp_dir, "scitokens")):
+            filepath = os.path.join(os.path.join(self.tmp_dir, "scitokens"), filename)
+            # print(">>>> filepath: {}".format(filepath))
+            try:
+                shutil.rmtree(filepath)
+            except OSError:
+                os.remove(filepath)
 
         # Limiting access privilege to read-only for the $XDG_CACHE_HOME
         os.chmod(
