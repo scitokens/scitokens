@@ -2,7 +2,8 @@
 Test the keycache
 """
 
-import os
+import os, stat
+import sys
 import tempfile
 import shutil
 import unittest
@@ -59,6 +60,35 @@ class TestKeyCache(unittest.TestCase):
         with self.assertRaises(UnableToCreateCache):
             keycache = KeyCache()
             del keycache
+
+    @unittest.skipIf(sys.platform.startswith("win"), "Test doesn't work on Windows")
+    @unittest.skipIf(not sys.platform.startswith("win") and os.getuid() == 0, "Test doesn't work when root")
+    def test_cannot_make_cache_permission_denied(self):
+        """
+        Test when the keycache shouldn't be able to make the cache due to access privilege
+        """
+        os.environ['XDG_CACHE_HOME'] = self.tmp_dir
+
+        # Limiting access privilege to read-only for the $XDG_CACHE_HOME
+        os.chmod(
+            self.tmp_dir,
+            stat.S_IRUSR |  # Read for user
+            stat.S_IRGRP |  # Read for group
+            stat.S_IROTH    # Read for other
+        )
+
+        # Make sure it raises an unable to create cache exception
+        with self.assertRaises(UnableToCreateCache):
+            keycache = KeyCache()
+            del keycache
+
+        # Revert the access privilege alteration for the $XDG_CACHE_HOME
+        os.chmod(
+            self.tmp_dir,
+            stat.S_IRWXU |  # Read, write, and execute for user
+            stat.S_IRWXG |  # Read, write, and execute for group
+            stat.S_IRWXO    # Read, write, and execute for other
+        )
 
     def test_empty(self):
         """
@@ -233,3 +263,6 @@ class TestKeyCache(unittest.TestCase):
 
         create_webserver.shutdown_server()
 
+
+if __name__ == '__main__':
+    unittest.main()
