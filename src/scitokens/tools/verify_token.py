@@ -18,7 +18,7 @@ def add_args():
     Generate the ArgumentParser object for the CLI.
     """
     parser = argparse.ArgumentParser(description='Verify a new SciToken')
-    parser.add_argument('--token', help='The serialized string of SciToken')
+    parser.add_argument('token', type=str, nargs=1, help='The serialized string of SciToken')
     parser.add_argument('-v', '--verbose', action='store_true')
 
     args = parser.parse_args()
