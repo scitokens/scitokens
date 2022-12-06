@@ -57,7 +57,7 @@ export PYTHONPATH="%{buildroot}%{python3_sitelib}"
 %doc README.rst
 %{_bindir}/scitokens-admin-create-key
 %{_bindir}/scitokens-admin-create-token
-
+%{_bindir}/scitokens-verify-token
 
 %changelog
 * Tue Nov 22 2022 Derek Weitzel <dweitzel@unl.edu> - 1.7.3-1
