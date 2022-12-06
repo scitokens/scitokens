@@ -32,7 +32,7 @@ def main():
     args = add_args()
     stoken = None
     try:
-        stoken = scitokens.SciToken.deserialize(args.token)
+        stoken = scitokens.SciToken.deserialize(args.token[0])
 
         if args.verbose:
             print("Claims:")
