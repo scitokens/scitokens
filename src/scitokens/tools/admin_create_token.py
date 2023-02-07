@@ -9,13 +9,22 @@ from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.backends import default_backend
 
 import scitokens
+import json, requests
 
+# Specify an algorithm for signature
+# ES256 = Elliptic Curve with SHA-256
+# getToken will return a signed token with the payload
+def getToken(payload: dict):
+    data = json.dumps({'algorithm': "ES256", 'payload': payload})
+    resp = requests.post("https://demo.scitokens.org/issue", data=data)
+    return resp.text
 
 def add_args():
     """
     Generate the ArgumentParser object for the CLI.
     """
     parser = argparse.ArgumentParser(description='Create a new SciToken')
+    parser.add_argument('--demo', action='store_true', help='The payload that needs encrypting')
     parser.add_argument('claims', metavar='C', type=str, nargs='+',
                         help='Claims in the format key=value')
     parser.add_argument('--keyfile',
@@ -34,24 +43,32 @@ def main():
     Given a set of command line parameters, generate a corresponding SciToken.
     """
     args = add_args()
+    #If the demo option is called
+    if (args.demo):
+        payload = {}
+        for claim in args.claims:
+            (key, value) = claim.split('=', 1)
+            payload[key] = value
+        print(getToken(payload))
+    
+    else:
+        with open(args.keyfile, "r") as file_pointer:
+            private_key_contents = file_pointer.read()
 
-    with open(args.keyfile, "r") as file_pointer:
-        private_key_contents = file_pointer.read()
+        loaded_private_key = serialization.load_pem_private_key(
+            private_key_contents.encode(),
+            password=None, # Hey, it's a sample file committed to disk...
+            backend=default_backend()
+        )
 
-    loaded_private_key = serialization.load_pem_private_key(
-        private_key_contents.encode(),
-        password=None, # Hey, it's a sample file committed to disk...
-        backend=default_backend()
-    )
+        token = scitokens.SciToken(key=loaded_private_key, key_id=args.key_id)
 
-    token = scitokens.SciToken(key=loaded_private_key, key_id=args.key_id)
+        for claim in args.claims:
+            (key, value) = claim.split('=', 1)
+            token.update_claims({key: value})
 
-    for claim in args.claims:
-        (key, value) = claim.split('=', 1)
-        token.update_claims({key: value})
-
-    serialized_token = token.serialize(issuer=args.issuer, lifetime=args.lifetime)
-    print(serialized_token.decode())
+        serialized_token = token.serialize(issuer=args.issuer, lifetime=args.lifetime)
+        print(serialized_token.decode())
 
 
 if __name__ == "__main__":
