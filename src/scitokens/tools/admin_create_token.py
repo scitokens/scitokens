@@ -43,7 +43,7 @@ def main():
         for claim in args.claims:
             (key, value) = claim.split('=', 1)
             payload[key] = value
-        print(scitokens.utils.demo.getToken(payload))
+        print(scitokens.utils.demo.token(payload))
     
     else:
         with open(args.keyfile, "r") as file_pointer:
