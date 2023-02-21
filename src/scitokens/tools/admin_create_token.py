@@ -11,6 +11,8 @@ from cryptography.hazmat.backends import default_backend
 import scitokens
 import json, requests
 
+import scitokens.utils.demo
+
 # Specify an algorithm for signature
 # ES256 = Elliptic Curve with SHA-256
 # getToken will return a signed token with the payload
@@ -43,13 +45,13 @@ def main():
     Given a set of command line parameters, generate a corresponding SciToken.
     """
     args = add_args()
-    #If the demo option is called
-    if (args.demo):
+    # If the demo option is called
+    if args.demo:
         payload = {}
         for claim in args.claims:
             (key, value) = claim.split('=', 1)
             payload[key] = value
-        print(getToken(payload))
+        print(scitokens.utils.demo.token(payload))
     
     else:
         with open(args.keyfile, "r") as file_pointer:
