@@ -11,13 +11,7 @@ from cryptography.hazmat.backends import default_backend
 import scitokens
 import json, requests
 
-# Specify an algorithm for signature
-# ES256 = Elliptic Curve with SHA-256
-# getToken will return a signed token with the payload
-def getToken(payload: dict):
-    data = json.dumps({'algorithm': "ES256", 'payload': payload})
-    resp = requests.post("https://demo.scitokens.org/issue", data=data)
-    return resp.text
+import scitokens.utils.demo
 
 def add_args():
     """
@@ -49,7 +43,7 @@ def main():
         for claim in args.claims:
             (key, value) = claim.split('=', 1)
             payload[key] = value
-        print(getToken(payload))
+        print(scitokens.utils.demo.token(payload))
     
     else:
         with open(args.keyfile, "r") as file_pointer:
