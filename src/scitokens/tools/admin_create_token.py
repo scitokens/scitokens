@@ -44,7 +44,7 @@ def main():
     """
     args = add_args()
     #If the demo option is called
-    if args.demo:
+    if (args.demo):
         payload = {}
         for claim in args.claims:
             (key, value) = claim.split('=', 1)
