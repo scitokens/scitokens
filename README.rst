@@ -195,6 +195,21 @@ The ``test`` method uses the SciTokens built-in path parsing to validate the
 authorization.  The ``generate_acls`` method allows the caller to cache
 the ACL information from the token.
 
+Retrieving Tokens
+-----------------
+
+Typically, an access token is generated during an OAuth2 workflow to facilitate 
+authentication and authorization. However, for testing and experimentation purposes, 
+`our token generator <https://demo.scitokens.org/issue>` provides users with the
+ability to create sample tokens with customized payload:
+
+::
+
+    >>> token = scitokens.utils.demo.token(payload)
+
+where ``payload`` is a dictionary specifying the claims to be included in the token. 
+The generator then produces an encoded and signed token based on the specified payload. 
+
 Configuration
 -------------
 
