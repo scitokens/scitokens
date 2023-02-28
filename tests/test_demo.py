@@ -25,9 +25,6 @@ class TestDemo(unittest.TestCase):
         self.assertTrue(val.validate(token))
 
 
-
-    # def test_empty_payload()
-
 if __name__ == '__main__':
     unittest.main()
 
