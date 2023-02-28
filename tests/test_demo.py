@@ -1,24 +1,33 @@
 import scitokens.utils.demo
 import unittest
-# writing test & documetation
-# read how python library works
+
+
 class TestDemo(unittest.TestCase):
-    def setUp(self):
+    def test_valid_token(self):
+        """
+        Test that the token matches the specified payload
+        """
+        payload = {
+            "key1": "value1",
+            "key2": "value2",
+            "key3": "value3",
+            }
+        
+        token_serialized = scitokens.utils.demo.token(payload)
+        token = scitokens.SciToken.deserialize(token_serialized)            # automatically call verify 
     
+        # assert that the payload is part of the claims
+        for key, value in payload.items(): 
+            self.assertIn((key, value), token.claims())
 
-        # Force the keycache to create a cache in a new directory
-        self.tmp_dir = tempfile.mkdtemp()
-        self.old_xdg = os.environ.get('XDG_DEMO_HOME', None)
-        os.environ['XDG_DEMO_HOME'] = self.tmp_dir
-        # Clear the cache
-        self.keycache = Demo()
-
-        # make sure it made the directory where I wanted it
-        self.assertTrue(self.keycache.cache_location.startswith(self.tmp_dir))
-        self.assertTrue(os.path.exists(self.keycache.cache_location))
+        # validate the token 
+        val = scitokens.Validator()
+        self.assertTrue(val.validate(token))
 
 
-    def tearDown(self):
-        shutil.rmtree(self.tmp_dir)
-        if self.old_xdg:
-            os.environ['XDG_DEMO_HOME'] = self.old_xdg
+
+    # def test_empty_payload()
+
+if __name__ == '__main__':
+    unittest.main()
+
