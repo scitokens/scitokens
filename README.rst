@@ -210,7 +210,7 @@ ability to create sample tokens with customized payload:
 
 The generator then produces a serialized token based on the specified payload. 
 Additionally, users can also retrieve a parsed token by calling the method 
-`scitokens.utils.demo.parsed_token(payload)`, which returns a SciToken object 
+``scitokens.utils.demo.parsed_token(payload)``, which returns a SciToken object 
 corresponding to the specified payload.
 
 Configuration
