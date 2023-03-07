@@ -204,11 +204,14 @@ authentication and authorization. However, for testing and experimentation purpo
 ability to create sample tokens with customized payload:
 
 ::
-
+    
+    >>> payload = {"stuff": "blah", "message": "Hello"}
     >>> token = scitokens.utils.demo.token(payload)
 
-where ``payload`` is a dictionary specifying the claims to be included in the token. 
-The generator then produces an encoded and signed token based on the specified payload. 
+The generator then produces a serialized token based on the specified payload. 
+Additionally, users can also retrieve a parsed token by calling the method 
+`scitokens.utils.demo.parsed_token(payload)`, which returns a SciToken object 
+corresponding to the specified payload.
 
 Configuration
 -------------
