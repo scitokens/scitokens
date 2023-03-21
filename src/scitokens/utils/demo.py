@@ -17,6 +17,7 @@ def token(payload: dict):
     resp = requests.post("https://demo.scitokens.org/issue", data=data)
     return resp.text
 
+
 def parsed_token(payload: dict): 
     """
     Get a parsed token for the given payload. 
@@ -24,6 +25,5 @@ def parsed_token(payload: dict):
     :param dict payload: a dictionary specifying the claims 
     :returns: a SciToken object 
     """
-    data = json.dumps({'algorithm': "ES256", 'payload': payload})
-    resp = requests.post("https://demo.scitokens.org/issue", data=data)
-    return scitokens.SciToken.deserialize(resp.text)
+    token = scitokens.utils.demo.token(payload)
+    return scitokens.SciToken.deserialize(token)
