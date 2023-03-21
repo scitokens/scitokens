@@ -5,7 +5,7 @@ Test demo module
 import scitokens.utils.demo
 import unittest
 import jwt          # to handle jwt exceptions
-import time         # to handle jwt exceptions 
+import time         # to add time delay 
 
 
 class TestToken(unittest.TestCase):
@@ -25,7 +25,6 @@ class TestToken(unittest.TestCase):
             print("Token not yet valid. Retrying in 1 second.")
             time.sleep(1)                                                       # add some delay 
             token = scitokens.SciToken.deserialize(token_serialized)            # retry 
-
         # assert that the payload is part of the claims
         for key, value in payload.items(): 
             self.assertIn((key, value), token.claims())
@@ -61,9 +60,9 @@ class TestParsedToken(unittest.TestCase):
             print("Token not yet valid. Retrying in 1 second.")
             time.sleep(1)
             token = scitokens.utils.demo.parsed_token(payload)
-
         for key, value in payload.items(): 
             self.assertIn((key, value), token.claims())
+
 
     def test_empty_parsed(self): 
         """
