@@ -200,12 +200,12 @@ Creating Sample Tokens
 
 Typically, an access token is generated during an OAuth2 workflow to facilitate 
 authentication and authorization. However, for testing and experimentation purposes, 
-`our token generator <https://demo.scitokens.org/issue>`__ provides users with the
+`our token generator <https://demo.scitokens.org/`__ provides users with the
 ability to create sample tokens with customized payload:
 
 ::
     
-    >>> payload = {"stuff": "blah", "message": "Hello"}
+    >>> payload = {"sub": "<email adress>", "scope": "read:/protected"}
     >>> token = scitokens.utils.demo.token(payload)
 
 The generator then produces a serialized token based on the specified payload. 
