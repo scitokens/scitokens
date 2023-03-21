@@ -208,10 +208,10 @@ ability to create sample tokens with customized payload:
     >>> payload = {"sub": "<email adress>", "scope": "read:/protected"}
     >>> token = scitokens.utils.demo.token(payload)
 
-The generator then produces a serialized token based on the specified payload. 
-Additionally, users can also retrieve a parsed token by calling the method 
-``scitokens.utils.demo.parsed_token(payload)``, which returns a SciToken object 
-corresponding to the specified payload.
+The ``token`` method makes a request to the generator to create a serialized token 
+for the specified payload. Users can also retrieve a parsed token by calling the 
+``parsed_token`` method, which returns a SciToken object corresponding to the 
+payload. The object contains the decoded token data, including the claims and signature. 
 
 Configuration
 -------------
