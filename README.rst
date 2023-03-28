@@ -213,6 +213,25 @@ for the specified payload. Users can also retrieve a parsed token by calling the
 ``parsed_token`` method, which returns a SciToken object corresponding to the 
 payload. The object contains the decoded token data, including the claims and signature. 
 
+Decorator
+-------------
+
+This protect decorator is designed to be used with a flask application. It can be used like:
+
+.. code-block:: python
+
+    @scitokens_protect.protect(audience="https://demo.scitokens.org", scope="read:/secret", issuer="https://demo.scitokens.org")
+    def Secret(token: SciToken):
+        # ... token is now available.
+
+The possible arguments are:
+
+- ``audience`` (str or list): Audience expected in the client token
+- ``scope`` (str): Scope required to access the function
+- ``issuer`` (str): The issuer to require of the client token
+
+The protected function can optionally take an argument ``token``, which is the parsed SciToken object.
+
 Configuration
 -------------
 
