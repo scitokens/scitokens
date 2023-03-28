@@ -200,7 +200,7 @@ Creating Sample Tokens
 
 Typically, an access token is generated during an OAuth2 workflow to facilitate 
 authentication and authorization. However, for testing and experimentation purposes, 
-`our token generator <https://demo.scitokens.org/>`__ provides users with the
+`the demo token generator <https://demo.scitokens.org/>`__ provides users with the
 ability to create sample tokens with customized payload:
 
 ::
