@@ -211,7 +211,7 @@ ability to create sample tokens with customized payload:
 The ``token`` method makes a request to the generator to create a serialized token 
 for the specified payload. Users can also retrieve a parsed token by calling the 
 ``parsed_token`` method, which returns a SciToken object corresponding to the 
-payload. The object contains the decoded token data, including the claims and signature. 
+token. The object contains the decoded token data, including the claims and signature. 
 
 Decorator
 -------------
