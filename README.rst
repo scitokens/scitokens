@@ -216,7 +216,7 @@ token. The object contains the decoded token data, including the claims and sign
 Decorator
 -------------
 
-This protect decorator is designed to be used with a flask application. It can be used like:
+This protect decorator is designed to be used with a `flask <https://flask.palletsprojects.com/>`_ application. It can be used like:
 
 .. code-block:: python
 
