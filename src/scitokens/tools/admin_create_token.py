@@ -9,7 +9,6 @@ from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.backends import default_backend
 
 import scitokens
-import requests
 
 import scitokens.utils.demo
 
@@ -45,7 +44,7 @@ def main():
             (key, value) = claim.split('=', 1)
             payload[key] = value
         print(scitokens.utils.demo.token(payload))
-    
+
     else:
         with open(args.keyfile, "r") as file_pointer:
             private_key_contents = file_pointer.read()
