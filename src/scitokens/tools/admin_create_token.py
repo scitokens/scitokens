@@ -9,7 +9,7 @@ from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.backends import default_backend
 
 import scitokens
-import json, requests
+import requests
 
 import scitokens.utils.demo
 
