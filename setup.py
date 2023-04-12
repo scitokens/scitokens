@@ -66,6 +66,7 @@ setuptools.setup(
     install_requires=[
         'cryptography',
         'PyJWT>=1.6.1',
+        "importlib_metadata;python_version<'3.8'",
         'setuptools'
     ],
     extras_require={

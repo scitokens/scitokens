@@ -6,12 +6,17 @@ A module for effectively caching the public keys of various token issuer endpoin
 import os
 import sqlite3
 import time
-import pkg_resources  # part of setuptools
 import re
 import logging
+
 try:
-    PKG_VERSION = pkg_resources.require("scitokens")[0].version
-except pkg_resources.DistributionNotFound as error:
+    import importlib.metadata as import_meta
+except ImportError:
+    import importlib_metadata as import_meta
+
+try:
+    PKG_VERSION = import_meta.version("scitokens")
+except import_meta.PackageNotFoundError:
     # During testing, scitokens won't be installed, so requiring it will fail
     # Instead, fake it
     PKG_VERSION = '1.0.0'
