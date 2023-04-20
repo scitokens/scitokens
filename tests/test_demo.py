@@ -23,7 +23,7 @@ class TestToken(unittest.TestCase):
             token = scitokens.SciToken.deserialize(token_serialized)            # automatically call verify
         except jwt.exceptions.ImmatureSignatureError:                           # if the token was issued in the future
             print("Token not yet valid. Retrying in 1 second.")
-            time.sleep(1)                                                       # add some delay
+            time.sleep(10)                                                       # add some delay
             token = scitokens.SciToken.deserialize(token_serialized)            # retry
         # assert that the payload is part of the claims
         for key, value in payload.items():
@@ -40,7 +40,7 @@ class TestToken(unittest.TestCase):
             token = scitokens.SciToken.deserialize(token_serialized)            # automatically call verify
         except jwt.exceptions.ImmatureSignatureError:
             print("Token not yet valid. Retrying in 1 second.")
-            time.sleep(1)
+            time.sleep(10)
             token = scitokens.SciToken.deserialize(token_serialized)
 
 
@@ -58,7 +58,7 @@ class TestParsedToken(unittest.TestCase):
             token = scitokens.utils.demo.parsed_token(payload)
         except jwt.exceptions.ImmatureSignatureError:
             print("Token not yet valid. Retrying in 1 second.")
-            time.sleep(1)
+            time.sleep(10)
             token = scitokens.utils.demo.parsed_token(payload)
         for key, value in payload.items():
             self.assertIn((key, value), token.claims())
@@ -73,7 +73,7 @@ class TestParsedToken(unittest.TestCase):
             token = scitokens.utils.demo.parsed_token(payload)
         except jwt.exceptions.ImmatureSignatureError:
             print("Token not yet valid. Retrying in 1 second.")
-            time.sleep(1)
+            time.sleep(10)
             token = scitokens.utils.demo.parsed_token(payload)
 
 
