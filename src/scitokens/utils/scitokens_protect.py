@@ -29,7 +29,6 @@ def protect(**outer_kwargs):
                     'WWW-Authenticate': 'Bearer'
                 }
                 return ("Authentication header incorrect format", 401, headers)
-            
             serialized_token = bearer.split()[1]
             try:
                 token = scitokens.SciToken.deserialize(serialized_token, audience = outer_kwargs['audience'])
