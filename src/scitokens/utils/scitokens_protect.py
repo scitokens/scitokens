@@ -13,18 +13,11 @@ from functools import wraps
 from flask import request
 import traceback
 from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.backends import default_backend
-import base64
-import os
-import inspect
-
 
 def protect(**outer_kwargs):
     def real_decorator(some_function):
-        
         @wraps(some_function)
         def wrapper(*args, **kwargs):
-            
             if 'Authorization' not in request.headers:
                 headers = {
                     'WWW-Authenticate': 'Bearer'
@@ -58,11 +51,9 @@ def protect(**outer_kwargs):
             for issuer in issuers:
                 enforcer = scitokens.Enforcer(issuer, audience=outer_kwargs['audience'])
                 authz, path = outer_kwargs['scope'].split(":")
-
                 if enforcer.test(token, authz, path):
                     success = True
                     break
-
             if not success:
                 headers = {
                     'WWW-Authenticate': 'Bearer'
@@ -74,11 +65,8 @@ def protect(**outer_kwargs):
                 kwargs['token'] = token
 
             return some_function(*args, **kwargs)
-    
         return wrapper
     return real_decorator
-    
-    
 
 @protect(aud="asdf")
 def stuff(blah, stuff, **kwargs):
@@ -86,7 +74,3 @@ def stuff(blah, stuff, **kwargs):
     print(stuff)
     for key, value in kwargs.iteritems():
         print("%s = %s" % (key, value))
-    
-
-
-
