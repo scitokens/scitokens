@@ -37,11 +37,11 @@ class TestToken(unittest.TestCase):
         payload = {}
         token_serialized = scitokens.utils.demo.token(payload)
         try:
-            token = scitokens.SciToken.deserialize(token_serialized)            # automatically call verify
+            scitokens.SciToken.deserialize(token_serialized)            # automatically call verify
         except jwt.exceptions.ImmatureSignatureError:
             print("Token not yet valid. Retrying in 1 second.")
             time.sleep(10)
-            token = scitokens.SciToken.deserialize(token_serialized)
+            scitokens.SciToken.deserialize(token_serialized)
 
 
 class TestParsedToken(unittest.TestCase):
@@ -70,11 +70,11 @@ class TestParsedToken(unittest.TestCase):
         """
         payload = {}
         try:
-            token = scitokens.utils.demo.parsed_token(payload)
+            scitokens.utils.demo.parsed_token(payload)
         except jwt.exceptions.ImmatureSignatureError:
             print("Token not yet valid. Retrying in 1 second.")
             time.sleep(10)
-            token = scitokens.utils.demo.parsed_token(payload)
+            scitokens.utils.demo.parsed_token(payload)
 
 
 if __name__ == '__main__':
