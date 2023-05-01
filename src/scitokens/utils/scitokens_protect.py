@@ -12,7 +12,7 @@ import scitokens
 from functools import wraps
 from flask import request
 import traceback
-from cryptography.hazmat.primitives import serialization
+import inspect
 
 def protect(**outer_kwargs):
     def real_decorator(some_function):
@@ -23,7 +23,6 @@ def protect(**outer_kwargs):
                     'WWW-Authenticate': 'Bearer'
                 }
                 return ("No Authentication Header", 401, headers)
-            
             bearer = request.headers.get("Authorization")
             if len(bearer.split()) != 2:
                 headers = {
