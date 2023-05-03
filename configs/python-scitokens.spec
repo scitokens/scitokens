@@ -2,13 +2,13 @@
 %global pypi_name scitokens
 
 Name:           python-%{pypi_name}
-Version:        1.7.4
+Version:        1.7.5
 Release:        1%{?dist}
 Summary:        SciToken reference implementation library
 
 License:        Apache-2.0
 URL:            https://scitokens.org
-Source0:        https://files.pythonhosted.org/packages/source/s/%{pypi_name}/%{pypi_name}-%{version}.tar.gz
+Source0:        %{pypi_source %{pypi_name}}
 BuildArch:      noarch
 
 # build requirements
@@ -24,8 +24,6 @@ BuildRequires:  python3-jwt >= 1.6.1
 SciToken reference implementation library
 
 %package -n     python3-%{pypi_name}
-Requires:       python3-jwt >= 1.6.1
-Requires:       python3-cryptography
 Obsoletes:      python3-scitokens < 1.6.2-2
 Summary:        %{summary}
 
@@ -44,8 +42,7 @@ rm -rf %{pypi_name}.egg-info
 %py3_install
 
 %check
-export PYTHONPATH="%{buildroot}%{python3_sitelib}"
-(cd tests/ && %{__python3} -m pytest --verbose -ra .)
+%pytest --verbose -ra tests/
 
 %files -n python3-%{pypi_name}
 %license LICENSE

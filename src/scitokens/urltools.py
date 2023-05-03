@@ -26,6 +26,8 @@ def unquote(text, exceptions=''):
     'foo#bar'
     >>> unquote('foo%23bar', ['#'])
     'foo%23bar'
+
+    Unmodified function from python-urltools
     """
     if not text:
         if text is None:
@@ -52,6 +54,10 @@ def normalize_path(path):
     """Normalize path: collapse etc.
     >>> normalize_path('/a/b///c')
     '/a/b/c'
+
+    Modified function from python-urltools to include reducing the starting slashes, ie
+    "//a/b/c" -> "/a/b/c"
+
     """
     if path in ['//', '/', '']:
         return '/'
