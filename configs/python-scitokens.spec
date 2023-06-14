@@ -19,6 +19,7 @@ BuildRequires:  python%{python3_pkgversion}-setuptools
 BuildRequires:  python%{python3_pkgversion}-cryptography
 BuildRequires:  python%{python3_pkgversion}-pytest
 BuildRequires:  python%{python3_pkgversion}-jwt >= 1.6.1
+BuildRequires:  python%{python3_pkgversion}-requests
 
 %description
 SciToken reference implementation library
@@ -26,6 +27,7 @@ SciToken reference implementation library
 %package -n     python%{python3_pkgversion}-%{pypi_name}
 Requires:       python%{python3_pkgversion}-jwt >= 1.6.1
 Requires:       python%{python3_pkgversion}-cryptography
+Requires:       python%{python3_pkgversion}-requests
 Obsoletes:      python3-scitokens < 1.6.2-2
 Summary:        %{summary}
 %{?python_provide:%python_provide python%{python3_pkgversion}-%{pypi_name}}
