@@ -19,6 +19,7 @@ BuildRequires:  python3-setuptools
 BuildRequires:  python3-cryptography
 BuildRequires:  python3-pytest
 BuildRequires:  python3-jwt >= 1.6.1
+BuildRequires:  python3-requests
 
 %description
 SciToken reference implementation library
