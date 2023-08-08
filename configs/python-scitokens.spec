@@ -16,10 +16,17 @@ BuildRequires:  python3-devel
 BuildRequires:  python3-setuptools
 
 # test requirements
+%if 0%{?rhel} == 7
+BuildRequires:  python%{python3_pkgversion}-cryptography
+BuildRequires:  python%{python3_pkgversion}-pytest
+BuildRequires:  python%{python3_pkgversion}-jwt >= 1.6.1
+BuildRequires:  python%{python3_pkgversion}-requests
+%else
 BuildRequires:  python3-cryptography
 BuildRequires:  python3-pytest
 BuildRequires:  python3-jwt >= 1.6.1
 BuildRequires:  python3-requests
+%endif
 
 %description
 SciToken reference implementation library
