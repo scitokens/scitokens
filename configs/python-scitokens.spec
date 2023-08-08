@@ -50,7 +50,12 @@ rm -rf %{pypi_name}.egg-info
 %py3_install
 
 %check
+%if 0%{?rhel} == 7
+export PYTHONPATH="%{buildroot}%{python3_sitelib}"
+(cd tests/ && %{__python3} -m pytest --verbose -ra .)
+%else
 %pytest --verbose -ra tests/
+%endif
 
 %files -n python3-%{pypi_name}
 %license LICENSE
