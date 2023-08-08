@@ -6,15 +6,8 @@ A module for effectively caching the public keys of various token issuer endpoin
 import os
 import sqlite3
 import time
-import pkg_resources  # part of setuptools
 import re
 import logging
-try:
-    PKG_VERSION = pkg_resources.require("scitokens")[0].version
-except pkg_resources.DistributionNotFound as error:
-    # During testing, scitokens won't be installed, so requiring it will fail
-    # Instead, fake it
-    PKG_VERSION = '1.0.0'
 
 try:
     import urllib.request as request
@@ -229,6 +222,8 @@ class KeyCache(object):
         """
 
         # Set the user agent so Cloudflare isn't mad at us
+        # Import the __version__ value in scitokens for the scitokens version
+        from scitokens import __version__ as PKG_VERSION
         headers={'User-Agent' : 'SciTokens/{}'.format(PKG_VERSION)}
 
         # Go to the issuer's website, and download the OAuth well known bits

@@ -66,8 +66,7 @@ setuptools.setup(
     install_requires=[
         'cryptography',
         'PyJWT>=1.6.1',
-        'setuptools',
-        'requests'
+        'requests',
     ],
     extras_require={
         "docs": [

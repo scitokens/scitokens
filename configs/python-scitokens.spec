@@ -6,33 +6,36 @@ Version:        1.7.5
 Release:        1%{?dist}
 Summary:        SciToken reference implementation library
 
-License:        Apache 2.0
+License:        Apache-2.0
 URL:            https://scitokens.org
-Source0:        https://files.pythonhosted.org/packages/source/s/%{pypi_name}/%{pypi_name}-%{version}.tar.gz
+Source0:        %{pypi_source %{pypi_name}}
 BuildArch:      noarch
 
 # build requirements
 BuildRequires:  python3-devel
-BuildRequires:  python%{python3_pkgversion}-setuptools
+BuildRequires:  python3-setuptools
 
 # test requirements
+%if 0%{?rhel} == 7
 BuildRequires:  python%{python3_pkgversion}-cryptography
 BuildRequires:  python%{python3_pkgversion}-pytest
 BuildRequires:  python%{python3_pkgversion}-jwt >= 1.6.1
 BuildRequires:  python%{python3_pkgversion}-requests
+%else
+BuildRequires:  python3-cryptography
+BuildRequires:  python3-pytest
+BuildRequires:  python3-jwt >= 1.6.1
+BuildRequires:  python3-requests
+%endif
 
 %description
 SciToken reference implementation library
 
-%package -n     python%{python3_pkgversion}-%{pypi_name}
-Requires:       python%{python3_pkgversion}-jwt >= 1.6.1
-Requires:       python%{python3_pkgversion}-cryptography
-Requires:       python%{python3_pkgversion}-requests
+%package -n     python3-%{pypi_name}
 Obsoletes:      python3-scitokens < 1.6.2-2
 Summary:        %{summary}
-%{?python_provide:%python_provide python%{python3_pkgversion}-%{pypi_name}}
 
-%description -n python%{python3_pkgversion}-%{pypi_name}
+%description -n python3-%{pypi_name}
 SciToken reference implementation library
 
 %prep
@@ -44,17 +47,19 @@ rm -rf %{pypi_name}.egg-info
 %py3_build
 
 %install
-# Must do the subpackages' install first because the scripts in /usr/bin are
-# overwritten with every setup.py install.
 %py3_install
 
 %check
+%if 0%{?rhel} == 7
 export PYTHONPATH="%{buildroot}%{python3_sitelib}"
 (cd tests/ && %{__python3} -m pytest --verbose -ra .)
+%else
+%pytest --verbose -ra tests/
+%endif
 
-%files -n python%{python3_pkgversion}-%{pypi_name}
+%files -n python3-%{pypi_name}
 %license LICENSE
-%{python3_sitelib}/%{pypi_name}
+%{python3_sitelib}/%{pypi_name}/
 %{python3_sitelib}/%{pypi_name}-%{version}-py*.egg-info
 %doc README.rst
 %{_bindir}/scitokens-admin-create-key
@@ -62,6 +67,9 @@ export PYTHONPATH="%{buildroot}%{python3_sitelib}"
 %{_bindir}/scitokens-verify-token
 
 %changelog
+* Tue Nov 22 2022 Derek Weitzel <dweitzel@unl.edu> - 1.7.4-1
+- Fix the version within the package
+
 * Tue Nov 22 2022 Derek Weitzel <dweitzel@unl.edu> - 1.7.3-1
 - Remove aud enforcement from deserailize function
 - Add configuration for readthedocs
