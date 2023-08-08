@@ -2,7 +2,7 @@
 %global pypi_name scitokens
 
 Name:           python-%{pypi_name}
-Version:        1.7.5
+Version:        1.8.0
 Release:        1%{?dist}
 Summary:        SciToken reference implementation library
 
@@ -67,6 +67,11 @@ export PYTHONPATH="%{buildroot}%{python3_sitelib}"
 %{_bindir}/scitokens-verify-token
 
 %changelog
+* Tue Aug 08 2023 Derek Weitzel <dweitzel@unl.edu> - 1.8.0-1
+- Add demo token issuer convenience functions
+- Improve testing of deserialization
+- Add RPM improvements for EPEL
+
 * Tue Nov 22 2022 Derek Weitzel <dweitzel@unl.edu> - 1.7.4-1
 - Fix the version within the package
 
