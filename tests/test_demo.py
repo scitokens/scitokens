@@ -6,9 +6,12 @@ import scitokens.utils.demo
 import unittest
 import jwt          # to handle jwt exceptions
 import time         # to add time delay
+import pytest       # to skip tests
 
 
 class TestToken(unittest.TestCase):
+
+    @pytest.mark.network
     def test_valid_payload(self):
         """
         Test that the token matches the specified payload
@@ -29,7 +32,7 @@ class TestToken(unittest.TestCase):
         for key, value in payload.items():
             self.assertIn((key, value), token.claims())
 
-
+    @pytest.mark.network
     def test_empty_payload(self):
         """
         Test token with empty payload
@@ -45,6 +48,7 @@ class TestToken(unittest.TestCase):
 
 
 class TestParsedToken(unittest.TestCase):
+    @pytest.mark.network
     def test_valid_parsed(self):
         """
         Test that the parsed token matches the payload
@@ -62,7 +66,7 @@ class TestParsedToken(unittest.TestCase):
         for key, value in payload.items():
             self.assertIn((key, value), token.claims())
 
-
+    @pytest.mark.network
     def test_empty_parsed(self):
         """
         Test token with empty payload
