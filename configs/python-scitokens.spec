@@ -52,9 +52,9 @@ rm -rf %{pypi_name}.egg-info
 %check
 %if 0%{?rhel} == 7
 export PYTHONPATH="%{buildroot}%{python3_sitelib}"
-(cd tests/ && %{__python3} -m pytest --verbose -ra .)
+(cd tests/ && %{__python3} -m pytest --verbose -ra . --no-network)
 %else
-%pytest --verbose -ra tests/
+%pytest --verbose -ra tests/ --no-network
 %endif
 
 %files -n python3-%{pypi_name}
