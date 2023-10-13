@@ -15,7 +15,7 @@ def main():
     args = add_args()
     
     keycache = KeyCache()
-    res = keycache.remove_token(keycache._get_cache_file(), args.issuer, args.key_id)
+    res = keycache.remove_token(args.issuer, args.key_id)
     
     if res == True:
         print("Successfully deleted token with issuer = {} and key_id = {}!".format(args.issuer, args.key_id))

@@ -28,6 +28,7 @@ import cryptography.hazmat.primitives.asymmetric.rsa as rsa
 from scitokens.utils.errors import SciTokensException, MissingKeyException, NonHTTPSIssuer, UnableToCreateCache, UnsupportedKeyException
 from scitokens.utils import long_from_bytes
 import scitokens.utils.config as config
+from cryptography.hazmat.primitives import serialization
 
 
 CACHE_FILENAME = "scitokens_keycache.sqllite"
@@ -370,20 +371,19 @@ class KeyCache(object):
         # Just be sure any changes have been committed or they will be lost.
         conn.close()
 
-    @staticmethod
-    def list_token(sql_file):
-        conn = sqlite3.connect(sql_file)
+
+    def list_token(self):
+        conn = sqlite3.connect(self._get_cache_file())
         curs = conn.cursor()
-        
-        res = curs.execute("SELECT * FROM keycache")
+        res = curs.execute("SELECT issuer, DATETIME(expiration, 'unixepoch'), key_id, keydata, DATETIME(next_update, 'unixepoch') FROM keycache")
         tokens = res.fetchall()
         
         conn.close()
         return tokens
     
-    @staticmethod
-    def remove_token(sql_file, issuer, key_id):
-        conn = sqlite3.connect(sql_file)
+
+    def remove_token(self, issuer, key_id):
+        conn = sqlite3.connect(self._get_cache_file())
         curs = conn.cursor()
         
         res = curs.execute("SELECT * FROM keycache WHERE issuer = ? AND key_id = ?", [issuer, key_id])
@@ -396,3 +396,29 @@ class KeyCache(object):
         conn.commit()
         conn.close()
         return True
+
+
+    def add_token(self, issuer, key_id):
+        pubkey = self.getkeyinfo(issuer, key_id)
+        if pubkey is None:
+            return None
+    
+        pubkey_pem = pubkey.public_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PublicFormat.SubjectPublicKeyInfo
+        )
+        return pubkey_pem
+    
+
+    def update_all_tokens(self):
+        conn = sqlite3.connect(self._get_cache_file())
+        curs = conn.cursor()
+        res = curs.execute("SELECT issuer, key_id FROM keycache")
+        tokens = res.fetchall()
+        conn.close()
+        
+        res = []
+        for issuer, key_id in tokens:
+            updated = self.add_token(issuer, key_id)
+            res.append(updated)
+        return res
