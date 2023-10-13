@@ -369,3 +369,30 @@ class KeyCache(object):
         # We can also close the connection if we are done with it.
         # Just be sure any changes have been committed or they will be lost.
         conn.close()
+
+    @staticmethod
+    def list_token(sql_file):
+        conn = sqlite3.connect(sql_file)
+        curs = conn.cursor()
+        
+        res = curs.execute("SELECT * FROM keycache")
+        tokens = res.fetchall()
+        
+        conn.close()
+        return tokens
+    
+    @staticmethod
+    def remove_token(sql_file, issuer, key_id):
+        conn = sqlite3.connect(sql_file)
+        curs = conn.cursor()
+        
+        res = curs.execute("SELECT * FROM keycache WHERE issuer = ? AND key_id = ?", [issuer, key_id])
+        if res.fetchone() is None:
+            conn.close()
+            return False
+        
+        res = curs.execute("DELETE FROM keycache WHERE issuer = ? AND key_id = ?", [issuer, key_id])
+        res = curs.fetchall()
+        conn.commit()
+        conn.close()
+        return True
