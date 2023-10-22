@@ -181,19 +181,29 @@ class KeyCache(object):
             elif self._check_validity(row):
                 # If force_refresh is set, then update the key
                 if force_refresh:
-                    # update the keycache
-                    public_key, cache_timer = self._get_issuer_publickey(issuer, key_id, insecure)
-                    self.addkeyinfo(issuer, key_id, public_key, cache_timer)
-                    return public_key
+                    try:
+                        # update the keycache
+                        public_key, cache_timer = self._get_issuer_publickey(issuer, key_id, insecure)
+                        self.addkeyinfo(issuer, key_id, public_key, cache_timer)
+                        return public_key
+                    except Exception as ex:
+                        logger = logging.getLogger("scitokens")
+                        logger.error("Unable to force refresh key: {0}".format(str(ex)))
+                        return None
                 
                 keydata = self._parse_key_data(row['issuer'], row['key_id'], row['keydata'])
                 if keydata:
                     return load_pem_public_key(keydata.encode(), backend=backends.default_backend())
                 
                 # update the keycache
-                public_key, cache_timer = self._get_issuer_publickey(issuer, key_id, insecure)
-                self.addkeyinfo(issuer, key_id, public_key, cache_timer)
-                return public_key
+                try:
+                    public_key, cache_timer = self._get_issuer_publickey(issuer, key_id, insecure)
+                    self.addkeyinfo(issuer, key_id, public_key, cache_timer)
+                    return public_key
+                except Exception as ex:
+                    logger = logging.getLogger("scitokens")
+                    logger.error("Local key is invalid and unable to get key: {0}".format(str(ex)))
+                    return None
 
 
             # If it's not time to update the key, and the key is not valid
@@ -206,10 +216,14 @@ class KeyCache(object):
 
         # If it reaches here, then no key was found in the SQL
         # Try checking the issuer (negative cache?)
-        public_key, cache_timer = self._get_issuer_publickey(issuer, key_id, insecure)
-        self.addkeyinfo(issuer, key_id, public_key, cache_timer)
-
-        return public_key
+        try:
+            public_key, cache_timer = self._get_issuer_publickey(issuer, key_id, insecure)
+            self.addkeyinfo(issuer, key_id, public_key, cache_timer)
+            return public_key
+        except Exception as ex:
+            logger = logging.getLogger("scitokens")
+            logger.error("No key was found in keycache and unable to get key: {0}".format(str(ex)))
+            return None
 
     @classmethod
     def _check_validity(cls, key_info):
