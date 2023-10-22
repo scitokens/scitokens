@@ -136,7 +136,7 @@ class KeyCache(object):
         conn.close()
 
 
-    def getkeyinfo(self, issuer, key_id=None, insecure=False):
+    def getkeyinfo(self, issuer, key_id=None, insecure=False, force_refresh=False):
         """
         Get the key information
 
@@ -179,6 +179,13 @@ class KeyCache(object):
 
             # If it's not time to update the key, but the key is still valid
             elif self._check_validity(row):
+                # If force_refresh is set, then update the key
+                if force_refresh:
+                    # update the keycache
+                    public_key, cache_timer = self._get_issuer_publickey(issuer, key_id, insecure)
+                    self.addkeyinfo(issuer, key_id, public_key, cache_timer)
+                    return public_key
+                
                 keydata = self._parse_key_data(row['issuer'], row['key_id'], row['keydata'])
                 if keydata:
                     return load_pem_public_key(keydata.encode(), backend=backends.default_backend())
@@ -398,8 +405,8 @@ class KeyCache(object):
         return True
 
 
-    def add_token(self, issuer, key_id):
-        pubkey = self.getkeyinfo(issuer, key_id)
+    def add_token(self, issuer, key_id, force_refresh=False):
+        pubkey = self.getkeyinfo(issuer, key_id, force_refresh=force_refresh)
         if pubkey is None:
             return None
     
@@ -410,7 +417,7 @@ class KeyCache(object):
         return pubkey_pem
     
 
-    def update_all_tokens(self):
+    def update_all_tokens(self, force_refresh=False):
         conn = sqlite3.connect(self._get_cache_file())
         curs = conn.cursor()
         res = curs.execute("SELECT issuer, key_id FROM keycache")
@@ -419,6 +426,6 @@ class KeyCache(object):
         
         res = []
         for issuer, key_id in tokens:
-            updated = self.add_token(issuer, key_id)
+            updated = self.add_token(issuer, key_id, force_refresh=force_refresh)
             res.append(updated)
         return res
