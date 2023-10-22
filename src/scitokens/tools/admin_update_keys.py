@@ -11,11 +11,10 @@ def add_args():
     return args
 
 def main():
-    # TODO: Make this work
-    keycache = KeyCache()
-    
     args = add_args()
-    res = keycache.update_all_tokens(force_refresh=args.force)
+    
+    keycache = KeyCache()
+    res = keycache.update_all_keys(force_refresh=args.force)
     
     for i in res:
         print(i)

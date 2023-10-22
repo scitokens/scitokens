@@ -379,7 +379,10 @@ class KeyCache(object):
         conn.close()
 
 
-    def list_token(self):
+    def list_key(self):
+        """
+        List all keys in keycache
+        """
         conn = sqlite3.connect(self._get_cache_file())
         curs = conn.cursor()
         res = curs.execute("SELECT issuer, DATETIME(expiration, 'unixepoch'), key_id, keydata, DATETIME(next_update, 'unixepoch') FROM keycache")
@@ -389,7 +392,10 @@ class KeyCache(object):
         return tokens
     
 
-    def remove_token(self, issuer, key_id):
+    def remove_key(self, issuer, key_id):
+        """
+        Remove a specific key from keycache
+        """
         conn = sqlite3.connect(self._get_cache_file())
         curs = conn.cursor()
         
@@ -405,7 +411,10 @@ class KeyCache(object):
         return True
 
 
-    def add_token(self, issuer, key_id, force_refresh=False):
+    def add_key(self, issuer, key_id, force_refresh=False):
+        """
+        Add a key or update an existing one in keycache
+        """
         pubkey = self.getkeyinfo(issuer, key_id, force_refresh=force_refresh)
         if pubkey is None:
             return None
@@ -417,7 +426,11 @@ class KeyCache(object):
         return pubkey_pem
     
 
-    def update_all_tokens(self, force_refresh=False):
+    def update_all_keys(self, force_refresh=False):
+        """
+        Update all keys in keycache
+        If force_refresh is True, we refresh all keys regardless of update time
+        """
         conn = sqlite3.connect(self._get_cache_file())
         curs = conn.cursor()
         res = curs.execute("SELECT issuer, key_id FROM keycache")
@@ -426,6 +439,6 @@ class KeyCache(object):
         
         res = []
         for issuer, key_id in tokens:
-            updated = self.add_token(issuer, key_id, force_refresh=force_refresh)
+            updated = self.add_key(issuer, key_id, force_refresh=force_refresh)
             res.append(updated)
         return res

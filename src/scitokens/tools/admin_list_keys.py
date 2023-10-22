@@ -3,7 +3,7 @@ from scitokens.utils.keycache import KeyCache
 def main():
     # TODO: Make this work
     keycache = KeyCache()
-    res = keycache.list_token()
+    res = keycache.list_key()
     
     header = ["issuer", "expiration", "key_id", "keydata", "next_update"]
     
