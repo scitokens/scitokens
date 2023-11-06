@@ -379,7 +379,7 @@ class KeyCache(object):
         conn.close()
 
 
-    def list_key(self):
+    def list_keys(self):
         """
         List all keys in keycache
         """
