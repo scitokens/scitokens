@@ -159,76 +159,77 @@ class KeyCache(object):
         conn.commit()
         conn.close()
         if row != None:
-            if row['keydata'] != '':
-                # Check if negative cache
-                # If it's time to update the key, but the key is still valid
-                if int(row['next_update']) < time.time() and self._check_validity(row):
-                    # Try to update the key, but if it doesn't work, just return the saved one
-                    try:
-                        # Get the public key, probably from a webserver
-                        public_key, cache_timer = self._get_issuer_publickey(issuer, key_id, insecure)
-
-                        # Get the sqllite connection again
-                        self.addkeyinfo(issuer, key_id, public_key, cache_timer)
-                        return public_key
-                    except Exception as ex:
-                        logger = logging.getLogger("scitokens")
-                        logger.warning("Unable to get key triggered by next update: {0}".format(str(ex)))
-                        keydata = self._parse_key_data(row['issuer'], row['key_id'], row['keydata'])
-                        # Upgrade proof
-                        if keydata:
-                            return load_pem_public_key(keydata.encode(), backend=backends.default_backend())
-
-                # If it's not time to update the key, but the key is still valid
-                elif self._check_validity(row):
-                    # If force_refresh is set, then update the key
-                    if force_refresh:
-                        try:
-                            # update the keycache
-                            public_key, cache_timer = self._get_issuer_publickey(issuer, key_id, insecure)
-                            self.addkeyinfo(issuer, key_id, public_key, cache_timer)
-                            return public_key
-                        except Exception as ex:
-                            logger = logging.getLogger("scitokens")
-                            logger.error("Unable to force refresh key: {0}".format(str(ex)))
-                            return None
-                    
-                    keydata = self._parse_key_data(row['issuer'], row['key_id'], row['keydata'])
-                    if keydata:
-                        return load_pem_public_key(keydata.encode(), backend=backends.default_backend())
-                    
-                    # update the keycache
-                    try:
-                        public_key, cache_timer = self._get_issuer_publickey(issuer, key_id, insecure)
-                        self.addkeyinfo(issuer, key_id, public_key, cache_timer)
-                        return public_key
-                    except Exception as ex:
-                        logger = logging.getLogger("scitokens")
-                        logger.error("Local key is invalid and unable to get key: {0}".format(str(ex)))
-                        return None
-
-
-                # If it's not time to update the key, and the key is not valid
-                else:
-
-                    # Delete the row
-                    # If it gets to this point, then there is a row for the key, but it's:
-                    # - Not valid anymore
-                    self._delete_cache_entry(row['issuer'], row['key_id'])
-                        # If key is a negative cache
-        
-            else:
+            if row['keydata'] == '':
                 # Negative Cache Handling
-                if row['next_update'] > time.time():
+                if not force_refresh or row['next_update'] > time.time():
                     logger = logging.getLogger("scitokens")
                     logger.warning("Retry in {} seconds".format(int(row['next_update'] - time.time())))
                     return None
                 else:
+                    # 5 minutes is over, retry adding key to keycache
                     self._delete_cache_entry(row['issuer'], row['key_id'])
+                    row = None
+                    
+            # If it's time to update the key, but the key is still valid
+            if row and int(row['next_update']) < time.time() and self._check_validity(row):
+                # Try to update the key, but if it doesn't work, just return the saved one
+                try:
+                    # Get the public key, probably from a webserver
+                    public_key, cache_timer = self._get_issuer_publickey(issuer, key_id, insecure)
+
+                    # Get the sqllite connection again
+                    self.addkeyinfo(issuer, key_id, public_key, cache_timer)
+                    return public_key
+                except Exception as ex:
+                    logger = logging.getLogger("scitokens")
+                    logger.warning("Unable to get key triggered by next update: {0}".format(str(ex)))
+                    keydata = self._parse_key_data(row['issuer'], row['key_id'], row['keydata'])
+                    # Upgrade proof
+                    if keydata:
+                        return load_pem_public_key(keydata.encode(), backend=backends.default_backend())
+
+            # If it's not time to update the key, but the key is still valid
+            elif row and self._check_validity(row):
+                # If force_refresh is set, then update the key
+                if force_refresh:
+                    try:
+                        # update the keycache
+                        public_key, cache_timer = self._get_issuer_publickey(issuer, key_id, insecure)
+                        self.addkeyinfo(issuer, key_id, public_key, cache_timer)
+                        return public_key
+                    except Exception as ex:
+                        logger = logging.getLogger("scitokens")
+                        logger.error("Unable to force refresh key: {0}".format(str(ex)))
+                        return None
+                
+                keydata = self._parse_key_data(row['issuer'], row['key_id'], row['keydata'])
+                if keydata:
+                    return load_pem_public_key(keydata.encode(), backend=backends.default_backend())
+                
+                # update the keycache
+                try:
+                    public_key, cache_timer = self._get_issuer_publickey(issuer, key_id, insecure)
+                    self.addkeyinfo(issuer, key_id, public_key, cache_timer)
+                    return public_key
+                except Exception as ex:
+                    logger = logging.getLogger("scitokens")
+                    logger.error("Local key is invalid and unable to get key: {0}".format(str(ex)))
+                    return None
+
+
+            # If it's not time to update the key, and the key is not valid
+            elif row:
+
+                # Delete the row
+                # If it gets to this point, then there is a row for the key, but it's:
+                # - Not valid anymore
+                self._delete_cache_entry(row['issuer'], row['key_id'])
+                    # If key is a negative cache
 
         # If it reaches here, then no key was found in the SQL
         # Try checking the issuer (negative cache?)
         try:
+            # TODO: Update force commands
             public_key, cache_timer = self._get_issuer_publickey(issuer, key_id, insecure)
             self.addkeyinfo(issuer, key_id, public_key, cache_timer)
             return public_key
@@ -236,18 +237,19 @@ class KeyCache(object):
             logger = logging.getLogger("scitokens")
             logger.error("No key was found in keycache and unable to get key: {0}".format(str(ex)))
             # Negative cache
-            conn = sqlite3.connect(self.cache_location)
-            conn.row_factory = sqlite3.Row
-            curs = conn.cursor()
-            insert_key_statement = "INSERT INTO keycache VALUES('{issuer}', '{expiration}', '{key_id}', \
-                                '{keydata}', '{next_update}')"
-            keydata = ''
-            curs.execute(insert_key_statement.format(issuer=issuer, expiration=time.time()+cache_retry_interval, key_id=key_id,
-                                                    keydata=keydata, next_update=time.time()+cache_retry_interval))
-            if curs.rowcount != 1:
-                raise UnableToWriteKeyCache("Unable to insert into key cache")
-            conn.commit()
-            conn.close()
+            if not force_refresh:
+                conn = sqlite3.connect(self.cache_location)
+                conn.row_factory = sqlite3.Row
+                curs = conn.cursor()
+                insert_key_statement = "INSERT INTO keycache VALUES('{issuer}', '{expiration}', '{key_id}', \
+                                    '{keydata}', '{next_update}')"
+                keydata = ''
+                curs.execute(insert_key_statement.format(issuer=issuer, expiration=time.time()+cache_retry_interval, key_id=key_id,
+                                                        keydata=keydata, next_update=time.time()+cache_retry_interval))
+                if curs.rowcount != 1:
+                    raise UnableToWriteKeyCache("Unable to insert into key cache")
+                conn.commit()
+                conn.close()
             return None
 
     @classmethod
