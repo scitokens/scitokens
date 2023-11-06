@@ -21,7 +21,7 @@ def main():
         print("Successfully added token with issuer = {} and key_id = {}!".format(args.issuer, args.key_id))
         print(res)
     else:
-        print("Invalid issuer = {} and key_id = {} !".format(args.issuer, args.key_id))
+        print("Cannot add issuer = {} and key_id = {} !".format(args.issuer, args.key_id))
 
 if __name__ == "__main__":
     main()
