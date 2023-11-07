@@ -28,6 +28,7 @@ import cryptography.hazmat.primitives.asymmetric.rsa as rsa
 from scitokens.utils.errors import SciTokensException, MissingKeyException, NonHTTPSIssuer, UnableToCreateCache, UnsupportedKeyException
 from scitokens.utils import long_from_bytes
 import scitokens.utils.config as config
+from cryptography.hazmat.primitives import serialization
 
 
 CACHE_FILENAME = "scitokens_keycache.sqllite"
@@ -135,7 +136,7 @@ class KeyCache(object):
         conn.close()
 
 
-    def getkeyinfo(self, issuer, key_id=None, insecure=False):
+    def getkeyinfo(self, issuer, key_id=None, insecure=False, force_refresh=False):
         """
         Get the key information
 
@@ -178,6 +179,13 @@ class KeyCache(object):
 
             # If it's not time to update the key, but the key is still valid
             elif self._check_validity(row):
+                # If force_refresh is set, then update the key
+                if force_refresh:
+                    # update the keycache
+                    public_key, cache_timer = self._get_issuer_publickey(issuer, key_id, insecure)
+                    self.addkeyinfo(issuer, key_id, public_key, cache_timer)
+                    return public_key
+                
                 keydata = self._parse_key_data(row['issuer'], row['key_id'], row['keydata'])
                 if keydata:
                     return load_pem_public_key(keydata.encode(), backend=backends.default_backend())
@@ -369,3 +377,68 @@ class KeyCache(object):
         # We can also close the connection if we are done with it.
         # Just be sure any changes have been committed or they will be lost.
         conn.close()
+
+
+    def list_keys(self):
+        """
+        List all keys in keycache
+        """
+        conn = sqlite3.connect(self._get_cache_file())
+        curs = conn.cursor()
+        res = curs.execute("SELECT issuer, DATETIME(expiration, 'unixepoch'), key_id, keydata, DATETIME(next_update, 'unixepoch') FROM keycache")
+        tokens = res.fetchall()
+        
+        conn.close()
+        return tokens
+    
+
+    def remove_key(self, issuer, key_id):
+        """
+        Remove a specific key from keycache
+        """
+        conn = sqlite3.connect(self._get_cache_file())
+        curs = conn.cursor()
+        
+        res = curs.execute("SELECT * FROM keycache WHERE issuer = ? AND key_id = ?", [issuer, key_id])
+        if res.fetchone() is None:
+            conn.close()
+            return False
+        
+        res = curs.execute("DELETE FROM keycache WHERE issuer = ? AND key_id = ?", [issuer, key_id])
+        res = curs.fetchall()
+        conn.commit()
+        conn.close()
+        return True
+
+
+    def add_key(self, issuer, key_id, force_refresh=False):
+        """
+        Add a key or update an existing one in keycache
+        """
+        pubkey = self.getkeyinfo(issuer, key_id, force_refresh=force_refresh)
+        if pubkey is None:
+            return None
+    
+        pubkey_pem = pubkey.public_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PublicFormat.SubjectPublicKeyInfo
+        )
+        return pubkey_pem
+    
+
+    def update_all_keys(self, force_refresh=False):
+        """
+        Update all keys in keycache
+        If force_refresh is True, we refresh all keys regardless of update time
+        """
+        conn = sqlite3.connect(self._get_cache_file())
+        curs = conn.cursor()
+        res = curs.execute("SELECT issuer, key_id FROM keycache")
+        tokens = res.fetchall()
+        conn.close()
+        
+        res = []
+        for issuer, key_id in tokens:
+            updated = self.add_key(issuer, key_id, force_refresh=force_refresh)
+            res.append(updated)
+        return res
