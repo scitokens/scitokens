@@ -74,6 +74,8 @@ class KeyCache(object):
         if next_update == 0:
             next_update = 3600
 
+        if not self._is_cache_file_writable():
+            raise UnableToWriteKeyCache("Keycache is immutable!")
         conn = sqlite3.connect(self.cache_location)
         conn.row_factory = sqlite3.Row
         curs = conn.cursor()
@@ -127,6 +129,8 @@ class KeyCache(object):
         """
         Delete a cache entry
         """
+        if not self._is_cache_file_writable():
+            raise UnableToWriteKeyCache("Keycache is immutable!")
         # Open the connection to the database
         conn = sqlite3.connect(self.cache_location)
         curs = conn.cursor()
@@ -150,6 +154,8 @@ class KeyCache(object):
                      "issuer = '{issuer}'")
         if key_id != None:
             key_query += " AND key_id = '{key_id}'"
+        if not self._is_cache_file_writable():
+            raise UnableToWriteKeyCache("Keycache is immutable!")
         conn = sqlite3.connect(self.cache_location)
         conn.row_factory = sqlite3.Row
         curs = conn.cursor()
@@ -238,6 +244,8 @@ class KeyCache(object):
             # Create negative cache
             if not force_refresh:
                 # If NOT forced, create negative cache
+                if not self._is_cache_file_writable():
+                    raise UnableToWriteKeyCache("Keycache is immutable!")
                 conn = sqlite3.connect(self.cache_location)
                 conn.row_factory = sqlite3.Row
                 curs = conn.cursor()
@@ -357,6 +365,17 @@ class KeyCache(object):
         return public_key, cache_timer
 
 
+    def _is_cache_file_writable(self):
+        try:
+            file = open(self.cache_location, "a")
+        except Exception as ex:
+            logger = logging.getLogger("scitokens")
+            logger.warning(ex)
+            return False
+        is_writable = file.writable()
+        file.close()
+        return is_writable
+    
     def _get_cache_file(self):
         """
         Get the Cache file location
