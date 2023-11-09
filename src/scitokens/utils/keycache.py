@@ -159,14 +159,15 @@ class KeyCache(object):
         conn.commit()
         conn.close()
         if row != None:
+            # Check if record is negative cache
             if row['keydata'] == '':
                 # Negative Cache Handling
-                if not force_refresh or row['next_update'] > time.time():
+                if not force_refresh and row['next_update'] > time.time():
                     logger = logging.getLogger("scitokens")
                     logger.warning("Retry in {} seconds".format(int(row['next_update'] - time.time())))
                     return None
                 else:
-                    # 5 minutes is over, retry adding key to keycache
+                    # Force refresh or cache_retry_interval is over
                     self._delete_cache_entry(row['issuer'], row['key_id'])
                     row = None
                     
@@ -193,7 +194,7 @@ class KeyCache(object):
                 # If force_refresh is set, then update the key
                 if force_refresh:
                     try:
-                        # update the keycache
+                        # Update the keycache
                         public_key, cache_timer = self._get_issuer_publickey(issuer, key_id, insecure)
                         self.addkeyinfo(issuer, key_id, public_key, cache_timer)
                         return public_key
@@ -206,7 +207,7 @@ class KeyCache(object):
                 if keydata:
                     return load_pem_public_key(keydata.encode(), backend=backends.default_backend())
                 
-                # update the keycache
+                # Update the keycache
                 try:
                     public_key, cache_timer = self._get_issuer_publickey(issuer, key_id, insecure)
                     self.addkeyinfo(issuer, key_id, public_key, cache_timer)
@@ -227,17 +228,16 @@ class KeyCache(object):
                     # If key is a negative cache
 
         # If it reaches here, then no key was found in the SQL
-        # Try checking the issuer (negative cache?)
         try:
-            # TODO: Update force commands
             public_key, cache_timer = self._get_issuer_publickey(issuer, key_id, insecure)
             self.addkeyinfo(issuer, key_id, public_key, cache_timer)
             return public_key
         except Exception as ex:
             logger = logging.getLogger("scitokens")
             logger.error("No key was found in keycache and unable to get key: {0}".format(str(ex)))
-            # Negative cache
+            # Create negative cache
             if not force_refresh:
+                # If NOT forced, create negative cache
                 conn = sqlite3.connect(self.cache_location)
                 conn.row_factory = sqlite3.Row
                 curs = conn.cursor()
