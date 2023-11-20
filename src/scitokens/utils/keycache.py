@@ -74,15 +74,16 @@ class KeyCache(object):
         if next_update == 0:
             next_update = 3600
 
-        if not self._is_cache_file_writable():
-            raise UnableToWriteKeyCache("Keycache is immutable!")
-        conn = sqlite3.connect(self.cache_location)
-        conn.row_factory = sqlite3.Row
-        curs = conn.cursor()
-        curs.execute("DELETE FROM keycache WHERE issuer = '{}' AND key_id = '{}'".format(issuer, key_id))
-        KeyCache._addkeyinfo(curs, issuer, key_id, public_key, cache_timer=cache_timer, next_update=next_update)
-        conn.commit()
-        conn.close()
+        try:
+            conn = sqlite3.connect(self.cache_location)
+            conn.row_factory = sqlite3.Row
+            curs = conn.cursor()
+            curs.execute("DELETE FROM keycache WHERE issuer = '{}' AND key_id = '{}'".format(issuer, key_id))
+            KeyCache._addkeyinfo(curs, issuer, key_id, public_key, cache_timer=cache_timer, next_update=next_update)
+            conn.commit()
+            conn.close()
+        except Exception as ex:
+            raise UnableToWriteKeyCache(f'Keycache file is immutable. Detailed error: {ex}')
 
     @staticmethod
     def _addkeyinfo(curs, issuer, key_id, public_key, cache_timer=0, next_update=0):
@@ -129,15 +130,16 @@ class KeyCache(object):
         """
         Delete a cache entry
         """
-        if not self._is_cache_file_writable():
-            raise UnableToWriteKeyCache("Keycache is immutable!")
         # Open the connection to the database
-        conn = sqlite3.connect(self.cache_location)
-        curs = conn.cursor()
-        curs.execute("DELETE FROM keycache WHERE issuer = '{}' AND key_id = '{}'".format(issuer,
-                     key_id))
-        conn.commit()
-        conn.close()
+        try:
+            conn = sqlite3.connect(self.cache_location)
+            curs = conn.cursor()
+            curs.execute("DELETE FROM keycache WHERE issuer = '{}' AND key_id = '{}'".format(issuer,
+                        key_id))
+            conn.commit()
+            conn.close()
+        except Exception as ex:
+            raise UnableToWriteKeyCache(f'Keycache file is immutable. Detailed error: {ex}')
 
 
     def getkeyinfo(self, issuer, key_id=None, insecure=False, force_refresh=False, cache_retry_interval=300):
@@ -154,16 +156,18 @@ class KeyCache(object):
                      "issuer = '{issuer}'")
         if key_id != None:
             key_query += " AND key_id = '{key_id}'"
-        if not self._is_cache_file_writable():
-            raise UnableToWriteKeyCache("Keycache is immutable!")
-        conn = sqlite3.connect(self.cache_location)
-        conn.row_factory = sqlite3.Row
-        curs = conn.cursor()
-        curs.execute(key_query.format(issuer=issuer, key_id=key_id))
+        try:
+            conn = sqlite3.connect(self.cache_location)
+            conn.row_factory = sqlite3.Row
+            curs = conn.cursor()
+            curs.execute(key_query.format(issuer=issuer, key_id=key_id))
 
-        row = curs.fetchone()
-        conn.commit()
-        conn.close()
+            row = curs.fetchone()
+            conn.commit()
+            conn.close()
+        except Exception as ex:
+            raise UnableToWriteKeyCache(f'Keycache file is immutable. Detailed error: {ex}')
+        
         if row != None:
             # Check if record is negative cache
             if row['keydata'] == '':
@@ -244,20 +248,21 @@ class KeyCache(object):
             # Create negative cache
             if not force_refresh:
                 # If NOT forced, create negative cache
-                if not self._is_cache_file_writable():
-                    raise UnableToWriteKeyCache("Keycache is immutable!")
-                conn = sqlite3.connect(self.cache_location)
-                conn.row_factory = sqlite3.Row
-                curs = conn.cursor()
-                insert_key_statement = "INSERT INTO keycache VALUES('{issuer}', '{expiration}', '{key_id}', \
-                                    '{keydata}', '{next_update}')"
-                keydata = ''
-                curs.execute(insert_key_statement.format(issuer=issuer, expiration=time.time()+cache_retry_interval, key_id=key_id,
-                                                        keydata=keydata, next_update=time.time()+cache_retry_interval))
-                if curs.rowcount != 1:
-                    raise UnableToWriteKeyCache("Unable to insert into key cache")
-                conn.commit()
-                conn.close()
+                try:
+                    conn = sqlite3.connect(self.cache_location)
+                    conn.row_factory = sqlite3.Row
+                    curs = conn.cursor()
+                    insert_key_statement = "INSERT INTO keycache VALUES('{issuer}', '{expiration}', '{key_id}', \
+                                        '{keydata}', '{next_update}')"
+                    keydata = ''
+                    curs.execute(insert_key_statement.format(issuer=issuer, expiration=time.time()+cache_retry_interval, key_id=key_id,
+                                                            keydata=keydata, next_update=time.time()+cache_retry_interval))
+                    if curs.rowcount != 1:
+                        raise UnableToWriteKeyCache("Unable to insert into key cache")
+                    conn.commit()
+                    conn.close()
+                except Exception as ex:
+                    raise UnableToWriteKeyCache(f'Keycache file is immutable. Detailed error: {ex}')
             return None
 
     @classmethod
@@ -363,18 +368,6 @@ class KeyCache(object):
             raise UnsupportedKeyException("SciToken signed with an unsupported key type")
 
         return public_key, cache_timer
-
-
-    def _is_cache_file_writable(self):
-        try:
-            file = open(self.cache_location, "a")
-        except Exception as ex:
-            logger = logging.getLogger("scitokens")
-            logger.warning(ex)
-            return False
-        is_writable = file.writable()
-        file.close()
-        return is_writable
     
     def _get_cache_file(self):
         """
