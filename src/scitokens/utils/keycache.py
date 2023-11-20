@@ -29,6 +29,7 @@ from scitokens.utils.errors import SciTokensException, MissingKeyException, NonH
 from scitokens.utils import long_from_bytes
 import scitokens.utils.config as config
 from cryptography.hazmat.primitives import serialization
+from urllib.error import URLError
 
 
 CACHE_FILENAME = "scitokens_keycache.sqllite"
@@ -186,7 +187,15 @@ class KeyCache(object):
                         public_key, cache_timer = self._get_issuer_publickey(issuer, key_id, insecure)
                         self.addkeyinfo(issuer, key_id, public_key, cache_timer)
                         return public_key
-                    except Exception as ex:
+                    except ValueError:
+                        logging.exception("Unable to parse JSON stored in keycache.  "
+                              "This likely means the database format needs"
+                              "to be updated, which we will now do automatically")
+                        self._delete_cache_entry(issuer, key_id)
+                        raise ValueError
+                    except URLError as ex:
+                        raise URLError("Unable to get key from issuer.\n{0}".format(str(ex)))
+                    except MissingKeyException as ex:
                         raise MissingKeyException("Unable to force refresh key. \n{0}".format(str(ex)))
                 
                 keydata = self._parse_key_data(row['issuer'], row['key_id'], row['keydata'])
@@ -198,6 +207,14 @@ class KeyCache(object):
                     public_key, cache_timer = self._get_issuer_publickey(issuer, key_id, insecure)
                     self.addkeyinfo(issuer, key_id, public_key, cache_timer)
                     return public_key
+                except ValueError:
+                        logging.exception("Unable to parse JSON stored in keycache.  "
+                              "This likely means the database format needs"
+                              "to be updated, which we will now do automatically")
+                        self._delete_cache_entry(issuer, key_id)
+                        raise ValueError
+                except URLError as ex:
+                    raise URLError("Unable to get key from issuer.\n{0}".format(str(ex)))
                 except Exception as ex:
                     raise MissingKeyException("Key in keycache is expired and unable to get a new key.\n{0}".format(str(ex)))
 
@@ -216,8 +233,17 @@ class KeyCache(object):
             public_key, cache_timer = self._get_issuer_publickey(issuer, key_id, insecure)
             self.addkeyinfo(issuer, key_id, public_key, cache_timer)
             return public_key
+        except ValueError:
+            logging.exception("Unable to parse JSON stored in keycache.  "
+                              "This likely means the database format needs"
+                              "to be updated, which we will now do automatically")
+            self._delete_cache_entry(issuer, key_id)
+            raise ValueError
+        except URLError as ex:
+            raise URLError("Unable to get key from issuer.\n{0}".format(str(ex)))
         except Exception as ex:
             raise MissingKeyException("No key was found in keycache and unable to get key.\n{0}".format(str(ex)))
+
 
     @classmethod
     def _check_validity(cls, key_info):
@@ -439,7 +465,7 @@ class KeyCache(object):
         Update all keys in keycache
         If force_refresh is True, we refresh all keys regardless of update time
         """
-        conn = sqlite3.connect(self.cache_locationgi)
+        conn = sqlite3.connect(self.cache_location)
         curs = conn.cursor()
         res = curs.execute("SELECT issuer, key_id FROM keycache")
         tokens = res.fetchall()
