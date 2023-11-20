@@ -187,9 +187,7 @@ class KeyCache(object):
                         self.addkeyinfo(issuer, key_id, public_key, cache_timer)
                         return public_key
                     except Exception as ex:
-                        logger = logging.getLogger("scitokens")
-                        logger.error("Unable to force refresh key: {0}".format(str(ex)))
-                        return None
+                        raise MissingKeyException("Unable to force refresh key. \n{0}".format(str(ex)))
                 
                 keydata = self._parse_key_data(row['issuer'], row['key_id'], row['keydata'])
                 if keydata:
@@ -201,9 +199,7 @@ class KeyCache(object):
                     self.addkeyinfo(issuer, key_id, public_key, cache_timer)
                     return public_key
                 except Exception as ex:
-                    logger = logging.getLogger("scitokens")
-                    logger.error("Local key is invalid and unable to get key: {0}".format(str(ex)))
-                    return None
+                    raise MissingKeyException("Key in keycache is expired and unable to get a new key.\n{0}".format(str(ex)))
 
 
             # If it's not time to update the key, and the key is not valid
@@ -221,9 +217,7 @@ class KeyCache(object):
             self.addkeyinfo(issuer, key_id, public_key, cache_timer)
             return public_key
         except Exception as ex:
-            logger = logging.getLogger("scitokens")
-            logger.error("No key was found in keycache and unable to get key: {0}".format(str(ex)))
-            return None
+            raise MissingKeyException("No key was found in keycache and unable to get key.\n{0}".format(str(ex)))
 
     @classmethod
     def _check_validity(cls, key_info):
@@ -397,7 +391,7 @@ class KeyCache(object):
         """
         List all keys in keycache
         """
-        conn = sqlite3.connect(self._get_cache_file())
+        conn = sqlite3.connect(self.cache_location)
         curs = conn.cursor()
         res = curs.execute("SELECT issuer, DATETIME(expiration, 'unixepoch'), key_id, keydata, DATETIME(next_update, 'unixepoch') FROM keycache")
         tokens = res.fetchall()
@@ -410,7 +404,7 @@ class KeyCache(object):
         """
         Remove a specific key from keycache
         """
-        conn = sqlite3.connect(self._get_cache_file())
+        conn = sqlite3.connect(self.cache_location)
         curs = conn.cursor()
         
         res = curs.execute("SELECT * FROM keycache WHERE issuer = ? AND key_id = ?", [issuer, key_id])
@@ -445,7 +439,7 @@ class KeyCache(object):
         Update all keys in keycache
         If force_refresh is True, we refresh all keys regardless of update time
         """
-        conn = sqlite3.connect(self._get_cache_file())
+        conn = sqlite3.connect(self.cache_locationgi)
         curs = conn.cursor()
         res = curs.execute("SELECT issuer, key_id FROM keycache")
         tokens = res.fetchall()
