@@ -83,7 +83,9 @@ class KeyCache(object):
             conn.commit()
             conn.close()
         except Exception as ex:
-            raise UnableToWriteKeyCache(f'Keycache file is immutable. Detailed error: {ex}')
+            logger = logging.getLogger("scitokens")
+            logger.warning(f'Keycache file is immutable. Detailed error: {ex}')
+            return None
 
     @staticmethod
     def _addkeyinfo(curs, issuer, key_id, public_key, cache_timer=0, next_update=0):
@@ -139,7 +141,9 @@ class KeyCache(object):
             conn.commit()
             conn.close()
         except Exception as ex:
-            raise UnableToWriteKeyCache(f'Keycache file is immutable. Detailed error: {ex}')
+            logger = logging.getLogger("scitokens")
+            logger.warning(f'Keycache file is immutable. Detailed error: {ex}')
+            return None
 
 
     def getkeyinfo(self, issuer, key_id=None, insecure=False, force_refresh=False, cache_retry_interval=300):
@@ -166,7 +170,9 @@ class KeyCache(object):
             conn.commit()
             conn.close()
         except Exception as ex:
-            raise UnableToWriteKeyCache(f'Keycache file is immutable. Detailed error: {ex}')
+            logger = logging.getLogger("scitokens")
+            logger.warning(f'Keycache file is immutable. Detailed error: {ex}')
+            return None
         
         if row != None:
             # Check if record is negative cache
@@ -262,7 +268,9 @@ class KeyCache(object):
                     conn.commit()
                     conn.close()
                 except Exception as ex:
-                    raise UnableToWriteKeyCache(f'Keycache file is immutable. Detailed error: {ex}')
+                    logger = logging.getLogger("scitokens")
+                    logger.warning(f'Keycache file is immutable. Detailed error: {ex}')
+                    return None
             return None
 
     @classmethod
