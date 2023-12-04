@@ -172,7 +172,7 @@ class KeyCache(object):
         except Exception as ex:
             logger = logging.getLogger("scitokens")
             logger.error(f'Keycache file is immutable. Detailed error: {ex}')
-            return public_key
+            # return public_key
         
         if row != None:
             # Check if record is negative cache
@@ -290,7 +290,7 @@ class KeyCache(object):
                 except Exception as ex:
                     logger = logging.getLogger("scitokens")
                     logger.error(f'Keycache file is immutable. Detailed error: {ex}')
-                    # return public_key
+                    return public_key
             return None
 
     @classmethod
