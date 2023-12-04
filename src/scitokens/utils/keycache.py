@@ -207,12 +207,12 @@ class KeyCache(object):
                     public_key, cache_timer = self._get_issuer_publickey(issuer, key_id, insecure)
                     self.addkeyinfo(issuer, key_id, public_key, cache_timer)
                     return public_key
-                except ValueError:
+                except ValueError as ex:
                         logging.exception("Unable to parse JSON stored in keycache.  "
                               "This likely means the database format needs"
-                              "to be updated, which we will now do automatically")
+                              "to be updated, which we will now do automatically.\n".format(str(ex)))
                         self._delete_cache_entry(issuer, key_id)
-                        raise ValueError
+                        raise ex
                 except URLError as ex:
                     raise URLError("Unable to get key from issuer.\n{0}".format(str(ex)))
                 except Exception as ex:
@@ -233,12 +233,12 @@ class KeyCache(object):
             public_key, cache_timer = self._get_issuer_publickey(issuer, key_id, insecure)
             self.addkeyinfo(issuer, key_id, public_key, cache_timer)
             return public_key
-        except ValueError:
+        except ValueError as ex:
             logging.exception("Unable to parse JSON stored in keycache.  "
                               "This likely means the database format needs"
-                              "to be updated, which we will now do automatically")
+                              "to be updated, which we will now do automatically.\n".format(str(ex)))
             self._delete_cache_entry(issuer, key_id)
-            raise ValueError
+            raise ex
         except URLError as ex:
             raise URLError("Unable to get key from issuer.\n{0}".format(str(ex)))
         except Exception as ex:
