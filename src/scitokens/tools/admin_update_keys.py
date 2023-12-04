@@ -12,10 +12,8 @@ def add_args():
 
 def main():
     args = add_args()
-    
     keycache = KeyCache()
     res = keycache.update_all_keys(force_refresh=args.force)
-    
     for i in res:
         print(i)
 
