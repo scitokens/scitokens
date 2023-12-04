@@ -88,7 +88,7 @@ class KeyCache(object):
         Given an open database cursor to a key cache, insert a key.
         """
         # Add the key to the cache
-        insert_key_statement = "INSERT INTO keycache VALUES('{issuer}', '{expiration}', '{key_id}', \
+        insert_key_statement = "INSERT OR REPLACE INTO keycache VALUES('{issuer}', '{expiration}', '{key_id}', \
                                '{keydata}', '{next_update}')"
         keydata = {
             'pub_key': public_key.public_bytes(Encoding.PEM, PublicFormat.SubjectPublicKeyInfo).decode('ascii'),
@@ -241,7 +241,7 @@ class KeyCache(object):
                 conn = sqlite3.connect(self.cache_location)
                 conn.row_factory = sqlite3.Row
                 curs = conn.cursor()
-                insert_key_statement = "INSERT INTO keycache VALUES('{issuer}', '{expiration}', '{key_id}', \
+                insert_key_statement = "INSERT OR REPLACE INTO keycache VALUES('{issuer}', '{expiration}', '{key_id}', \
                                     '{keydata}', '{next_update}')"
                 keydata = ''
                 curs.execute(insert_key_statement.format(issuer=issuer, expiration=time.time()+cache_retry_interval, key_id=key_id,
