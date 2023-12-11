@@ -30,7 +30,7 @@ class TestCreation(unittest.TestCase):
     Test the creation of a simple SciToken
     """
 
-    def setUp(self):
+    def setUp(self):        
         self._private_key = generate_private_key(
             public_exponent=65537,
             key_size=2048,
@@ -41,10 +41,26 @@ class TestCreation(unittest.TestCase):
             encoding=serialization.Encoding.PEM,
             format=serialization.PublicFormat.SubjectPublicKeyInfo
         )
-        keycache = scitokens.utils.keycache.KeyCache.getinstance()
-        keycache.addkeyinfo("local", "sample_key", self._private_key.public_key())
+        
+        # Force the keycache to create a cache in a new directory
+        self.tmp_dir = tempfile.mkdtemp()
+        self.old_xdg = os.environ.get('XDG_CACHE_HOME', None)
+        os.environ['XDG_CACHE_HOME'] = self.tmp_dir
+        # Clear the cache
+        self.keycache = scitokens.utils.keycache.KeyCache()
+        # Make sure it made the directory where I wanted it
+        self.assertTrue(self.keycache.cache_location.startswith(self.tmp_dir))
+        self.assertTrue(os.path.exists(self.keycache.cache_location))
+        
+        self.keycache.addkeyinfo("local", "sample_key", self._private_key.public_key())
         self._token = scitokens.SciToken(key = self._private_key, key_id="sample_key")
         self._no_kid_token = scitokens.SciToken(key = self._private_key)
+
+    def tearDown(self):
+        shutil.rmtree(self.tmp_dir)
+        if self.old_xdg:
+            os.environ['XDG_CACHE_HOME'] = self.old_xdg
+        # Clean up, delete everything
 
     def test_create(self):
         """
