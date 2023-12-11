@@ -53,7 +53,6 @@ class TestKeyCache(unittest.TestCase):
             thread = threading.Thread(target=client_job, args=key)
             threads.append(thread)
             thread.start()
-        
         for thread in threads:  # iterates over the threads
             thread.join()
             
@@ -67,14 +66,12 @@ class TestKeyCache(unittest.TestCase):
             res = keycache.add_key(issuer, key_id, False)
             logger = logging.getLogger("scitokens")
             logger.warning(res)
-            
         threads = []
         key = ('minh', 'vy')
         for _ in range(200):
             thread = threading.Thread(target=client_job, args=key)
             threads.append(thread)
             thread.start()
-        
         for thread in threads:  # iterates over the threads
             thread.join()
 
