@@ -76,13 +76,18 @@ class KeyCache(object):
         if next_update == 0:
             next_update = 3600
 
-        conn = sqlite3.connect(self.cache_location)
-        conn.row_factory = sqlite3.Row
-        curs = conn.cursor()
-        curs.execute("DELETE FROM keycache WHERE issuer = '{}' AND key_id = '{}'".format(issuer, key_id))
-        KeyCache._addkeyinfo(curs, issuer, key_id, public_key, cache_timer=cache_timer, next_update=next_update)
-        conn.commit()
-        conn.close()
+        try:
+            conn = sqlite3.connect(self.cache_location)
+            conn.row_factory = sqlite3.Row
+            curs = conn.cursor()
+            curs.execute("DELETE FROM keycache WHERE issuer = '{}' AND key_id = '{}'".format(issuer, key_id))
+            KeyCache._addkeyinfo(curs, issuer, key_id, public_key, cache_timer=cache_timer, next_update=next_update)
+            conn.commit()
+            conn.close()
+        except Exception as ex:
+            logger = logging.getLogger("scitokens")
+            logger.error(f'Keycache file is immutable. Detailed error: {ex}')
+            return public_key
 
     @staticmethod
     def _addkeyinfo(curs, issuer, key_id, public_key, cache_timer=0, next_update=0):
@@ -130,12 +135,16 @@ class KeyCache(object):
         Delete a cache entry
         """
         # Open the connection to the database
-        conn = sqlite3.connect(self.cache_location)
-        curs = conn.cursor()
-        curs.execute("DELETE FROM keycache WHERE issuer = '{}' AND key_id = '{}'".format(issuer,
-                     key_id))
-        conn.commit()
-        conn.close()
+        try:
+            conn = sqlite3.connect(self.cache_location)
+            curs = conn.cursor()
+            curs.execute("DELETE FROM keycache WHERE issuer = '{}' AND key_id = '{}'".format(issuer,
+                        key_id))
+            conn.commit()
+            conn.close()
+        except Exception as ex:
+            logger = logging.getLogger("scitokens")
+            logger.error(f'Keycache file is immutable. Detailed error: {ex}')
 
 
     def getkeyinfo(self, issuer, key_id=None, insecure=False, force_refresh=False, cache_retry_interval=300):
@@ -155,14 +164,17 @@ class KeyCache(object):
                      "issuer = '{issuer}'")
         if key_id != None:
             key_query += " AND key_id = '{key_id}'"
-        conn = sqlite3.connect(self.cache_location)
-        conn.row_factory = sqlite3.Row
-        curs = conn.cursor()
-        curs.execute(key_query.format(issuer=issuer, key_id=key_id))
+        try:
+            conn = sqlite3.connect(self.cache_location)
+            conn.row_factory = sqlite3.Row
+            curs = conn.cursor()
+            curs.execute(key_query.format(issuer=issuer, key_id=key_id))
+            row = curs.fetchone()
+            conn.commit()
+            conn.close()
+        except Exception as ex:
+            logger.error(f'Keycache file is immutable. Detailed error: {ex}')
 
-        row = curs.fetchone()
-        conn.commit()
-        conn.close()
         if row != None:
             # Check if record is negative cache
             if row['keydata'] == '':
