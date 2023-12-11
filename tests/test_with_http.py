@@ -5,6 +5,8 @@ Test the full HTTP to SciToken serialize and deserialize
 import os
 import sys
 import unittest
+import tempfile
+import shutil
 from pathlib import Path
 
 # Allow unittests to be run from within the project base.
@@ -29,6 +31,11 @@ class TestDeserialization(unittest.TestCase):
     """
 
     def setUp(self):
+        # Force the keycache to create a cache in a new directory
+        self.tmp_dir = tempfile.mkdtemp()
+        self.old_xdg = os.environ.get('XDG_CACHE_HOME', None)
+        os.environ['XDG_CACHE_HOME'] = self.tmp_dir
+             
         with open(TESTS_DIR / 'simple_private_key.pem', 'rb') as key_file:
             self.private_key = serialization.load_pem_private_key(
                 key_file.read(),
@@ -49,7 +56,10 @@ class TestDeserialization(unittest.TestCase):
         self.ec_public_numbers = self.ec_private_key.public_key().public_numbers()
 
     def tearDown(self):
-        pass
+        shutil.rmtree(self.tmp_dir)
+        if self.old_xdg:
+            os.environ['XDG_CACHE_HOME'] = self.old_xdg
+        # Clean up, delete everything
 
     def test_deserialization(self):
         """
