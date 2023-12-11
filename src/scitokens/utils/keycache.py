@@ -205,9 +205,9 @@ class KeyCache(object):
                     except URLError as ex:
                         logger.error("Unable to get key from issuer {0} with key_id {1}".format(issuer, key_id))
                         raise ex
-                    except MissingKeyException as ex:
+                    except Exception as ex:
                         logger.error("Unable to force refresh key. {0}".format(ex))
-                        raise ex
+                        raise MissingKeyException(ex)
                     
                     # Separate download and add key to avoid keycache deadlocks
                     try:
@@ -275,7 +275,7 @@ class KeyCache(object):
                     conn.close()
                 except Exception as ex:
                     logger.error(ex)
-            return None
+            raise MissingKeyException(ex)
         
         try:
             self.addkeyinfo(issuer, key_id, public_key, cache_timer)
