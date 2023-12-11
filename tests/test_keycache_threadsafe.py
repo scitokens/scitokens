@@ -9,13 +9,6 @@ import shutil
 import threading
 import unittest
 from scitokens.utils.keycache import KeyCache
-from scitokens.utils.keycache import KeyCache
-
-# Python 3 vs. Python 2
-try:
-    from urllib.error import URLError
-except ImportError:
-    from urllib2 import URLError
 
 
 class TestKeyCache(unittest.TestCase):
@@ -54,10 +47,9 @@ class TestKeyCache(unittest.TestCase):
             res = keycache.add_key(issuer, key_id, False)
             logger = logging.getLogger("scitokens")
             logger.warning(res)
-            
         threads = []
         key = ('https://demo.scitokens.org', 'key-rs256')
-        for i in range(200):
+        for _ in range(200):
             thread = threading.Thread(target=client_job, args=key)
             threads.append(thread)
             thread.start()
@@ -78,7 +70,7 @@ class TestKeyCache(unittest.TestCase):
             
         threads = []
         key = ('minh', 'vy')
-        for i in range(200):
+        for _ in range(200):
             thread = threading.Thread(target=client_job, args=key)
             threads.append(thread)
             thread.start()

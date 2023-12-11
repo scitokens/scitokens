@@ -16,7 +16,6 @@ def main():
     args = add_args()
     keycache = KeyCache()
     res = keycache.add_key(args.issuer, args.key_id, force_refresh=args.force)
-    
     if res != None:
         print("Successfully added token with issuer = {} and key_id = {}!".format(args.issuer, args.key_id))
         print(res)
