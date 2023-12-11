@@ -87,7 +87,6 @@ class KeyCache(object):
         except Exception as ex:
             logger = logging.getLogger("scitokens")
             logger.error(f'Keycache file is immutable. Detailed error: {ex}')
-            return public_key
 
     @staticmethod
     def _addkeyinfo(curs, issuer, key_id, public_key, cache_timer=0, next_update=0):
@@ -151,7 +150,7 @@ class KeyCache(object):
         """
         Add a negative cache entry
         """
-        try: 
+        try:
             conn = sqlite3.connect(self.cache_location)
             conn.row_factory = sqlite3.Row
             curs = conn.cursor()
@@ -173,7 +172,7 @@ class KeyCache(object):
     def _download_and_add_key(self, issuer, key_id, insecure, force_refresh, cache_retry_interval):
         """
         Download key data and add key (if possible)
-        """        
+        """
         logger = logging.getLogger("scitokens")
         try:
             public_key, cache_timer = self._get_issuer_publickey(issuer, key_id, insecure)

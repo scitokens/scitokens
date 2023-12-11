@@ -49,13 +49,13 @@ class TestKeyCache(unittest.TestCase):
             logger.warning(res)
         threads = []
         key = ('https://demo.scitokens.org', 'key-rs256')
-        for _ in range(200):
+        for _ in range(2000):
             thread = threading.Thread(target=client_job, args=key)
             threads.append(thread)
             thread.start()
         for thread in threads:  # iterates over the threads
             thread.join()
-            
+
     def test_clients_calling_invalid_keys(self):
         """
         Test when there are many clients calling valid keys at the same time
