@@ -219,6 +219,7 @@ class KeyCache(object):
                      "issuer = '{issuer}'")
         if key_id != None:
             key_query += " AND key_id = '{key_id}'"
+        row = None
         try:
             conn = sqlite3.connect(self.cache_location)
             conn.row_factory = sqlite3.Row
