@@ -30,7 +30,7 @@ class TestCreation(unittest.TestCase):
     Test the creation of a simple SciToken
     """
 
-    def setUp(self):        
+    def setUp(self):
         self._private_key = generate_private_key(
             public_exponent=65537,
             key_size=2048,
