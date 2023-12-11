@@ -525,6 +525,11 @@ class KeyCache(object):
         
         res = []
         for issuer, key_id in tokens:
-            updated = self.add_key(issuer, key_id, force_refresh=force_refresh)
-            res.append(updated)
+            try:
+                updated = self.add_key(issuer, key_id, force_refresh=force_refresh)
+                res.append(updated)
+            except Exception as ex:
+                logger = logging.getLogger("scitokens")
+                logger.error("Unable to update key: {0} {1}".format(issuer, key_id))
+                logger.error(ex)
         return res
