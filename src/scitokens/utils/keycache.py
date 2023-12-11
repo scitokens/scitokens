@@ -8,6 +8,7 @@ import sqlite3
 import time
 import re
 import logging
+from urllib.error import URLError
 
 try:
     import urllib.request as request
@@ -145,6 +146,9 @@ class KeyCache(object):
         :param bool insecure: Whether insecure methods are acceptable (defaults to False).
         :returns: None if no key is found.  Else, returns the public key
         """
+        # Setup log configuration
+        logger = logging.getLogger("scitokens")
+        
         # Check the sql database
         key_query = ("SELECT * FROM keycache WHERE "
                      "issuer = '{issuer}'")
@@ -163,7 +167,6 @@ class KeyCache(object):
             if row['keydata'] == '':
                 # Negative Cache Handling
                 if not force_refresh and row['next_update'] > time.time():
-                    logger = logging.getLogger("scitokens")
                     logger.warning("Retry in {} seconds".format(int(row['next_update'] - time.time())))
                     return None
                 else:
@@ -182,7 +185,6 @@ class KeyCache(object):
                     self.addkeyinfo(issuer, key_id, public_key, cache_timer)
                     return public_key
                 except Exception as ex:
-                    logger = logging.getLogger("scitokens")
                     logger.warning("Unable to get key triggered by next update: {0}".format(str(ex)))
                     keydata = self._parse_key_data(row['issuer'], row['key_id'], row['keydata'])
                     # Upgrade proof
@@ -198,10 +200,18 @@ class KeyCache(object):
                         public_key, cache_timer = self._get_issuer_publickey(issuer, key_id, insecure)
                         self.addkeyinfo(issuer, key_id, public_key, cache_timer)
                         return public_key
-                    except Exception as ex:
-                        logger = logging.getLogger("scitokens")
-                        logger.error("Unable to force refresh key: {0}".format(str(ex)))
-                        return None
+                    except ValueError as ex:
+                        logger.error("Unable to parse JSON stored in keycache.  "
+                              "This likely means the database format needs"
+                              "to be updated, which we will now do automatically")
+                        self._delete_cache_entry(issuer, key_id)
+                        raise ex
+                    except URLError as ex:
+                        logger.error("Unable to get key from issuer.")
+                        raise ex
+                    except MissingKeyException as ex:
+                        logger.error("Unable to force refresh key.")
+                        raise ex
                 
                 keydata = self._parse_key_data(row['issuer'], row['key_id'], row['keydata'])
                 if keydata:
