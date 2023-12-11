@@ -197,34 +197,36 @@ class KeyCache(object):
                 # If force_refresh is set, then update the key
                 if force_refresh:
                     try:
-                        # Update the keycache
+                        # Download key data
                         public_key, cache_timer = self._get_issuer_publickey(issuer, key_id, insecure)
-                        self.addkeyinfo(issuer, key_id, public_key, cache_timer)
-                        return public_key
                     except ValueError as ex:
-                        logger.error("Unable to parse JSON stored in keycache.  "
-                              "This likely means the database format needs"
-                              "to be updated, which we will now do automatically")
-                        self._delete_cache_entry(issuer, key_id)
+                        logger.error(ex)
                         raise ex
                     except URLError as ex:
-                        logger.error("Unable to get key from issuer.")
+                        logger.error("Unable to get key from issuer {0} with key_id {1}".format(issuer, key_id))
                         raise ex
                     except MissingKeyException as ex:
-                        logger.error("Unable to force refresh key.")
+                        logger.error("Unable to force refresh key. {0}".format(ex))
                         raise ex
+                    
+                    # Separate download and add key to avoid keycache deadlocks
+                    try:
+                        # Add key data to keycache
+                        self.addkeyinfo(issuer, key_id, public_key, cache_timer)
+                    except Exception as ex:
+                        logger.error("Unable to add new key data to keycache.\n{0}".format(ex))
+                    return public_key
                 
                 keydata = self._parse_key_data(row['issuer'], row['key_id'], row['keydata'])
                 if keydata:
                     return load_pem_public_key(keydata.encode(), backend=backends.default_backend())
                 
-                # Update the keycache
+                # If local key not valid, update the keycache
                 try:
                     public_key, cache_timer = self._get_issuer_publickey(issuer, key_id, insecure)
                 except Exception as ex:
-                    logger = logging.getLogger("scitokens")
                     logger.error("Local key is invalid and unable to get key: {0}".format(str(ex)))
-                    return None
+                    raise ex
                 
                 try:
                     self.addkeyinfo(issuer, key_id, public_key, cache_timer)
@@ -246,8 +248,13 @@ class KeyCache(object):
         # If it reaches here, then no key was found in the SQL
         try:
             public_key, cache_timer = self._get_issuer_publickey(issuer, key_id, insecure)
+        except ValueError as ex:
+            logger.error(ex)
+            raise ex
+        except URLError as ex:
+            logger.error("Unable to get key from issuer.\n{0}".format(str(ex)))
+            raise ex
         except Exception as ex:
-            logger = logging.getLogger("scitokens")
             logger.error("No key was found in keycache and unable to get key: {0}".format(str(ex)))
             # Create negative cache
             if not force_refresh:
@@ -267,23 +274,15 @@ class KeyCache(object):
                     conn.commit()
                     conn.close()
                 except Exception as ex:
-                    logger = logging.getLogger("scitokens")
                     logger.error(ex)
             return None
         
         try:
             self.addkeyinfo(issuer, key_id, public_key, cache_timer)
             return public_key
-        except ValueError as ex:
-            logging.exception("Unable to parse JSON stored in keycache.  "
-                              "This likely means the database format needs"
-                              "to be updated, which we will now do automatically.\n{0}".format(str(ex)))
-            self._delete_cache_entry(issuer, key_id)
-            raise ex
-        except URLError as ex:
-            raise URLError("Unable to get key from issuer.\n{0}".format(str(ex)))
         except Exception as ex:
-            raise MissingKeyException("No key was found in keycache and unable to get key.\n{0}".format(str(ex)))
+            logger.error("No key was found in keycache and unable to get key.\n{0}".format(str(ex)))
+            raise ex
 
 
     @classmethod
