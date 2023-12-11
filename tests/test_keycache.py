@@ -47,6 +47,7 @@ class TestKeyCache(unittest.TestCase):
         shutil.rmtree(self.tmp_dir)
         if self.old_xdg:
             os.environ['XDG_CACHE_HOME'] = self.old_xdg
+        # Clean up, delete everything
 
     @mock.patch("os.makedirs", side_effect=OSError)
     @mock.patch.dict("os.environ")
