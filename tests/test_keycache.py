@@ -153,9 +153,9 @@ class TestKeyCache(unittest.TestCase):
 
         self.assertEqual(public_pem, public_pem2)
 
-        # # Make sure it errors with urlerror when it should not exist
-        # with self.assertRaises(URLError):
-        #     self.keycache.getkeyinfo("https://doesnotexists.edu/", "asdf")
+        # Make sure it errors with urlerror when it should not exist
+        with self.assertRaises(URLError):
+            self.keycache.getkeyinfo("https://doesnotexists.edu/", "asdf")
 
 
     def test_cache_timer(self):
