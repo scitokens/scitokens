@@ -210,12 +210,17 @@ class KeyCache(object):
                 # Update the keycache
                 try:
                     public_key, cache_timer = self._get_issuer_publickey(issuer, key_id, insecure)
-                    self.addkeyinfo(issuer, key_id, public_key, cache_timer)
-                    return public_key
                 except Exception as ex:
                     logger = logging.getLogger("scitokens")
                     logger.error("Local key is invalid and unable to get key: {0}".format(str(ex)))
                     return None
+                
+                try:
+                    self.addkeyinfo(issuer, key_id, public_key, cache_timer)
+                except Exception as ex:
+                    logger.error(ex)
+                    
+                return public_key
 
 
             # If it's not time to update the key, and the key is not valid
@@ -230,27 +235,38 @@ class KeyCache(object):
         # If it reaches here, then no key was found in the SQL
         try:
             public_key, cache_timer = self._get_issuer_publickey(issuer, key_id, insecure)
-            self.addkeyinfo(issuer, key_id, public_key, cache_timer)
-            return public_key
         except Exception as ex:
             logger = logging.getLogger("scitokens")
             logger.error("No key was found in keycache and unable to get key: {0}".format(str(ex)))
             # Create negative cache
             if not force_refresh:
                 # If NOT forced, create negative cache
-                conn = sqlite3.connect(self.cache_location)
-                conn.row_factory = sqlite3.Row
-                curs = conn.cursor()
-                insert_key_statement = "INSERT OR REPLACE INTO keycache VALUES('{issuer}', '{expiration}', '{key_id}', \
-                                    '{keydata}', '{next_update}')"
-                keydata = ''
-                curs.execute(insert_key_statement.format(issuer=issuer, expiration=time.time()+cache_retry_interval, key_id=key_id,
-                                                        keydata=keydata, next_update=time.time()+cache_retry_interval))
-                if curs.rowcount != 1:
-                    raise UnableToWriteKeyCache("Unable to insert into key cache")
-                conn.commit()
-                conn.close()
+                try:
+                    conn = sqlite3.connect(self.cache_location)
+                    conn.row_factory = sqlite3.Row
+                    curs = conn.cursor()
+                    insert_key_statement = "INSERT OR REPLACE INTO keycache VALUES('{issuer}', '{expiration}', '{key_id}', \
+                                        '{keydata}', '{next_update}')"
+                    keydata = ''
+                    curs.execute(insert_key_statement.format(issuer=issuer, expiration=time.time()+cache_retry_interval, key_id=key_id,
+                                                            keydata=keydata, next_update=time.time()+cache_retry_interval))
+                    if curs.rowcount != 1:
+                        logger = logging.getLogger("scitokens")
+                        logger.error(UnableToWriteKeyCache("Unable to insert into key cache"))
+                    conn.commit()
+                    conn.close()
+                except Exception as ex:
+                    logger = logging.getLogger("scitokens")
+                    logger.error(ex)
             return None
+        
+        try:
+            self.addkeyinfo(issuer, key_id, public_key, cache_timer)
+            return public_key
+        except Exception as ex:
+            logger = logging.getLogger("scitokens")
+            logger.error(ex)
+            return public_key
 
     @classmethod
     def _check_validity(cls, key_info):
