@@ -13,10 +13,8 @@ def add_args():
 
 def main():
     args = add_args()
-    
     keycache = KeyCache()
     res = keycache.remove_key(args.issuer, args.key_id)
-    
     if res == True:
         print("Successfully deleted token with issuer = {} and key_id = {}!".format(args.issuer, args.key_id))
     else:

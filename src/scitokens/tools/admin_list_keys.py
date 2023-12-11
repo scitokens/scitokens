@@ -3,10 +3,8 @@ from scitokens.utils.keycache import KeyCache
 def main():
     # TODO: Make this work
     keycache = KeyCache()
-    res = keycache.list_key()
-    
+    res = keycache.list_keys()
     header = ["issuer", "expiration", "key_id", "keydata", "next_update"]
-    
     print("{:<30} | {:<19} | {:<35} | {:<20} | {}".format(header[0], header[1], header[2], header[3], header[4]))
     print("-" * 135)
     for record in res:

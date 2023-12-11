@@ -14,7 +14,6 @@ def add_args():
 
 def main():
     args = add_args()
-    
     keycache = KeyCache()
     res = keycache.add_key(args.issuer, args.key_id, force_refresh=args.force)
     
