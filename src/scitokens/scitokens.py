@@ -598,9 +598,7 @@ class Enforcer(object):
             return False
         elif self._audience == "ANY":
             return False
-        elif value == "ANY":
-            return True
-        
+
         # Convert the value and self._audience both to sets
         # Then perform set intersection
         values = []
@@ -609,6 +607,11 @@ class Enforcer(object):
         else:
             values = value
         set_value = set(values)
+
+        # Check if "ANY" is in the set_value, and always accept if that is true
+        if "ANY" in set_value:
+            return True
+
         audiences = []
         if not isinstance(self._audience, list):
             audiences = [self._audience]
