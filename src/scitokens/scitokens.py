@@ -21,6 +21,9 @@ from .utils import keycache as KeyCache
 from .utils import config
 from .utils.errors import MissingIssuerException, InvalidTokenFormat, MissingKeyException, UnsupportedKeyException
 from cryptography.hazmat.primitives.serialization import load_pem_public_key
+
+# don't need to update the following line since it is already set up for RS and EC 256 encryption and decryption, as we are starting with RS512 and EC512
+# Edit made by: Advaith Yeluru 04/07/2024 @ 2:42 PM
 from cryptography.hazmat.primitives.asymmetric import rsa, ec
 
 class SciToken(object):
@@ -64,7 +67,9 @@ class SciToken(object):
             # If key is not specified, and neither is algorithm
             self._key_alg = algorithm if algorithm is not None else config.get('default_alg')
 
-        if self._key_alg not in ["RS256", "ES256"]:
+        # extend the statement to check for the RS512 and ES512 algorithms as we are starting with them.
+        # Edit made by: Advaith Yeluru 04/07/2024 @ 2:42 PM
+        if self._key_alg not in ["RS256", "RS512", "ES256", "ES512"]:
             raise UnsupportedKeyException()
         self._key_id = key_id
         self._parent = parent
@@ -82,11 +87,23 @@ class SciToken(object):
         """
 
         if isinstance(key, rsa.RSAPrivateKey):
-            return "RS256"
+        # Edit made by: Advaith Yeluru 04/07/2024 @ 2:53 PM    
+            if key.key_size == 256:
+                return "RS256"
+            elif key.key_size == 512:
+                return "RS512"
         elif isinstance(key, ec.EllipticCurvePrivateKey):
+            if key.key_size == 256:
+                return "ES256"
+            elif key.key_size == 512:
+                return "ES512"
+            
+            # I think it would be clearer if we used the same type of way to check which protocol to use rather than using key size for one and curve name for another
+            # Edit made by: Advaith Yeluru 04/07/2024 @ 2:53 PM
+            '''
             if key.curve.name == "secp256r1":
                 return "ES256"
-
+            '''
         # If it gets here, we don't know what type of key
         return None
 
@@ -286,7 +303,9 @@ class SciToken(object):
         serialized_jwt = info[0] + "." + info[1] + "." + info[2]
 
         unverified_headers = jwt.get_unverified_header(serialized_jwt)
-        unverified_payload = jwt.decode(serialized_jwt, algorithms=['RS256', 'ES256'],
+        # Include RS512 and ES512 in the file to allow for those algorithms to be used
+        # Edit made by: Advaith Yeluru 04/07/2024 @ 3:56 PM
+        unverified_payload = jwt.decode(serialized_jwt, algorithms=['RS256', 'RS512', 'ES256', 'ES512'],
                                         audience=audience,
                                         options={"verify_signature": False,
                                                  "verify_aud": False})
@@ -303,7 +322,9 @@ class SciToken(object):
         else:
             issuer_public_key = load_pem_public_key(public_key, backend=backends.default_backend())
         
-        claims = jwt.decode(serialized_token, issuer_public_key, algorithms=['RS256', 'ES256'],
+        # Include RS512 and ES512 in the algorithm list to allow usage of those algorithms.
+        # Edit made by: Advaith Yeluru 04/07/2024 @ 3:56 PM
+        claims = jwt.decode(serialized_token, issuer_public_key, algorithms=['RS256', 'RS512', 'ES256', 'ES512'],
                             options={"verify_aud": False})
 
         to_return = SciToken()
