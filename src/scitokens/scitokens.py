@@ -24,7 +24,10 @@ from cryptography.hazmat.primitives.serialization import load_pem_public_key
 
 # don't need to update the following line since it is already set up for RS and EC 256 encryption and decryption, as we are starting with RS512 and EC512
 # Edit made by: Advaith Yeluru 04/07/2024 @ 2:42 PM
-from cryptography.hazmat.primitives.asymmetric import rsa, ec
+
+# made an edit to udpate the following primitives to account for the HS algorithm and th ePS algorithm
+from cryptography.hazmat.primitives.asymmetric import rsa, ec, padding
+from cryptography.hazmat.primitives import hashes, hmac
 
 class SciToken(object):
     """
@@ -69,7 +72,10 @@ class SciToken(object):
 
         # extend the statement to check for the RS512 and ES512 algorithms as we are starting with them.
         # Edit made by: Advaith Yeluru 04/07/2024 @ 2:42 PM
-        if self._key_alg not in ["RS256", "RS512", "ES256", "ES512"]:
+
+        # extended the statement to handle all of the algorithms
+        # Edit made by: Advaith Yeluru 04/15/2024 @ 7:53 PM
+        if self._key_alg not in ["RS256", "RS384", "RS512", "ES256", "ES384", "ES512", "HS256", "HS384", "HS512", "PS256", "PS384", "PS512"]:
             raise UnsupportedKeyException()
         self._key_id = key_id
         self._parent = parent
@@ -88,15 +94,29 @@ class SciToken(object):
 
         if isinstance(key, rsa.RSAPrivateKey):
         # Edit made by: Advaith Yeluru 04/07/2024 @ 2:53 PM    
+
+        # Secondary edit made by: Advaith Yeluru 04/15/2024 @ 8:00 PM, just need to include PS algorithm logic
             if key.key_size == 256:
                 return "RS256"
+            elif key.key_size == 384:
+                return "RS384"
             elif key.key_size == 512:
                 return "RS512"
         elif isinstance(key, ec.EllipticCurvePrivateKey):
             if key.key_size == 256:
                 return "ES256"
+            elif key.key_size == 384:
+                return "ES384"
             elif key.key_size == 512:
                 return "ES512"
+        elif isinstance(key, hmac.HMAC):
+            keylength = len(key.key)
+            if keylength == 32:
+                return "HS256"
+            elif keylength == 48:
+                return "HS384"
+            elif keylength == 64:
+                return "HS512"
             
             # I think it would be clearer if we used the same type of way to check which protocol to use rather than using key size for one and curve name for another
             # Edit made by: Advaith Yeluru 04/07/2024 @ 2:53 PM
@@ -305,7 +325,10 @@ class SciToken(object):
         unverified_headers = jwt.get_unverified_header(serialized_jwt)
         # Include RS512 and ES512 in the file to allow for those algorithms to be used
         # Edit made by: Advaith Yeluru 04/07/2024 @ 3:56 PM
-        unverified_payload = jwt.decode(serialized_jwt, algorithms=['RS256', 'RS512', 'ES256', 'ES512'],
+
+        # Edit the list to include all the other algorithms for the list.
+        # Edit made by: Advaith Yeluru 04/15/2024 # 9:10 PM 
+        unverified_payload = jwt.decode(serialized_jwt, algorithms=['RS256', 'RS384', 'RS512', 'ES256', 'ES384', 'ES512', 'HS256', 'HS384', 'HS512', 'PS256', 'PS384', 'PS512'],
                                         audience=audience,
                                         options={"verify_signature": False,
                                                  "verify_aud": False})
@@ -324,7 +347,10 @@ class SciToken(object):
         
         # Include RS512 and ES512 in the algorithm list to allow usage of those algorithms.
         # Edit made by: Advaith Yeluru 04/07/2024 @ 3:56 PM
-        claims = jwt.decode(serialized_token, issuer_public_key, algorithms=['RS256', 'RS512', 'ES256', 'ES512'],
+
+        # Include the other algorithms
+        # Edit made by: Advaith Yeluru 04/15/2024 @ 9:12 PM
+        claims = jwt.decode(serialized_token, issuer_public_key, algorithms=['RS256', 'RS384', 'RS512', 'ES256', 'ES384', 'ES512', 'HS256', 'HS384', 'HS512', 'PS256', 'PS384', 'PS512'],
                             options={"verify_aud": False})
 
         to_return = SciToken()
