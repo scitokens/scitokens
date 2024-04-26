@@ -22,9 +22,6 @@ from .utils import config
 from .utils.errors import MissingIssuerException, InvalidTokenFormat, MissingKeyException, UnsupportedKeyException
 from cryptography.hazmat.primitives.serialization import load_pem_public_key
 
-# don't need to update the following line since it is already set up for RS and EC 256 encryption and decryption, as we are starting with RS512 and EC512
-# Edit made by: Advaith Yeluru 04/07/2024 @ 2:42 PM
-
 # made an edit to udpate the following primitives to account for the HS algorithm and th ePS algorithm
 from cryptography.hazmat.primitives.asymmetric import rsa, ec, padding
 from cryptography.hazmat.primitives import hashes, hmac
@@ -70,11 +67,6 @@ class SciToken(object):
             # If key is not specified, and neither is algorithm
             self._key_alg = algorithm if algorithm is not None else config.get('default_alg')
 
-        # extend the statement to check for the RS512 and ES512 algorithms as we are starting with them.
-        # Edit made by: Advaith Yeluru 04/07/2024 @ 2:42 PM
-
-        # extended the statement to handle all of the algorithms
-        # Edit made by: Advaith Yeluru 04/15/2024 @ 7:53 PM
         if self._key_alg not in ["RS256", "RS384", "RS512", "ES256", "ES384", "ES512", "HS256", "HS384", "HS512", "PS256", "PS384", "PS512"]:
             raise UnsupportedKeyException()
         self._key_id = key_id
@@ -92,10 +84,8 @@ class SciToken(object):
         returns: Key algorithm if known, otherwise None
         """
 
+        # Issues with PS algorithm are occuring, no way to determine if the scheme is PS or RS based off the key itself, so might have to ask end user what scheme they would like to go with.
         if isinstance(key, rsa.RSAPrivateKey):
-        # Edit made by: Advaith Yeluru 04/07/2024 @ 2:53 PM    
-
-        # Secondary edit made by: Advaith Yeluru 04/15/2024 @ 8:00 PM, just need to include PS algorithm logic
             if key.key_size == 256:
                 return "RS256"
             elif key.key_size == 384:
@@ -323,11 +313,6 @@ class SciToken(object):
         serialized_jwt = info[0] + "." + info[1] + "." + info[2]
 
         unverified_headers = jwt.get_unverified_header(serialized_jwt)
-        # Include RS512 and ES512 in the file to allow for those algorithms to be used
-        # Edit made by: Advaith Yeluru 04/07/2024 @ 3:56 PM
-
-        # Edit the list to include all the other algorithms for the list.
-        # Edit made by: Advaith Yeluru 04/15/2024 # 9:10 PM 
         unverified_payload = jwt.decode(serialized_jwt, algorithms=['RS256', 'RS384', 'RS512', 'ES256', 'ES384', 'ES512', 'HS256', 'HS384', 'HS512', 'PS256', 'PS384', 'PS512'],
                                         audience=audience,
                                         options={"verify_signature": False,
@@ -345,11 +330,6 @@ class SciToken(object):
         else:
             issuer_public_key = load_pem_public_key(public_key, backend=backends.default_backend())
         
-        # Include RS512 and ES512 in the algorithm list to allow usage of those algorithms.
-        # Edit made by: Advaith Yeluru 04/07/2024 @ 3:56 PM
-
-        # Include the other algorithms
-        # Edit made by: Advaith Yeluru 04/15/2024 @ 9:12 PM
         claims = jwt.decode(serialized_token, issuer_public_key, algorithms=['RS256', 'RS384', 'RS512', 'ES256', 'ES384', 'ES512', 'HS256', 'HS384', 'HS512', 'PS256', 'PS384', 'PS512'],
                             options={"verify_aud": False})
 
