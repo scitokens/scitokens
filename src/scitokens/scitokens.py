@@ -23,8 +23,8 @@ from .utils.errors import MissingIssuerException, InvalidTokenFormat, MissingKey
 from cryptography.hazmat.primitives.serialization import load_pem_public_key
 
 # made an edit to udpate the following primitives to account for the HS algorithm and th ePS algorithm
-from cryptography.hazmat.primitives.asymmetric import rsa, ec, padding
-from cryptography.hazmat.primitives import hashes, hmac
+from cryptography.hazmat.primitives.asymmetric import rsa, ec
+from cryptography.hazmat.primitives import hmac
 
 class SciToken(object):
     """
@@ -110,10 +110,8 @@ class SciToken(object):
             
             # I think it would be clearer if we used the same type of way to check which protocol to use rather than using key size for one and curve name for another
             # Edit made by: Advaith Yeluru 04/07/2024 @ 2:53 PM
-            '''
-            if key.curve.name == "secp256r1":
-                return "ES256"
-            '''
+            # if key.curve.name == "secp256r1":
+            #    return "ES256"
         # If it gets here, we don't know what type of key
         return None
 
