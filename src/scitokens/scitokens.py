@@ -83,35 +83,36 @@ class SciToken(object):
 
         returns: Key algorithm if known, otherwise None
         """
-
         # Issues with PS algorithm are occuring, no way to determine if the scheme is PS or RS based off the key itself, so might have to ask end user what scheme they would like to go with.
         if isinstance(key, rsa.RSAPrivateKey):
-            if key.key_size == 256:
-                return "RS256"
-            elif key.key_size == 384:
-                return "RS384"
-            elif key.key_size == 512:
-                return "RS512"
+            if key.key_size in [2048, 3072, 4096]:
+                if key.key_size == 2048:
+                    return "RS256"  # Assuming SHA-256 is used for RS256
+                elif key.key_size == 3072:
+                    return "RS384"  # Assuming SHA-384 is used for RS384
+                elif key.key_size == 4096:
+                    return "RS512"  # Assuming SHA-512 is used for RS512
+            else:
+                raise ValueError("Unsupported RSA key size.") # throwup an error if the key size can't be set. also for debugging
         elif isinstance(key, ec.EllipticCurvePrivateKey):
-            if key.key_size == 256:
+            curve_name = key.curve.name
+            if curve_name == "secp256r1": # reverted back to original format but extended it to handle the 2 other algorithms
                 return "ES256"
-            elif key.key_size == 384:
+            elif curve_name == "secp384r1":
                 return "ES384"
-            elif key.key_size == 512:
+            elif curve_name == "secp521r1":
                 return "ES512"
+            else:
+                raise ValueError("Unsupported EC key curve.") # throwup an error if the key size can't be set. also for debugging
         elif isinstance(key, hmac.HMAC):
             keylength = len(key.key)
-            if keylength == 32:
-                return "HS256"
-            elif keylength == 48:
-                return "HS384"
-            elif keylength == 64:
-                return "HS512"
-            
+            if keylength in [32, 48, 64]:
+                return f"HS{keylength * 8}"  # Dynamically create the string based on key length
+            else:
+                raise ValueError("Unsupported HMAC key length.") # throwup an error if the key size can't be set. also for debugging
+
             # I think it would be clearer if we used the same type of way to check which protocol to use rather than using key size for one and curve name for another
             # Edit made by: Advaith Yeluru 04/07/2024 @ 2:53 PM
-            # if key.curve.name == "secp256r1":
-            #    return "ES256"
         # If it gets here, we don't know what type of key
         return None
 
