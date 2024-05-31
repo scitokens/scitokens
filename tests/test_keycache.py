@@ -78,10 +78,13 @@ class TestKeyCache(unittest.TestCase):
             stat.S_IROTH    # Read for other
         )
 
-        # Make sure it raises an unable to create cache exception
-        with self.assertRaises(UnableToCreateCache):
+        # Make sure creating a cache and writing/reading to it does not fail
+        try:
             keycache = KeyCache()
+            keycache.add_key("https://demo.scitokens.org", "key-rs256", False)
             del keycache
+        except Exception as e:
+            self.fail("Creating a cache and writing/reading to it failed: {}".format(e))
 
         # Revert the access privilege alteration for the $XDG_CACHE_HOME
         os.chmod(
@@ -157,6 +160,53 @@ class TestKeyCache(unittest.TestCase):
         with self.assertRaises(URLError):
             self.keycache.getkeyinfo("https://doesnotexists.edu/", "asdf")
 
+    def test_immutable_cache(self):
+        """
+        Test when there should be some entries populated in the sqllite DB, but the keycache is immutable
+        """
+        # Create a pem encoded public key
+        private_key = generate_private_key(
+            public_exponent=65537,
+            key_size=2048,
+            backend=default_backend()
+        )
+        public_key = private_key.public_key()
+        public_pem = public_key.public_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PublicFormat.SubjectPublicKeyInfo
+        )
+
+        # Populate the keycache
+        self.keycache.addkeyinfo("https://doesnotexists.edu/", "blahstuff", public_key, cache_timer=60)
+
+        # Make the keycache immutable
+        # Limiting access privilege to read-only for the $XDG_CACHE_HOME
+        os.chmod(
+            self.keycache.cache_location,
+            stat.S_IRUSR |  # Read for user
+            stat.S_IRGRP |  # Read for group
+            stat.S_IROTH    # Read for other
+        )
+
+        # Now extract the just inserted key
+        pubkey = self.keycache.getkeyinfo("https://doesnotexists.edu/", "blahstuff")
+        self.assertIsNotNone(pubkey, "The key should be in the cache")
+
+        # Now try to insert a new key, it should not fail, but it also should not be writable
+        self.keycache.addkeyinfo("https://anotherdoesnotexist.edu/", "another", public_key, cache_timer=60)
+        # Getting the cache now should fail, but with a URL error, not a reading from the keycache error
+        # A URL error because the above addkeyinfo didn't actually add the key to the cache
+        # so the keycache tried to download the key from the web, which failed
+        with self.assertRaises(URLError):
+            another_pubkey = self.keycache.getkeyinfo("https://anotherdoesnotexist.edu/", "another")
+
+        # Revert the access privilege alteration for the $XDG_CACHE_HOME
+        os.chmod(
+            self.keycache.cache_location,
+            stat.S_IRWXU |  # Read, write, and execute for user
+            stat.S_IRWXG |  # Read, write, and execute for group
+            stat.S_IRWXO    # Read, write, and execute for other
+        )
 
     def test_cache_timer(self):
         """

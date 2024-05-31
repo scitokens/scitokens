@@ -401,7 +401,7 @@ class KeyCache(object):
         2. $XDG_CACHE_HOME
         3. .cache subdirectory of home directory as returned by the password database
         """
-
+        logger = logging.getLogger("scitokens")
         config_cache_location = config.get('cache_location')
         xdg_cache_home = os.environ.get("XDG_CACHE_HOME", None)
         home_dir = os.path.expanduser("~")
@@ -417,14 +417,19 @@ class KeyCache(object):
             try:
                 os.makedirs(cache_dir)
             except OSError as ose:
-                raise UnableToCreateCache("Unable to create cache: {}".format(str(ose)))
+                # Unable to create a cache is not a fatal error
+                logger.warning("Unable to create cache directory at {}: {}".format(cache_dir, str(ose)))
+                # If we couldn't create the cache directory, just return, nothing more to do here
+                return None
 
         keycache_dir = os.path.join(cache_dir, "scitokens")
         try:
             if not os.path.exists(keycache_dir):
                 os.makedirs(keycache_dir)
         except OSError as ose:
-            raise UnableToCreateCache("Unable to create cache: {}".format(str(ose)))
+            # Unable to create directories is not a fatal error
+            logger.warning("Unable to create cache directory at {}: {}".format(cache_dir, str(ose)))
+            return None
 
         keycache_file = os.path.join(keycache_dir, CACHE_FILENAME)
         if not os.path.exists(keycache_file):
