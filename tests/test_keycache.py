@@ -57,10 +57,13 @@ class TestKeyCache(unittest.TestCase):
         """
         os.environ['XDG_CACHE_HOME'] = "/does/not/exists"
 
-        # Make sure it raises an unable to create cache exception
-        with self.assertRaises(UnableToCreateCache):
+        # Make keycache doesn't fail when unable to make cache file
+        try:
             keycache = KeyCache()
             del keycache
+        except Exception as e:
+            self.fail("Creating a cache threw an error, when it should be a silent failure: {}".format(e))
+
 
     @unittest.skipIf(sys.platform.startswith("win"), "Test doesn't work on Windows")
     @unittest.skipIf(not sys.platform.startswith("win") and os.getuid() == 0, "Test doesn't work when root")
