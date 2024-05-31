@@ -8,6 +8,7 @@ import sqlite3
 import time
 import re
 import logging
+from urllib.error import URLError
 
 try:
     import urllib.request as request
@@ -75,13 +76,17 @@ class KeyCache(object):
         if next_update == 0:
             next_update = 3600
 
-        conn = sqlite3.connect(self.cache_location)
-        conn.row_factory = sqlite3.Row
-        curs = conn.cursor()
-        curs.execute("DELETE FROM keycache WHERE issuer = '{}' AND key_id = '{}'".format(issuer, key_id))
-        KeyCache._addkeyinfo(curs, issuer, key_id, public_key, cache_timer=cache_timer, next_update=next_update)
-        conn.commit()
-        conn.close()
+        try:
+            conn = sqlite3.connect(self.cache_location)
+            conn.row_factory = sqlite3.Row
+            curs = conn.cursor()
+            curs.execute("DELETE FROM keycache WHERE issuer = '{}' AND key_id = '{}'".format(issuer, key_id))
+            KeyCache._addkeyinfo(curs, issuer, key_id, public_key, cache_timer=cache_timer, next_update=next_update)
+            conn.commit()
+            conn.close()
+        except Exception as ex:
+            logger = logging.getLogger("scitokens")
+            logger.error(f'Keycache file is immutable. Detailed error: {ex}')
 
     @staticmethod
     def _addkeyinfo(curs, issuer, key_id, public_key, cache_timer=0, next_update=0):
@@ -89,7 +94,7 @@ class KeyCache(object):
         Given an open database cursor to a key cache, insert a key.
         """
         # Add the key to the cache
-        insert_key_statement = "INSERT INTO keycache VALUES('{issuer}', '{expiration}', '{key_id}', \
+        insert_key_statement = "INSERT OR REPLACE INTO keycache VALUES('{issuer}', '{expiration}', '{key_id}', \
                                '{keydata}', '{next_update}')"
         keydata = {
             'pub_key': public_key.public_bytes(Encoding.PEM, PublicFormat.SubjectPublicKeyInfo).decode('ascii'),
@@ -129,15 +134,74 @@ class KeyCache(object):
         Delete a cache entry
         """
         # Open the connection to the database
-        conn = sqlite3.connect(self.cache_location)
-        curs = conn.cursor()
-        curs.execute("DELETE FROM keycache WHERE issuer = '{}' AND key_id = '{}'".format(issuer,
-                     key_id))
-        conn.commit()
-        conn.close()
+        try:
+            conn = sqlite3.connect(self.cache_location)
+            curs = conn.cursor()
+            curs.execute("DELETE FROM keycache WHERE issuer = '{}' AND key_id = '{}'".format(issuer,
+                        key_id))
+            conn.commit()
+            conn.close()
+        except Exception as ex:
+            logger = logging.getLogger("scitokens")
+            logger.error(f'Keycache file is immutable. Detailed error: {ex}')
+     
+            
+    def _add_negative_cache_entry(self, issuer, key_id, cache_retry_interval):
+        """
+        Add a negative cache entry
+        """
+        try:
+            conn = sqlite3.connect(self.cache_location)
+            conn.row_factory = sqlite3.Row
+            curs = conn.cursor()
+            insert_key_statement = "INSERT OR REPLACE INTO keycache VALUES('{issuer}', '{expiration}', '{key_id}', \
+                                '{keydata}', '{next_update}')"
+            keydata = ''
+            curs.execute(insert_key_statement.format(issuer=issuer, expiration=time.time()+cache_retry_interval, key_id=key_id,
+                                                    keydata=keydata, next_update=time.time()+cache_retry_interval))
+            if curs.rowcount != 1:
+                logger = logging.getLogger("scitokens")
+                logger.error(UnableToWriteKeyCache("Unable to insert into key cache"))
+            conn.commit()
+            conn.close()
+        except Exception as ex:
+            logger = logging.getLogger("scitokens")
+            logger.error(f'Keycache file is immutable. Detailed error: {ex}')
 
 
-    def getkeyinfo(self, issuer, key_id=None, insecure=False, force_refresh=False):
+    def _download_and_add_key(self, issuer, key_id, insecure, force_refresh, cache_retry_interval):
+        """
+        Download key data and add key (if possible)
+        """
+        logger = logging.getLogger("scitokens")
+        try:
+            public_key, cache_timer = self._get_issuer_publickey(issuer, key_id, insecure)
+        except ValueError as ex:
+            logger.error(ex)
+            raise ex
+        except URLError as ex:
+            logger.error("Unable to get key from issuer.\n{0}".format(str(ex)))
+            raise ex
+        except Exception as ex:
+            logger.error("No key was found in keycache and unable to get key: {0}".format(str(ex)))
+            # Create negative cache
+            if not force_refresh:
+                # If NOT forced, create negative cache
+                try:
+                    self._add_negative_cache_entry(issuer, key_id, cache_retry_interval)
+                except Exception as ex:
+                    logger.error(ex)
+            raise MissingKeyException(ex)
+        
+        # Separate download and add key to avoid keycache deadlocks
+        try:
+            self.addkeyinfo(issuer, key_id, public_key, cache_timer)
+        except Exception as ex:
+            logger.error("Unable to add new key data to keycache.\n{0}".format(ex))
+        return public_key
+
+
+    def getkeyinfo(self, issuer, key_id=None, insecure=False, force_refresh=False, cache_retry_interval=300):
         """
         Get the key information
 
@@ -146,22 +210,40 @@ class KeyCache(object):
         :param bool insecure: Whether insecure methods are acceptable (defaults to False).
         :returns: None if no key is found.  Else, returns the public key
         """
+        # Setup log configuration
+        logger = logging.getLogger("scitokens")
+        
         # Check the sql database
         key_query = ("SELECT * FROM keycache WHERE "
                      "issuer = '{issuer}'")
         if key_id != None:
             key_query += " AND key_id = '{key_id}'"
-        conn = sqlite3.connect(self.cache_location)
-        conn.row_factory = sqlite3.Row
-        curs = conn.cursor()
-        curs.execute(key_query.format(issuer=issuer, key_id=key_id))
+        row = None
+        try:
+            conn = sqlite3.connect(self.cache_location)
+            conn.row_factory = sqlite3.Row
+            curs = conn.cursor()
+            curs.execute(key_query.format(issuer=issuer, key_id=key_id))
+            row = curs.fetchone()
+            conn.commit()
+            conn.close()
+        except Exception as ex:
+            logger.error(f'Keycache file is immutable. Detailed error: {ex}')
 
-        row = curs.fetchone()
-        conn.commit()
-        conn.close()
         if row != None:
+            # Check if record is negative cache
+            if row['keydata'] == '':
+                # Negative Cache Handling
+                if not force_refresh and row['next_update'] > time.time():
+                    logger.warning("Retry in {} seconds".format(int(row['next_update'] - time.time())))
+                    return None
+                else:
+                    # Force refresh or cache_retry_interval is over
+                    self._delete_cache_entry(row['issuer'], row['key_id'])
+                    row = None
+                    
             # If it's time to update the key, but the key is still valid
-            if int(row['next_update']) < time.time() and self._check_validity(row):
+            if row and int(row['next_update']) < time.time() and self._check_validity(row):
                 # Try to update the key, but if it doesn't work, just return the saved one
                 try:
                     # Get the public key, probably from a webserver
@@ -171,7 +253,6 @@ class KeyCache(object):
                     self.addkeyinfo(issuer, key_id, public_key, cache_timer)
                     return public_key
                 except Exception as ex:
-                    logger = logging.getLogger("scitokens")
                     logger.warning("Unable to get key triggered by next update: {0}".format(str(ex)))
                     keydata = self._parse_key_data(row['issuer'], row['key_id'], row['keydata'])
                     # Upgrade proof
@@ -179,70 +260,32 @@ class KeyCache(object):
                         return load_pem_public_key(keydata.encode(), backend=backends.default_backend())
 
             # If it's not time to update the key, but the key is still valid
-            elif self._check_validity(row):
+            elif row and self._check_validity(row):
                 # If force_refresh is set, then update the key
                 if force_refresh:
-                    try:
-                        # update the keycache
-                        public_key, cache_timer = self._get_issuer_publickey(issuer, key_id, insecure)
-                        self.addkeyinfo(issuer, key_id, public_key, cache_timer)
-                        return public_key
-                    except ValueError as ex:
-                        logging.exception("Unable to parse JSON stored in keycache.  "
-                              "This likely means the database format needs"
-                              "to be updated, which we will now do automatically.\n{0}".format(str(ex)))
-                        self._delete_cache_entry(issuer, key_id)
-                        raise ex
-                    except URLError as ex:
-                        raise URLError("Unable to get key from issuer.\n{0}".format(str(ex)))
-                    except MissingKeyException as ex:
-                        raise MissingKeyException("Unable to force refresh key. \n{0}".format(str(ex)))
-                
+                    public_key = self._download_and_add_key(issuer, key_id, insecure, force_refresh, cache_retry_interval)
+
                 keydata = self._parse_key_data(row['issuer'], row['key_id'], row['keydata'])
                 if keydata:
                     return load_pem_public_key(keydata.encode(), backend=backends.default_backend())
                 
-                # update the keycache
-                try:
-                    public_key, cache_timer = self._get_issuer_publickey(issuer, key_id, insecure)
-                    self.addkeyinfo(issuer, key_id, public_key, cache_timer)
-                    return public_key
-                except ValueError as ex:
-                        logging.exception("Unable to parse JSON stored in keycache.  "
-                              "This likely means the database format needs"
-                              "to be updated, which we will now do automatically.\n{0}".format(str(ex)))
-                        self._delete_cache_entry(issuer, key_id)
-                        raise ex
-                except URLError as ex:
-                    raise URLError("Unable to get key from issuer.\n{0}".format(str(ex)))
-                except Exception as ex:
-                    raise MissingKeyException("Key in keycache is expired and unable to get a new key.\n{0}".format(str(ex)))
+                # If local key not valid, update the keycache
+                public_key = self._download_and_add_key(issuer, key_id, insecure, force_refresh, cache_retry_interval)
+                return public_key
 
 
             # If it's not time to update the key, and the key is not valid
-            else:
+            elif row:
 
                 # Delete the row
                 # If it gets to this point, then there is a row for the key, but it's:
                 # - Not valid anymore
                 self._delete_cache_entry(row['issuer'], row['key_id'])
+                    # If key is a negative cache
 
         # If it reaches here, then no key was found in the SQL
-        # Try checking the issuer (negative cache?)
-        try:
-            public_key, cache_timer = self._get_issuer_publickey(issuer, key_id, insecure)
-            self.addkeyinfo(issuer, key_id, public_key, cache_timer)
-            return public_key
-        except ValueError as ex:
-            logging.exception("Unable to parse JSON stored in keycache.  "
-                              "This likely means the database format needs"
-                              "to be updated, which we will now do automatically.\n{0}".format(str(ex)))
-            self._delete_cache_entry(issuer, key_id)
-            raise ex
-        except URLError as ex:
-            raise URLError("Unable to get key from issuer.\n{0}".format(str(ex)))
-        except Exception as ex:
-            raise MissingKeyException("No key was found in keycache and unable to get key.\n{0}".format(str(ex)))
+        public_key = self._download_and_add_key(issuer, key_id, insecure, force_refresh, cache_retry_interval)
+        return public_key
 
 
     @classmethod
@@ -358,7 +401,7 @@ class KeyCache(object):
         2. $XDG_CACHE_HOME
         3. .cache subdirectory of home directory as returned by the password database
         """
-
+        logger = logging.getLogger("scitokens")
         config_cache_location = config.get('cache_location')
         xdg_cache_home = os.environ.get("XDG_CACHE_HOME", None)
         home_dir = os.path.expanduser("~")
@@ -374,14 +417,19 @@ class KeyCache(object):
             try:
                 os.makedirs(cache_dir)
             except OSError as ose:
-                raise UnableToCreateCache("Unable to create cache: {}".format(str(ose)))
+                # Unable to create a cache is not a fatal error
+                logger.warning("Unable to create cache directory at {}: {}".format(cache_dir, str(ose)))
+                # If we couldn't create the cache directory, just return, nothing more to do here
+                return None
 
         keycache_dir = os.path.join(cache_dir, "scitokens")
         try:
             if not os.path.exists(keycache_dir):
                 os.makedirs(keycache_dir)
         except OSError as ose:
-            raise UnableToCreateCache("Unable to create cache: {}".format(str(ose)))
+            # Unable to create directories is not a fatal error
+            logger.warning("Unable to create cache directory at {}: {}".format(cache_dir, str(ose)))
+            return None
 
         keycache_file = os.path.join(keycache_dir, CACHE_FILENAME)
         if not os.path.exists(keycache_file):
@@ -473,6 +521,11 @@ class KeyCache(object):
         
         res = []
         for issuer, key_id in tokens:
-            updated = self.add_key(issuer, key_id, force_refresh=force_refresh)
-            res.append(updated)
+            try:
+                updated = self.add_key(issuer, key_id, force_refresh=force_refresh)
+                res.append(updated)
+            except Exception as ex:
+                logger = logging.getLogger("scitokens")
+                logger.error("Unable to update key: {0} {1}".format(issuer, key_id))
+                logger.error(ex)
         return res
