@@ -142,6 +142,14 @@ class TestEnforcer(unittest.TestCase):
         self._token2["aud"] = "ANY"
         self.assertTrue(enf.test(self._token2, "read", "/foo/bar"), msg=enf.last_failure)
 
+        # Now set the audience to ANY
+        self._token2["aud"] = ["ANY"]
+        self.assertTrue(enf.test(self._token2, "read", "/foo/bar"), msg=enf.last_failure)
+
+        # Now set the audience to ANY
+        self._token2["aud"] = ["notathing.com", "ANY"]
+        self.assertTrue(enf.test(self._token2, "read", "/foo/bar"), msg=enf.last_failure)
+
         # Now to the correct audience
         self._token2["aud"] = "https://example.unl.edu"
         self.assertTrue(enf.test(self._token2, "read", "/foo/bar"), msg=enf.last_failure)
