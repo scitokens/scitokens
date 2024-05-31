@@ -7,6 +7,7 @@ import sys
 import tempfile
 import shutil
 import unittest
+import pytest       # to skip tests
 from unittest import mock
 from scitokens.utils.keycache import KeyCache
 from scitokens.utils.errors import UnableToCreateCache
@@ -163,6 +164,7 @@ class TestKeyCache(unittest.TestCase):
         with self.assertRaises(URLError):
             self.keycache.getkeyinfo("https://doesnotexists.edu/", "asdf")
 
+    @pytest.mark.network
     def test_immutable_cache(self):
         """
         Test when there should be some entries populated in the sqllite DB, but the keycache is immutable
