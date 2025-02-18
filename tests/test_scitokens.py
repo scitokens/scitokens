@@ -201,6 +201,36 @@ class TestEnforcer(unittest.TestCase):
         with self.assertRaises(scitokens.scitokens.InvalidPathError):
             print(enf.test(self._token, "write", "~/foo"))
 
+    def test_issuer(self):
+        """
+        Test the issuer claim, with support for multiple valid issuers.
+        """
+        # issuer argument is required
+        with self.assertRaises(scitokens.scitokens.EnforcementError):
+            print(scitokens.Enforcer(None))
+
+        self._token["scope"] = "read:/"
+
+        # single issuer match
+        enf = scitokens.Enforcer(self._test_issuer, audience="anything")
+        enf.add_validator("foo", self.always_accept)
+        self.assertEqual(enf._issuer, self._test_issuer)
+        self.assertTrue(enf.test(self._token, "read", "/"), msg=enf.last_failure)
+
+        # multiple issuer match
+        issuers = ["issuer1", self._test_issuer]
+        enf = scitokens.Enforcer(issuers)
+        enf.add_validator("foo", self.always_accept)
+        self.assertListEqual(enf._issuer, issuers)
+        self.assertTrue(enf.test(self._token, "read", "/"), msg=enf.last_failure)
+
+        # multiple issuer no match
+        issuers = ["issuer1", "issuer2"]
+        enf = scitokens.Enforcer(issuers)
+        self.assertListEqual(enf._issuer, issuers)
+        self.assertFalse(enf.test(self._token2, "read", "/"), msg=enf.last_failure)
+        self.assertIn("for claim 'iss'", enf.last_failure)
+
     def test_enforce_scope(self):
         """
         Test the Enforcer object.
