@@ -71,6 +71,7 @@ setuptools.setup(
     extras_require={
         "docs": [
             "Sphinx",
+            "sphinx-rtd-theme",
         ],
     },
     # classifiers
