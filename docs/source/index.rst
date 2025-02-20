@@ -5,13 +5,12 @@
 
 .. include:: includeindirect.rst
 
-API Reference
--------------
-
 .. toctree::
+   :caption: API Reference
    :maxdepth: 1
+   :glob:
 
-   scitokens
+   scitokens*
 
 Indices and tables
 ==================
