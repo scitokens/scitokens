@@ -1,7 +1,20 @@
 SciTokens Library
 =================
 
+.. currentmodule:: scitokens
+
 |pypi| |downloads| |license|
+
+.. |pypi| image:: https://badge.fury.io/py/scitokens.svg
+   :target: https://pypi.org/project/scitokens/
+
+.. |downloads| image:: https://img.shields.io/pypi/dd/scitokens
+   :target: https://pypi.org/project/scitokens
+   :alt: Downloads per month
+
+.. |license| image:: https://img.shields.io/github/license/scitokens/scitokens
+   :target: https://choosealicense.com/licenses/apache-2.0/
+   :alt: License information
 
 This library aims to be a reference implementation of the SciTokens'
 JSON Web Token (JWT) token format.
@@ -271,18 +284,7 @@ You may set the configuration by passing a file name to ``scitokens.set_config``
 Project Status
 ==============
 
-|pypi| |build| |coverage| |quality| |docs|
-
-.. |pypi| image:: https://badge.fury.io/py/scitokens.svg
-   :target: https://pypi.org/project/scitokens/
-
-.. |downloads| image:: https://img.shields.io/pypi/dd/scitokens
-   :target: https://pypi.org/project/scitokens
-   :alt: Downloads per month
-
-.. |license| image:: https://img.shields.io/github/license/scitokens/scitokens
-   :target: https://choosealicense.com/licenses/apache-2.0/
-   :alt: License information
+|build| |coverage| |quality| |docs|
 
 .. |build| image:: https://img.shields.io/github/workflow/status/scitokens/scitokens/Python%20package
    :target: https://github.com/scitokens/scitokens/actions/workflows/python-package.yml
