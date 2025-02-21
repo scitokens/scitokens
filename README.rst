@@ -1,7 +1,20 @@
 SciTokens Library
 =================
 
+.. currentmodule:: scitokens
+
 |pypi| |downloads| |license|
+
+.. |pypi| image:: https://badge.fury.io/py/scitokens.svg
+   :target: https://pypi.org/project/scitokens/
+
+.. |downloads| image:: https://img.shields.io/pypi/dd/scitokens
+   :target: https://pypi.org/project/scitokens
+   :alt: Downloads per month
+
+.. |license| image:: https://img.shields.io/github/license/scitokens/scitokens
+   :target: https://choosealicense.com/licenses/apache-2.0/
+   :alt: License information
 
 This library aims to be a reference implementation of the SciTokens'
 JSON Web Token (JWT) token format.
@@ -16,14 +29,14 @@ common pitfalls of using the underling libraries directly.
 designed; this README describes how we would like it to work, not
 necessarily current functionality. Particularly, we do not foresee the
 chained tokens described here as part of the first release's
-functionality. The ideas behind the separate ``Validator`` in this
+functionality. The ideas behind the separate `Validator` in this
 library is taken from
 `libmacaroons <https://github.com/rescrv/libmacaroons>`__.
 
 Generating Tokens
 -----------------
 
-Usage revolves around the ``SciToken`` object. This can be generated
+Usage revolves around the `SciToken` object. This can be generated
 directly:
 
 ::
@@ -86,16 +99,16 @@ This is actually 4 separate base64-encoded strings, separated by the
    part of the token format, but may be required by some remote
    services.
 
-Given a serialized token, the ``scitokens`` library can deserialize it:
+Given a serialized token, the `scitokens` library can deserialize it:
 
 ::
 
     >>> token = scitokens.SciToken.deserialize(token_serialized_bytes)
 
-As part of the deserialization, the ``scitokens`` library will throw an
+As part of the deserialization, the `scitokens` library will throw an
 exception if token verification failed.
 
-The existing token can be serialized with the ``serialize`` method:
+The existing token can be serialized with the `SciToken.serialize` method:
 
 ::
 
@@ -118,7 +131,7 @@ When presented to a storage system along with an HTTP request, the
 storage system would validate the token authorizes the corresponding
 request (is it a GET request? Is it for a sub-path of /ligo?).
 
-Within the ``scitokens`` module, validation is done by the ``Validator``
+Within the `scitokens` module, validation is done by the `Validator`
 object:
 
 ::
@@ -129,7 +142,7 @@ This object can be reused for multiple validations. All SciToken claims
 must be validated. There are no "optional" claim attributes or values.
 
 To validate a specific claim, provide a callback function to the
-``Validator`` object:
+`Validator` object:
 
 ::
 
@@ -138,13 +151,13 @@ To validate a specific claim, provide a callback function to the
     >>> val.add_validator("op", validate_op)
 
 Once all the known validator callbacks have been registered, use the
-``validate`` method with a token:
+`~Validator.validate` method with a token:
 
 ::
 
     >>> val.validate(token)
 
-This will throw a ``ValidationException`` if the token could not be
+This will throw a `ValidationException` if the token could not be
 validated.
 
 Enforcing SciTokens Logic
@@ -155,7 +168,7 @@ request?"  The valid token must be compared to some action the user is
 attempting to take.
 
 To assist in the authorization enforcement, the SciTokens library provides
-the ``Enforcer`` class.
+the `Enforcer` class.
 
 An unique Enforcer object is needed for each thread and issuer:
 
@@ -191,8 +204,8 @@ The enforcer can then test authorization logic against a valid token:
     >>> enf.test(stoken, "write", "/store/user/bbockelm/foo")
     True
 
-The ``test`` method uses the SciTokens built-in path parsing to validate the
-authorization.  The ``generate_acls`` method allows the caller to cache
+The `Enforcer.test` method uses the SciTokens built-in path parsing to validate the
+authorization.  The `Enforcer.generate_acls` method allows the caller to cache
 the ACL information from the token.
 
 Creating Sample Tokens
@@ -208,15 +221,15 @@ ability to create sample tokens with customized payload:
     >>> payload = {"sub": "<email adress>", "scope": "read:/protected"}
     >>> token = scitokens.utils.demo.token(payload)
 
-The ``token`` method makes a request to the generator to create a serialized token 
+The `~scitokens.utils.demo.token` method makes a request to the generator to create a serialized token 
 for the specified payload. Users can also retrieve a parsed token by calling the 
-``parsed_token`` method, which returns a SciToken object corresponding to the 
+`~scitokens.utils.demo.parsed_token` method, which returns a SciToken object corresponding to the 
 token. The object contains the decoded token data, including the claims and signature. 
 
 Decorator
 -------------
 
-This protect decorator is designed to be used with a `flask <https://flask.palletsprojects.com/>`_ application. It can be used like:
+The ``protect`` decorator is designed to be used with a `flask <https://flask.palletsprojects.com/>`_ application. It can be used like:
 
 .. code-block:: python
 
@@ -259,7 +272,7 @@ The configuration file is in the ini format, and will look similar to:
     log_level = DEBUG
     cache_lifetime = 60
 
-You may set the configuration by passing a file name to ``scitokens.set_config`` function:
+You may set the configuration by passing a file name to `set_config` function:
 
 ::
     
@@ -271,18 +284,7 @@ You may set the configuration by passing a file name to ``scitokens.set_config``
 Project Status
 ==============
 
-|pypi| |build| |coverage| |quality| |docs|
-
-.. |pypi| image:: https://badge.fury.io/py/scitokens.svg
-   :target: https://pypi.org/project/scitokens/
-
-.. |downloads| image:: https://img.shields.io/pypi/dd/scitokens
-   :target: https://pypi.org/project/scitokens
-   :alt: Downloads per month
-
-.. |license| image:: https://img.shields.io/github/license/scitokens/scitokens
-   :target: https://choosealicense.com/licenses/apache-2.0/
-   :alt: License information
+|build| |coverage| |quality| |docs|
 
 .. |build| image:: https://img.shields.io/github/workflow/status/scitokens/scitokens/Python%20package
    :target: https://github.com/scitokens/scitokens/actions/workflows/python-package.yml
