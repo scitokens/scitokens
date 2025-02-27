@@ -588,7 +588,10 @@ class Enforcer(object):
         return nbf < self._now
 
     def _validate_iss(self, value):
-        return self._issuer == value
+        if isinstance(self._issuer, str):
+            return value == self._issuer
+        # match a sequence
+        return value in self._issuer
 
     def _validate_iat(self, value):
         return float(value) < self._now

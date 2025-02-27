@@ -170,13 +170,16 @@ attempting to take.
 To assist in the authorization enforcement, the SciTokens library provides
 the `Enforcer` class.
 
-An unique Enforcer object is needed for each thread and issuer:
+An unique Enforcer object is needed for each thread:
 
 ::
 
     >>> enf = scitokens.Enforcer("https://scitokens.org/dteam")
 
-This object will accept tokens targetted to any audience; a more typical
+The ``Enforcer`` class accepts a single issuer string, or a sequence of
+issuer strings, for which tokens are required to match one element.
+
+This object will accept tokens targeted to any audience; a more typical
 use case will look like the following:
 
 ::
