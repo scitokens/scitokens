@@ -13,6 +13,7 @@ jobs:
   build:
 
     strategy:
+      fail-fast: false
       matrix:
         os: [macOS, Ubuntu, Windows]
         python-version: [3.9, 3.11, 3.12]
