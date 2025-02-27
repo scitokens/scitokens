@@ -60,14 +60,14 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - dist: centos
-            name: CentOS
-            version: 7
-            container: centos:7
-          - dist: centos
-            name: CentOS
+          - dist: rockylinux
+            name: Rocky Linux
             version: 8
-            container: quay.io/centos/centos:stream8
+            container: rockylinux:8
+          - dist: rockylinux
+            name: Rocky Linux
+            version: 9
+            container: rockylinux:9
           - dist: fedora
             name: Fedora
             version: latest
@@ -82,20 +82,14 @@ jobs:
         with:
           name: tarball
 
-      - name: Configure DNF
-        if: matrix.dist == 'centos' && matrix.version < 8
-        run: ln -s /usr/bin/yum /usr/bin/dnf
-
       - name: Configure EPEL
         if: matrix.dist != 'fedora'
-        run: |
-          dnf -y install epel-release
-          dnf -y install epel-rpm-macros
+        run: dnf -y install epel-release
 
       - name: Configure rpmbuild
         run: |
           dnf -y install \
-              python-srpm-macros \
+              "*-srpm-macros" \
               rpm-build \
           ;
 
@@ -119,14 +113,14 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - dist: centos
-            name: CentOS
-            version: 7
-            container: centos:7
-          - dist: centos
-            name: CentOS
+          - dist: rockylinux
+            name: Rocky Linux
             version: 8
-            container: quay.io/centos/centos:stream8
+            container: rockylinux:8
+          - dist: rockylinux
+            name: Rocky Linux
+            version: 9
+            container: rockylinux:9
           - dist: fedora
             name: Fedora
             version: latest
@@ -141,30 +135,17 @@ jobs:
         with:
           name: srpm-${{ matrix.dist }}-${{ matrix.version }}
 
-      - name: Configure DNF
-        if: matrix.dist == 'centos' && matrix.version < 8
-        run: ln -s /usr/bin/yum /usr/bin/dnf
+      - name: Configure CRB for EL9
+        if: matrix.version == 9
+        run: |
+          dnf -y install "dnf-command(config-manager)"
+          dnf config-manager --set-enabled crb
 
       - name: Configure EPEL
         if: matrix.dist != 'fedora'
-        run: |
-          dnf -y install epel-release
-          dnf -y install epel-rpm-macros
-
-      - name: Install build tools (yum)
-        if: matrix.dist == 'centos' && matrix.version < 8
-        run: |
-          dnf -y -q install \
-              rpm-build \
-              yum-utils \
-          ;
-
-      - name: Install build dependencies (yum)
-        if: matrix.dist == 'centos' && matrix.version < 8
-        run: yum-builddep -y ${SRPM}
+        run: dnf -y install epel-release
 
       - name: Install build tools (dnf)
-        if: matrix.dist != 'centos' || matrix.version > 7
         run: |
           dnf -y -q install \
               rpm-build \
@@ -172,7 +153,6 @@ jobs:
           ;
 
       - name: Install build dependencies (dnf)
-        if: matrix.dist != 'centos' || matrix.version > 7
         run: dnf builddep -y ${SRPM}
 
       - name: Build binary packages
@@ -209,15 +189,14 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - dist: centos
-            name: CentOS
-            version: 7
-            container: centos:7
-            yum: true
-          - dist: centos
-            name: CentOS
+          - dist: rockylinux
+            name: Rocky Linux
             version: 8
-            container: quay.io/centos/centos:stream8
+            container: rockylinux:8
+          - dist: rockylinux
+            name: Rocky Linux
+            version: 9
+            container: rockylinux:9
           - dist: fedora
             name: Fedora
             version: latest
@@ -230,15 +209,9 @@ jobs:
         with:
           name: rpm-${{ matrix.dist }}-${{ matrix.version }}
 
-      - name: Configure DNF
-        if: matrix.dist == 'centos' && matrix.version < 8
-        run: ln -s /usr/bin/yum /usr/bin/dnf
-
       - name: Configure EPEL
         if: matrix.dist != 'fedora'
-        run: |
-          dnf -y install epel-release
-          dnf -y install epel-rpm-macros
+        run: dnf -y install epel-release
 
       - name: Install RPMs
         run: dnf -y install *.rpm
@@ -246,14 +219,14 @@ jobs:
   lint-rhel:
     name: Lint RPMs
     runs-on: ubuntu-latest
-    container: quay.io/centos/centos:stream8
+    container: rockylinux:9
     needs:
       - rhel-binary
     steps:
       - name: Download RPM
         uses: actions/download-artifact@v4
         with:
-          name: rpm-centos-8
+          name: rpm-rockylinux-9
 
       - name: Install rpmlint
         run: |
