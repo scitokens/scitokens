@@ -7,32 +7,26 @@ Release:        1%{?dist}
 Summary:        SciToken reference implementation library
 
 License:        Apache-2.0
-URL:            https://scitokens.org
-Source0:        %{pypi_source %{pypi_name}}
+Url:            https://scitokens.org
+Source0:        %pypi_source %{pypi_name}
 BuildArch:      noarch
+Prefix:         %{_prefix}
 
 # build requirements
 BuildRequires:  python3-devel
-BuildRequires:  python3-setuptools
+BuildRequires:  python3dist(setuptools)
+BuildRequires:  python3dist(wheel)
 
 # test requirements
-%if 0%{?rhel} == 7
-BuildRequires:  python%{python3_pkgversion}-cryptography
-BuildRequires:  python%{python3_pkgversion}-pytest
-BuildRequires:  python%{python3_pkgversion}-jwt >= 1.6.1
-BuildRequires:  python%{python3_pkgversion}-requests
-%else
-BuildRequires:  python3-cryptography
-BuildRequires:  python3-pytest
-BuildRequires:  python3-jwt >= 1.6.1
-BuildRequires:  python3-requests
-%endif
+BuildRequires:  python3dist(cryptography)
+BuildRequires:  python3dist(pyjwt) >= 1.6.1
+BuildRequires:  python3dist(pytest)
+BuildRequires:  python3dist(requests)
 
 %description
 SciToken reference implementation library
 
 %package -n     python3-%{pypi_name}
-Obsoletes:      python3-scitokens < 1.6.2-2
 Summary:        %{summary}
 
 %description -n python3-%{pypi_name}
@@ -40,28 +34,20 @@ SciToken reference implementation library
 
 %prep
 %autosetup -n %{pypi_name}-%{version}
-# Remove bundled egg-info
-rm -rf %{pypi_name}.egg-info
 
 %build
-%py3_build
+%py3_build_wheel
 
 %install
-%py3_install
+%py3_install_wheel %{pypi_name}-%{version}-*.whl
 
 %check
-%if 0%{?rhel} == 7
-export PYTHONPATH="%{buildroot}%{python3_sitelib}"
-(cd tests/ && %{__python3} -m pytest --verbose -ra . --no-network)
-%else
 %pytest --verbose -ra tests/ --no-network
-%endif
 
 %files -n python3-%{pypi_name}
-%license LICENSE
-%{python3_sitelib}/%{pypi_name}/
-%{python3_sitelib}/%{pypi_name}-%{version}-py*.egg-info
 %doc README.rst
+%license LICENSE
+%{python3_sitelib}/*
 %{_bindir}/scitokens-admin-create-key
 %{_bindir}/scitokens-admin-create-token
 %{_bindir}/scitokens-verify-token
