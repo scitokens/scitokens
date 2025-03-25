@@ -171,8 +171,7 @@ class SciToken(object):
         self._verified_claims.update(self._claims)
         self._claims = {}
         
-        global LOGGER
-        LOGGER.info("Signed Token: {0}".format(str(payload)))
+        LOGGER.debug("Signed Token: %s", str(payload))
 
         # Encode the returned string for backwards compatibility.
         # Previous versions of PyJWT returned bytes
@@ -588,7 +587,10 @@ class Enforcer(object):
         return nbf < self._now
 
     def _validate_iss(self, value):
-        return self._issuer == value
+        if isinstance(self._issuer, str):
+            return value == self._issuer
+        # match a sequence
+        return value in self._issuer
 
     def _validate_iat(self, value):
         return float(value) < self._now
@@ -655,8 +657,7 @@ class Enforcer(object):
         JTI, or json token id, should always pass.  It's mostly used for logging
         and auditing.
         """
-        global LOGGER
-        LOGGER.info("Validating SciToken with jti: {0}".format(value))
+        LOGGER.debug("Validating SciToken with jti: %s", value)
         return True
 
     def _check_scope(self, scope):
