@@ -18,6 +18,7 @@ import uuid
 
 import cryptography.hazmat.backends as backends
 from .utils import keycache as KeyCache
+from .utils import keycache_memory
 from .utils import config
 from .utils.errors import MissingIssuerException, InvalidTokenFormat, MissingKeyException, UnsupportedKeyException
 from cryptography.hazmat.primitives.serialization import load_pem_public_key
@@ -291,7 +292,7 @@ class SciToken(object):
                                                  "verify_aud": False})
         
         # Get the public key from the issuer
-        keycache = KeyCache.KeyCache().getinstance()
+        keycache = keycache_memory.getinstance() if config.get('cache_location') == "__memory__" else KeyCache.KeyCache().getinstance()
         if public_key == None:
             if 'iss' not in unverified_payload:
                 raise MissingIssuerException('Issuer not provided')
