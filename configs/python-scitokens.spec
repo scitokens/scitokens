@@ -1,4 +1,3 @@
-# Created by pyp2rpm-3.2.3
 %global pypi_name scitokens
 
 Name:           python-%{pypi_name}
@@ -14,7 +13,6 @@ Prefix:         %{_prefix}
 
 # build requirements
 BuildRequires:  python3-devel
-BuildRequires:  python3dist(setuptools)
 BuildRequires:  python3dist(wheel)
 
 # test requirements
@@ -35,6 +33,9 @@ SciToken reference implementation library
 %prep
 %autosetup -n %{pypi_name}-%{version}
 
+%generate_buildrequires
+%pyproject_buildrequires
+
 %build
 %py3_build_wheel
 
@@ -53,6 +54,9 @@ SciToken reference implementation library
 %{_bindir}/scitokens-verify-token
 
 %changelog
+* Tue Aug 19 2025 Derek Weitzel <dweitzel@unl.edu> - 1.8.2-1
+- Update spec file to remove outdated build macros
+
 * Wed Aug 09 2023 Derek Weitzel <dweitzel@unl.edu> - 1.8.1-1
 - Turn off tests that require networking
 
