@@ -1,7 +1,7 @@
 %global pypi_name scitokens
 
 Name:           python-%{pypi_name}
-Version:        1.8.1
+Version:        1.9.0
 Release:        1%{?dist}
 Summary:        SciToken reference implementation library
 
@@ -59,6 +59,12 @@ SciToken reference implementation library
 %{_bindir}/scitokens-verify-token
 
 %changelog
+* Wed Nov 5 2025 Derek Weitzel <dweitzel@unl.edu> - 1.9.0-1
+- Create simple CLI tool to examine keycache in Python and refresh all entries in keycache
+- Verify Thread-safe + Unwritable Cache + Negative Cache
+- Revamp Sphinx documentation
+- Patch Enforcer to validate against multiple issuers
+
 * Tue Aug 19 2025 Derek Weitzel <dweitzel@unl.edu> - 1.8.2-1
 - Update spec file to remove outdated build macros
 
