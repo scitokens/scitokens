@@ -76,7 +76,7 @@ def get(key, default=None):
     :returns: The value in the configuration, or the default
     """
     del default
-    global configuration # pylint: disable=C0103
+    # reading the module-level `configuration` does not require a global
 
     try:
         return configuration.get("scitokens", key)
