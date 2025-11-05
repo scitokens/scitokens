@@ -15,6 +15,7 @@ Prefix:         %{_prefix}
 BuildRequires:  python3-devel
 BuildRequires:  python3dist(wheel)
 BuildRequires:  pyproject-rpm-macros
+BuildRequires:  python3dist(setuptools)
 
 
 # test requirements
