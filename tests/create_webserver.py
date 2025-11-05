@@ -37,14 +37,11 @@ class OauthRequestHandler(BaseHTTPRequestHandler):
         """
         Receive the GET command for the oauth certs
         """
-        global TEST_N
-        global TEST_E
-        global HTTPD
-        global EC_TEST_ID
-        global EC_TEST_X
-        global EC_TEST_Y
-
-
+        # These values are module-level constants set by start_server();
+        # they are only read here so `global` is not needed.  Using
+        # the module-level variables directly avoids F824 (unused global)
+        # warnings from the linters.
+        
         # Make sure the User-Agent is SciTokens*
         user_agent = self.headers.get('User-Agent')
         if not user_agent.startswith("SciTokens"):
