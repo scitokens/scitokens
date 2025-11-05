@@ -16,6 +16,8 @@ BuildRequires:  python3-devel
 BuildRequires:  python3dist(wheel)
 BuildRequires:  pyproject-rpm-macros
 BuildRequires:  python3dist(setuptools)
+# Required on EL9 where python3 < 3.11
+BuildRequires: python3dist(tomli)
 
 
 # test requirements
