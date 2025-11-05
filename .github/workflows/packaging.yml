@@ -63,15 +63,15 @@ jobs:
           - dist: rockylinux
             name: Rocky Linux
             version: 8
-            container: rockylinux:8
+            container: rockylinux/rockylinux:8
           - dist: rockylinux
             name: Rocky Linux
             version: 9
-            container: rockylinux:9
+            container: rockylinux/rockylinux:9
           - dist: rockylinux
             name: Rocky Linux
             version: 10
-            container: rockylinux:10
+            container: rockylinux/rockylinux:10
           - dist: fedora
             name: Fedora
             version: latest
