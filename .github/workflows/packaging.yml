@@ -82,7 +82,7 @@ jobs:
       TARBALL: "scitokens-*.tar.*"
     steps:
       - name: Download tarball
-        uses: actions/download-artifact@v4.2.1
+        uses: actions/download-artifact@v6.0.0
         with:
           name: tarball
 
@@ -139,7 +139,7 @@ jobs:
       SRPM: "python-scitokens-*.src.rpm"
     steps:
       - name: Download SRPM
-        uses: actions/download-artifact@v4.2.1
+        uses: actions/download-artifact@v6.0.0
         with:
           name: srpm-${{ matrix.dist }}-${{ matrix.version }}
 
@@ -217,7 +217,7 @@ jobs:
     container: ${{ matrix.container }}
     steps:
       - name: Download RPMs
-        uses: actions/download-artifact@v4.2.1
+        uses: actions/download-artifact@v6.0.0
         with:
           name: rpm-${{ matrix.dist }}-${{ matrix.version }}
 
@@ -236,7 +236,7 @@ jobs:
       - rhel-binary
     steps:
       - name: Download RPM
-        uses: actions/download-artifact@v4.2.1
+        uses: actions/download-artifact@v6.0.0
         with:
           name: rpm-rockylinux-9
 
