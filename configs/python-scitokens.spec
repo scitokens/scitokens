@@ -14,11 +14,14 @@ Prefix:         %{_prefix}
 # build requirements
 BuildRequires:  python3-devel
 BuildRequires:  python3dist(wheel)
+%if 0%{?rhel} >= 9
 BuildRequires:  pyproject-rpm-macros
 BuildRequires:  python3dist(setuptools)
-# Required on EL9 where python3 < 3.11
-BuildRequires: python3dist(tomli)
-
+BuildRequires:  python3dist(tomli)
+%else
+# EL8 does not support pyproject-rpm-macros or tomli by default
+BuildRequires:  python3-setuptools
+%endif
 
 # test requirements
 BuildRequires:  python3dist(cryptography)
@@ -39,13 +42,23 @@ SciToken reference implementation library
 %autosetup -n %{pypi_name}-%{version}
 
 %generate_buildrequires
+%if 0%{?rhel} >= 9
 %pyproject_buildrequires
+%endif
 
 %build
+%if 0%{?rhel} >= 9
 %py3_build_wheel
+%else
+%py3_build
+%endif
 
 %install
+%if 0%{?rhel} >= 9
 %py3_install_wheel %{pypi_name}-%{version}-*.whl
+%else
+%py3_install
+%endif
 
 %check
 %pytest --verbose -ra tests/ --no-network
