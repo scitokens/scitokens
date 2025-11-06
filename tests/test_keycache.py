@@ -177,6 +177,8 @@ class TestKeyCache(unittest.TestCase):
             self.keycache.getkeyinfo("https://doesnotexists.edu/", "asdf")
 
     @pytest.mark.network
+    @unittest.skipIf(sys.platform.startswith("win"), "Test doesn't work on Windows")
+    @unittest.skipIf(not sys.platform.startswith("win") and os.getuid() == 0, "Test doesn't work when root")
     def test_immutable_cache(self):
         """
         Test when there should be some entries populated in the sqllite DB, but the keycache is immutable
