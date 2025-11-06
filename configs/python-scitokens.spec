@@ -41,8 +41,8 @@ SciToken reference implementation library
 %prep
 %autosetup -n %{pypi_name}-%{version}
 
-%generate_buildrequires
 %if 0%{?rhel} >= 9
+%generate_buildrequires
 %pyproject_buildrequires
 %endif
 
