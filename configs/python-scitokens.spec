@@ -1,7 +1,7 @@
 %global pypi_name scitokens
 
 Name:           python-%{pypi_name}
-Version:        1.9.3
+Version:        1.9.4
 Release:        1%{?dist}
 Summary:        SciToken reference implementation library
 
@@ -61,7 +61,7 @@ SciToken reference implementation library
 %endif
 
 %check
-%pytest --verbose -ra tests/ --no-network
+%pytest --verbose -ra tests/ --no-network --no-intensive
 
 %files -n python3-%{pypi_name}
 %doc README.rst
@@ -72,6 +72,9 @@ SciToken reference implementation library
 %{_bindir}/scitokens-verify-token
 
 %changelog
+* Thu Nov 6 2025 Derek Weitzel <dweitzel@unl.edu> - 1.9.4-1
+- Marking intensive tests and adding --no-intensive option to skip them
+
 * Thu Nov 6 2025 Derek Weitzel <dweitzel@unl.edu> - 1.9.3-1
 - Fixing tests to for network independence
 
