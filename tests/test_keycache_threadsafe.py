@@ -37,7 +37,7 @@ class TestKeyCache(unittest.TestCase):
             try:
                 shutil.rmtree(self.tmp_dir)
                 break
-            except Exception as e:
+            except Exception:
                 if attempt == 4:
                     raise
                 time.sleep(1)
