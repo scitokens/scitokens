@@ -32,7 +32,15 @@ class TestKeyCache(unittest.TestCase):
 
 
     def tearDown(self):
-        shutil.rmtree(self.tmp_dir)
+        import time
+        for attempt in range(5):
+            try:
+                shutil.rmtree(self.tmp_dir)
+                break
+            except Exception as e:
+                if attempt == 4:
+                    raise
+                time.sleep(1)
         if self.old_xdg:
             os.environ['XDG_CACHE_HOME'] = self.old_xdg
         # Clean up, delete everything
