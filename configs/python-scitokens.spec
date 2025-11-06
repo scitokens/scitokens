@@ -1,7 +1,7 @@
 %global pypi_name scitokens
 
 Name:           python-%{pypi_name}
-Version:        1.9.0
+Version:        1.9.2
 Release:        1%{?dist}
 Summary:        SciToken reference implementation library
 
@@ -72,6 +72,9 @@ SciToken reference implementation library
 %{_bindir}/scitokens-verify-token
 
 %changelog
+* Wed Nov 6 2025 Derek Weitzel <dweitzel@unl.edu> - 1.9.2-1
+- Add conditionals to build requirements for RHEL 9+
+
 * Wed Nov 5 2025 Derek Weitzel <dweitzel@unl.edu> - 1.9.0-1
 - Create simple CLI tool to examine keycache in Python and refresh all entries in keycache
 - Verify Thread-safe + Unwritable Cache + Negative Cache
