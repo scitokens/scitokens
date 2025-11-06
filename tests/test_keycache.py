@@ -82,10 +82,22 @@ class TestKeyCache(unittest.TestCase):
             stat.S_IROTH    # Read for other
         )
 
+        # Create a pem encoded public key
+        private_key = generate_private_key(
+            public_exponent=65537,
+            key_size=2048,
+            backend=default_backend()
+        )
+        public_key = private_key.public_key()
+        public_pem = public_key.public_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PublicFormat.SubjectPublicKeyInfo
+        )
+
         # Make sure creating a cache and writing/reading to it does not fail
         try:
             keycache = KeyCache()
-            keycache.add_key("https://demo.scitokens.org", "key-rs256", False)
+            self.keycache.addkeyinfo("https://doesnotexists.edu/", "blahstuff", public_key, cache_timer=60)
             del keycache
         except Exception as e:
             self.fail("Creating a cache and writing/reading to it failed: {}".format(e))
