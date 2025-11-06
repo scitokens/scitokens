@@ -49,6 +49,7 @@ class TestKeyCache(unittest.TestCase):
             os.environ['XDG_CACHE_HOME'] = self.old_xdg
         # Clean up, delete everything
 
+    @pytest.mark.intensive
     def test_clients_calling_valid_keys(self):
         """
         Test when there are many clients calling valid keys at the same time
@@ -80,6 +81,7 @@ class TestKeyCache(unittest.TestCase):
             thread.join()
 
     @pytest.mark.network
+    @pytest.mark.intensive
     def test_clients_calling_invalid_keys(self):
         """
         Test when there are many clients calling valid keys at the same time

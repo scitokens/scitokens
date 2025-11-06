@@ -61,7 +61,7 @@ SciToken reference implementation library
 %endif
 
 %check
-%pytest --verbose -ra tests/ --no-network
+%pytest --verbose -ra tests/ --no-network --no-intensive
 
 %files -n python3-%{pypi_name}
 %doc README.rst
