@@ -1,7 +1,7 @@
 %global pypi_name scitokens
 
 Name:           python-%{pypi_name}
-Version:        1.9.4
+Version:        1.9.5
 Release:        1%{?dist}
 Summary:        SciToken reference implementation library
 
@@ -72,6 +72,9 @@ SciToken reference implementation library
 %{_bindir}/scitokens-verify-token
 
 %changelog
+* Thu Nov 6 2025 Derek Weitzel <dweitzel@unl.edu> - 1.9.5-1
+- Marking intensive tests and adding --no-intensive option to skip them
+
 * Thu Nov 6 2025 Derek Weitzel <dweitzel@unl.edu> - 1.9.4-1
 - Marking intensive tests and adding --no-intensive option to skip them
 
