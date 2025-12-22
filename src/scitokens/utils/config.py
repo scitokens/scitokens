@@ -67,6 +67,25 @@ def set_config(config = None):
     else:
         logger.setLevel(logging.WARNING)
 
+def configure(**params):
+    """
+    Alternative way to configuration the SciTokens library without using a configuration file.
+
+    :param params: keyword arguments:
+
+        * log_file: str, log file location, default: ""
+        * log_level: str, default: "INFO",
+        * cache_lifetime: int, default: 345600 = 96 hours,
+        * cache_location: str, cache, ``"__memory__"`` is a special value, whicn means use non-persistent, thread-safe in-memory cache. default: "".
+        * default_alg: str, default: "RS256",
+    """
+    global configuration # pylint: disable=C0103
+
+    cfg = CONFIG_DEFAULTS.copy()
+    cfg.update({k:v for k, v in params.items() if k in cfg})
+    configuration = configparser.ConfigParser(cfg)
+    configuration.add_section("scitokens")
+
 
 def get(key, default=None):
     """
