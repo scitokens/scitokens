@@ -220,7 +220,7 @@ class KeyCache(object):
         if key_id != None:
             key_query += " AND key_id = '{key_id}'"
         row = None
-        additional_row = None
+        has_multiple_keys = False
         try:
             conn = sqlite3.connect(self.cache_location)
             conn.row_factory = sqlite3.Row
@@ -229,17 +229,20 @@ class KeyCache(object):
             row = curs.fetchone()
             
             # If no key_id is specified, check if there are multiple keys for this issuer
+            # We only need to know if there's at least one more key, not the exact count
             if key_id is None and row is not None:
-                # Check if there are more rows (multiple keys for this issuer)
-                additional_row = curs.fetchone()
+                # Check if there are more rows beyond the first one
+                next_row = curs.fetchone()
+                has_multiple_keys = (next_row is not None)
             
             conn.commit()
             conn.close()
         except Exception as ex:
             logger.error(f'Keycache file is immutable. Detailed error: {ex}')
         
-        # Check for multiple keys after closing the connection
-        if key_id is None and row is not None and additional_row is not None:
+        # Check for multiple keys after closing the connection to avoid holding the DB lock
+        # while raising the exception (which might be caught and handled by calling code)
+        if key_id is None and row is not None and has_multiple_keys:
             raise NotImplementedError("No kid in header, but multiple keys in "
                                       "cache for this issuer. Don't know which key to use!")
 
