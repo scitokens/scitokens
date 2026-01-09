@@ -209,6 +209,7 @@ class KeyCache(object):
         :param str key_id: Text key id to identify the key
         :param bool insecure: Whether insecure methods are acceptable (defaults to False).
         :returns: None if no key is found.  Else, returns the public key
+        :raises NotImplementedError: When key_id is None but multiple keys exist for the issuer
         """
         # Setup log configuration
         logger = logging.getLogger("scitokens")
