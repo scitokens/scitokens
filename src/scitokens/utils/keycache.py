@@ -219,16 +219,28 @@ class KeyCache(object):
         if key_id != None:
             key_query += " AND key_id = '{key_id}'"
         row = None
+        additional_row = None
         try:
             conn = sqlite3.connect(self.cache_location)
             conn.row_factory = sqlite3.Row
             curs = conn.cursor()
             curs.execute(key_query.format(issuer=issuer, key_id=key_id))
             row = curs.fetchone()
+            
+            # If no key_id is specified, check if there are multiple keys for this issuer
+            if key_id is None and row is not None:
+                # Check if there are more rows (multiple keys for this issuer)
+                additional_row = curs.fetchone()
+            
             conn.commit()
             conn.close()
         except Exception as ex:
             logger.error(f'Keycache file is immutable. Detailed error: {ex}')
+        
+        # Check for multiple keys after closing the connection
+        if key_id is None and row is not None and additional_row is not None:
+            raise NotImplementedError("No kid in header, but multiple keys in "
+                                      "cache for this issuer. Don't know which key to use!")
 
         if row != None:
             # Check if record is negative cache
