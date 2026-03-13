@@ -1,7 +1,7 @@
 %global pypi_name scitokens
 
 Name:           python-%{pypi_name}
-Version:        1.9.5
+Version:        1.9.6
 Release:        1%{?dist}
 Summary:        SciToken reference implementation library
 
@@ -72,6 +72,10 @@ SciToken reference implementation library
 %{_bindir}/scitokens-verify-token
 
 %changelog
+* Fri Mar 13 2026 Derek Weitzel <dweitzel@unl.edu> - 1.9.6-1
+- Fix SQL injection risk in KeyCache by using parameterized SQLite queries
+- Prevent sibling-path authorization bypass in Enforcer scope checks
+
 * Thu Nov 6 2025 Derek Weitzel <dweitzel@unl.edu> - 1.9.5-1
 - Marking intensive tests and adding --no-intensive option to skip them
 
