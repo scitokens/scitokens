@@ -21,7 +21,10 @@ from .utils import keycache as KeyCache
 from .utils import config
 from .utils.errors import MissingIssuerException, InvalidTokenFormat, MissingKeyException, UnsupportedKeyException
 from cryptography.hazmat.primitives.serialization import load_pem_public_key
+
+# made an edit to udpate the following primitives to account for the HS algorithm and th ePS algorithm
 from cryptography.hazmat.primitives.asymmetric import rsa, ec
+from cryptography.hazmat.primitives import hmac
 
 class SciToken(object):
     """
@@ -64,7 +67,7 @@ class SciToken(object):
             # If key is not specified, and neither is algorithm
             self._key_alg = algorithm if algorithm is not None else config.get('default_alg')
 
-        if self._key_alg not in ["RS256", "ES256"]:
+        if self._key_alg not in ["RS256", "RS384", "RS512", "ES256", "ES384", "ES512", "HS256", "HS384", "HS512", "PS256", "PS384", "PS512"]:
             raise UnsupportedKeyException()
         self._key_id = key_id
         self._parent = parent
@@ -80,13 +83,36 @@ class SciToken(object):
 
         returns: Key algorithm if known, otherwise None
         """
-
+        # Issues with PS algorithm are occuring, no way to determine if the scheme is PS or RS based off the key itself, so might have to ask end user what scheme they would like to go with.
         if isinstance(key, rsa.RSAPrivateKey):
-            return "RS256"
+            if key.key_size in [2048, 3072, 4096]:
+                if key.key_size == 2048:
+                    return "RS256"  # Assuming SHA-256 is used for RS256
+                elif key.key_size == 3072:
+                    return "RS384"  # Assuming SHA-384 is used for RS384
+                elif key.key_size == 4096:
+                    return "RS512"  # Assuming SHA-512 is used for RS512
+            else:
+                raise ValueError("Unsupported RSA key size.") # throwup an error if the key size can't be set. also for debugging
         elif isinstance(key, ec.EllipticCurvePrivateKey):
-            if key.curve.name == "secp256r1":
+            curve_name = key.curve.name
+            if curve_name == "secp256r1": # reverted back to original format but extended it to handle the 2 other algorithms
                 return "ES256"
+            elif curve_name == "secp384r1":
+                return "ES384"
+            elif curve_name == "secp521r1":
+                return "ES512"
+            else:
+                raise ValueError("Unsupported EC key curve.") # throwup an error if the key size can't be set. also for debugging
+        elif isinstance(key, hmac.HMAC):
+            keylength = len(key.key)
+            if keylength in [32, 48, 64]:
+                return f"HS{keylength * 8}"  # Dynamically create the string based on key length
+            else:
+                raise ValueError("Unsupported HMAC key length.") # throwup an error if the key size can't be set. also for debugging
 
+            # I think it would be clearer if we used the same type of way to check which protocol to use rather than using key size for one and curve name for another
+            # Edit made by: Advaith Yeluru 04/07/2024 @ 2:53 PM
         # If it gets here, we don't know what type of key
         return None
 
@@ -285,7 +311,7 @@ class SciToken(object):
         serialized_jwt = info[0] + "." + info[1] + "." + info[2]
 
         unverified_headers = jwt.get_unverified_header(serialized_jwt)
-        unverified_payload = jwt.decode(serialized_jwt, algorithms=['RS256', 'ES256'],
+        unverified_payload = jwt.decode(serialized_jwt, algorithms=['RS256', 'RS384', 'RS512', 'ES256', 'ES384', 'ES512', 'HS256', 'HS384', 'HS512', 'PS256', 'PS384', 'PS512'],
                                         audience=audience,
                                         options={"verify_signature": False,
                                                  "verify_aud": False})
@@ -302,7 +328,7 @@ class SciToken(object):
         else:
             issuer_public_key = load_pem_public_key(public_key, backend=backends.default_backend())
         
-        claims = jwt.decode(serialized_token, issuer_public_key, algorithms=['RS256', 'ES256'],
+        claims = jwt.decode(serialized_token, issuer_public_key, algorithms=['RS256', 'RS384', 'RS512', 'ES256', 'ES384', 'ES512', 'HS256', 'HS384', 'HS512', 'PS256', 'PS384', 'PS512'],
                             options={"verify_aud": False})
 
         to_return = SciToken()
