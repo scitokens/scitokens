@@ -340,7 +340,7 @@ class TestEnforcer(unittest.TestCase):
 
         for scope, requested_path in bad_scopes:
             self._token["scope"] = scope
-            self.assertFalse(enf.test(self._token, "read", requested_path))
+            self.assertFalse(enf.test(self._token, "read", requested_path), msg=enf.last_failure)
             self.assertIn("path traversal", enf.last_failure)
 
         self._token["scope"] = "read:/foo/%2e%2e/bar"
@@ -373,15 +373,14 @@ class TestEnforcer(unittest.TestCase):
                 msg="Scope {!r} should not grant access to /bar".format(scope),
             )
 
-    def test_normalize_scope_path_post_normalization_check(self):
+    def test_normalize_scope_path_rejects_traversal(self):
         """
-        Directly test that _normalize_scope_path rejects any path whose
-        normalized form contains '..' segments, even if the pre-normalization
-        segment check passes.
+        Test that _normalize_scope_path rejects traversal and encoded
+        traversal paths, and still accepts benign normalized paths.
         """
         enforcer_cls = scitokens.scitokens.Enforcer
 
-        # These should all be rejected by the pre-normalization check
+        # These should all be rejected
         for bad_path in ["/a/../b", "/a/%2e%2e/b", "/a/.%2e/b", "/a/%2e./b"]:
             with self.assertRaises(
                 scitokens.scitokens.InvalidAuthorizationResource,
