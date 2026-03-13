@@ -29,14 +29,13 @@ class SciToken(object):
     An object representing the contents of a SciToken.
     """
 
-    def __init__(self, key=None, algorithm=None, key_id=None, parent=None, claims=None):
+    def __init__(self, key=None, algorithm=None, key_id=None, claims=None):
         """
         Construct a SciToken object.
 
         :param key: Private key to sign the SciToken with.  It should be the PEM contents.
         :param algorithm: Private key algorithm to sign the SciToken with. Default: RS256
         :param str key_id: A string representing the Key ID that is used at the issuer
-        :param parent: Parent SciToken that will be chained
         """
 
         if claims is not None:
@@ -68,7 +67,6 @@ class SciToken(object):
         if self._key_alg not in ["RS256", "ES256"]:
             raise UnsupportedKeyException()
         self._key_id = key_id
-        self._parent = parent
         self._claims = {}
         self._verified_claims = {}
         self.insecure = False
@@ -94,12 +92,8 @@ class SciToken(object):
 
     def claims(self):
         """
-        Return an iterator of (key, value) pairs of claims, starting
-        with the claims from the first token in the chain.
+        Return an iterator of (key, value) pairs of claims.
         """
-        if self._parent:
-            for claim, value in self._parent.claims():
-                yield claim, value
         for claim, value in self._verified_claims.items():
             yield claim, value
         for claim, value in self._claims.items():
@@ -241,12 +235,6 @@ class SciToken(object):
         if verified_only:
             return self._verified_claims.get(claim, default)
         return self._claims.get(claim, self._verified_claims.get(claim, default))
-
-    def clone_chain(self):
-        """
-        Return a new, empty SciToken
-        """
-        raise NotImplementedError()
 
     def _deserialize_key(self, key_serialized, unverified_headers):
         """
