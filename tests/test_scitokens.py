@@ -201,6 +201,26 @@ class TestEnforcer(unittest.TestCase):
         with self.assertRaises(scitokens.scitokens.InvalidPathError):
             print(enf.test(self._token, "write", "~/foo"))
 
+    def test_enforce_scp_path_boundaries(self):
+        enf = scitokens.Enforcer(self._test_issuer)
+        enf.add_validator("foo", self.always_accept)
+
+        self._token["scp"] = ["read:/john"]
+        self.assertTrue(enf.test(self._token, "read", "/john"), msg=enf.last_failure)
+        self.assertTrue(enf.test(self._token, "read", "/john/file"), msg=enf.last_failure)
+        self.assertFalse(enf.test(self._token, "read", "/johnathan"), msg=enf.last_failure)
+        self.assertFalse(enf.test(self._token, "read", "/johnny"), msg=enf.last_failure)
+
+        self._token["scp"] = ["read:/john/file"]
+        self.assertFalse(enf.test(self._token, "read", "/john"), msg=enf.last_failure)
+
+        self._token["scp"] = ["read:/"]
+        self.assertTrue(enf.test(self._token, "read", "/arbitrary/path"), msg=enf.last_failure)
+
+        self._token["scp"] = ["read://john"]
+        self.assertTrue(enf.test(self._token, "read", "//john//file"), msg=enf.last_failure)
+        self.assertFalse(enf.test(self._token, "read", "//johnathan"), msg=enf.last_failure)
+
     def test_issuer(self):
         """
         Test the issuer claim, with support for multiple valid issuers.
@@ -262,6 +282,26 @@ class TestEnforcer(unittest.TestCase):
 
         with self.assertRaises(scitokens.scitokens.InvalidPathError):
             print(enf.test(self._token, "write", "~/foo"))
+
+    def test_enforce_scope_path_boundaries(self):
+        enf = scitokens.Enforcer(self._test_issuer)
+        enf.add_validator("foo", self.always_accept)
+
+        self._token["scope"] = "read:/john"
+        self.assertTrue(enf.test(self._token, "read", "/john"), msg=enf.last_failure)
+        self.assertTrue(enf.test(self._token, "read", "/john/file"), msg=enf.last_failure)
+        self.assertFalse(enf.test(self._token, "read", "/johnathan"), msg=enf.last_failure)
+        self.assertFalse(enf.test(self._token, "read", "/johnny"), msg=enf.last_failure)
+
+        self._token["scope"] = "read:/john/file"
+        self.assertFalse(enf.test(self._token, "read", "/john"), msg=enf.last_failure)
+
+        self._token["scope"] = "read:/"
+        self.assertTrue(enf.test(self._token, "read", "/arbitrary/path"), msg=enf.last_failure)
+
+        self._token["scope"] = "read://john"
+        self.assertTrue(enf.test(self._token, "read", "//john//file"), msg=enf.last_failure)
+        self.assertFalse(enf.test(self._token, "read", "//johnathan"), msg=enf.last_failure)
 
 
     def test_aud(self):

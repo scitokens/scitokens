@@ -683,6 +683,16 @@ class Enforcer(object):
             norm_path = '/'
         return (authz, norm_path)
 
+    @staticmethod
+    def _scope_path_matches(requested_path, allowed_path):
+        if allowed_path == '/':
+            return True
+        if requested_path == allowed_path:
+            return True
+        if allowed_path.endswith('/'):
+            return requested_path.startswith(allowed_path)
+        return requested_path.startswith(allowed_path + '/')
+
     def _validate_scp(self, value):
         if not isinstance(value, list):
             value = [value]
@@ -693,7 +703,7 @@ class Enforcer(object):
                 norm_requested_path = urltools.normalize_path(self._test_path)
             for scope in value:
                 authz, norm_path = self._check_scope(scope)
-                if (self._test_authz == authz) and norm_requested_path.startswith(norm_path):
+                if (self._test_authz == authz) and self._scope_path_matches(norm_requested_path, norm_path):
                     return True
             return False
         else:
@@ -713,7 +723,7 @@ class Enforcer(object):
             # Split on spaces
             for scope in value.split(" "):
                 authz, norm_path = self._check_scope(scope)
-                if (self._test_authz == authz) and norm_requested_path.startswith(norm_path):
+                if (self._test_authz == authz) and self._scope_path_matches(norm_requested_path, norm_path):
                     return True
             return False
         else:
@@ -722,4 +732,3 @@ class Enforcer(object):
                 authz, norm_path = self._check_scope(scope)
                 self._token_scopes.add((authz, norm_path))
             return True
-
