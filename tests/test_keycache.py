@@ -333,5 +333,139 @@ class TestKeyCache(unittest.TestCase):
         create_webserver.shutdown_server()
 
 
+import sqlite3
+
+class TestKeyCacheSQLInjection(unittest.TestCase):
+    """
+    Regression tests to verify that SQL injection via issuer/key_id is not possible.
+    """
+
+    def setUp(self):
+        self.tmp_dir = tempfile.mkdtemp()
+        self.old_xdg = os.environ.get('XDG_CACHE_HOME', None)
+        os.environ['XDG_CACHE_HOME'] = self.tmp_dir
+        self.keycache = KeyCache()
+
+        # Generate a test key pair
+        self.private_key = generate_private_key(
+            public_exponent=65537,
+            key_size=2048,
+            backend=default_backend()
+        )
+        self.public_key = self.private_key.public_key()
+
+    def tearDown(self):
+        shutil.rmtree(self.tmp_dir)
+        if self.old_xdg:
+            os.environ['XDG_CACHE_HOME'] = self.old_xdg
+
+    def _count_rows(self):
+        conn = sqlite3.connect(self.keycache.cache_location)
+        curs = conn.cursor()
+        curs.execute("SELECT COUNT(*) FROM keycache")
+        count = curs.fetchone()[0]
+        conn.close()
+        return count
+
+    def test_injection_in_issuer_does_not_delete_other_rows(self):
+        """
+        With the old .format() pattern, an issuer like "x' OR '1'='1" in a
+        DELETE would wipe every row. Parameterized queries treat it as a
+        literal value, so no rows other than the exact match are affected.
+        """
+        # Insert a legitimate row
+        self.keycache.addkeyinfo("https://legit.example.com/", "key1",
+                                 self.public_key, cache_timer=3600)
+        self.assertEqual(self._count_rows(), 1)
+
+        # Attempt injection via issuer in addkeyinfo (which DELETEs first)
+        malicious_issuer = "x' OR '1'='1"
+        self.keycache.addkeyinfo(malicious_issuer, "evil_key",
+                                 self.public_key, cache_timer=3600)
+
+        # The legitimate row must still exist, plus the new malicious-literal row
+        self.assertEqual(self._count_rows(), 2)
+
+    def test_injection_in_key_id_does_not_delete_other_rows(self):
+        """
+        A malicious key_id should not be able to affect other rows.
+        """
+        self.keycache.addkeyinfo("https://legit.example.com/", "key1",
+                                 self.public_key, cache_timer=3600)
+        self.assertEqual(self._count_rows(), 1)
+
+        malicious_key_id = "x' OR '1'='1"
+        self.keycache.addkeyinfo("https://other.example.com/", malicious_key_id,
+                                 self.public_key, cache_timer=3600)
+
+        self.assertEqual(self._count_rows(), 2)
+
+    def test_delete_cache_entry_with_injection_string(self):
+        """
+        _delete_cache_entry with a crafted issuer must not delete unrelated rows.
+        """
+        self.keycache.addkeyinfo("https://legit.example.com/", "key1",
+                                 self.public_key, cache_timer=3600)
+        self.assertEqual(self._count_rows(), 1)
+
+        # Try to delete with an injection string — should match nothing
+        self.keycache._delete_cache_entry("x' OR '1'='1", "key1")
+        self.assertEqual(self._count_rows(), 1)
+
+    def test_union_select_injection_is_literal(self):
+        """
+        A UNION SELECT payload in the issuer should be stored as a literal
+        value, not interpreted as SQL.
+        """
+        malicious_issuer = "x' UNION SELECT * FROM keycache --"
+        self.keycache.addkeyinfo(malicious_issuer, "key1",
+                                 self.public_key, cache_timer=3600)
+        self.assertEqual(self._count_rows(), 1)
+
+        # The stored issuer should be the literal malicious string
+        conn = sqlite3.connect(self.keycache.cache_location)
+        curs = conn.cursor()
+        curs.execute("SELECT issuer FROM keycache")
+        row = curs.fetchone()
+        conn.close()
+        self.assertEqual(row[0], malicious_issuer)
+
+    def test_getkeyinfo_injection_issuer_no_leak(self):
+        """
+        getkeyinfo with an injection payload in issuer must not return
+        rows belonging to a different issuer.
+        """
+        self.keycache.addkeyinfo("https://legit.example.com/", "key1",
+                                 self.public_key, cache_timer=3600)
+
+        # This injection string would match all rows with the old code
+        malicious_issuer = "x' OR '1'='1"
+        # getkeyinfo will not find a cached row and will try to download,
+        # which will fail — that's expected.  The important thing is it
+        # does NOT return the legit key.
+        try:
+            result = self.keycache.getkeyinfo(malicious_issuer, "key1")
+        except Exception:
+            result = None
+        self.assertIsNone(result)
+
+    def test_negative_cache_with_injection_string(self):
+        """
+        _add_negative_cache_entry with injection strings stores them literally.
+        """
+        malicious_issuer = "x' OR '1'='1"
+        malicious_key_id = "y' DROP TABLE keycache --"
+        self.keycache._add_negative_cache_entry(malicious_issuer, malicious_key_id, 300)
+        self.assertEqual(self._count_rows(), 1)
+
+        conn = sqlite3.connect(self.keycache.cache_location)
+        curs = conn.cursor()
+        curs.execute("SELECT issuer, key_id FROM keycache")
+        row = curs.fetchone()
+        conn.close()
+        self.assertEqual(row[0], malicious_issuer)
+        self.assertEqual(row[1], malicious_key_id)
+
+
 if __name__ == '__main__':
     unittest.main()

@@ -80,7 +80,7 @@ class KeyCache(object):
             conn = sqlite3.connect(self.cache_location)
             conn.row_factory = sqlite3.Row
             curs = conn.cursor()
-            curs.execute("DELETE FROM keycache WHERE issuer = '{}' AND key_id = '{}'".format(issuer, key_id))
+            curs.execute("DELETE FROM keycache WHERE issuer = ? AND key_id = ?", [issuer, key_id])
             KeyCache._addkeyinfo(curs, issuer, key_id, public_key, cache_timer=cache_timer, next_update=next_update)
             conn.commit()
             conn.close()
@@ -94,14 +94,13 @@ class KeyCache(object):
         Given an open database cursor to a key cache, insert a key.
         """
         # Add the key to the cache
-        insert_key_statement = "INSERT OR REPLACE INTO keycache VALUES('{issuer}', '{expiration}', '{key_id}', \
-                               '{keydata}', '{next_update}')"
+        insert_key_statement = "INSERT OR REPLACE INTO keycache VALUES(?, ?, ?, ?, ?)"
         keydata = {
             'pub_key': public_key.public_bytes(Encoding.PEM, PublicFormat.SubjectPublicKeyInfo).decode('ascii'),
         }
 
-        curs.execute(insert_key_statement.format(issuer=issuer, expiration=time.time()+cache_timer, key_id=key_id,
-                                                 keydata=json.dumps(keydata), next_update=time.time()+next_update))
+        curs.execute(insert_key_statement, [issuer, time.time()+cache_timer, key_id,
+                                            json.dumps(keydata), time.time()+next_update])
         if curs.rowcount != 1:
             raise UnableToWriteKeyCache("Unable to insert into key cache")
 
@@ -137,8 +136,7 @@ class KeyCache(object):
         try:
             conn = sqlite3.connect(self.cache_location)
             curs = conn.cursor()
-            curs.execute("DELETE FROM keycache WHERE issuer = '{}' AND key_id = '{}'".format(issuer,
-                        key_id))
+            curs.execute("DELETE FROM keycache WHERE issuer = ? AND key_id = ?", [issuer, key_id])
             conn.commit()
             conn.close()
         except Exception as ex:
@@ -154,11 +152,10 @@ class KeyCache(object):
             conn = sqlite3.connect(self.cache_location)
             conn.row_factory = sqlite3.Row
             curs = conn.cursor()
-            insert_key_statement = "INSERT OR REPLACE INTO keycache VALUES('{issuer}', '{expiration}', '{key_id}', \
-                                '{keydata}', '{next_update}')"
+            insert_key_statement = "INSERT OR REPLACE INTO keycache VALUES(?, ?, ?, ?, ?)"
             keydata = ''
-            curs.execute(insert_key_statement.format(issuer=issuer, expiration=time.time()+cache_retry_interval, key_id=key_id,
-                                                    keydata=keydata, next_update=time.time()+cache_retry_interval))
+            curs.execute(insert_key_statement, [issuer, time.time()+cache_retry_interval, key_id,
+                                                keydata, time.time()+cache_retry_interval])
             if curs.rowcount != 1:
                 logger = logging.getLogger("scitokens")
                 logger.error(UnableToWriteKeyCache("Unable to insert into key cache"))
@@ -214,16 +211,18 @@ class KeyCache(object):
         logger = logging.getLogger("scitokens")
         
         # Check the sql database
-        key_query = ("SELECT * FROM keycache WHERE "
-                     "issuer = '{issuer}'")
-        if key_id != None:
-            key_query += " AND key_id = '{key_id}'"
+        if key_id is not None:
+            key_query = "SELECT * FROM keycache WHERE issuer = ? AND key_id = ?"
+            query_params = [issuer, key_id]
+        else:
+            key_query = "SELECT * FROM keycache WHERE issuer = ?"
+            query_params = [issuer]
         row = None
         try:
             conn = sqlite3.connect(self.cache_location)
             conn.row_factory = sqlite3.Row
             curs = conn.cursor()
-            curs.execute(key_query.format(issuer=issuer, key_id=key_id))
+            curs.execute(key_query, query_params)
             row = curs.fetchone()
             conn.commit()
             conn.close()
