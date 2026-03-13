@@ -236,7 +236,7 @@ class TestEnforcer(unittest.TestCase):
 
         for scope, requested_path in bad_scopes:
             self._token["scp"] = scope
-            self.assertFalse(enf.test(self._token, "read", requested_path))
+            self.assertFalse(enf.test(self._token, "read", requested_path), msg=enf.last_failure)
             self.assertIn("path traversal", enf.last_failure)
 
         self._token["scp"] = "read:/foo/%2e%2e/bar"
