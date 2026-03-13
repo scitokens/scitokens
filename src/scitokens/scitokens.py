@@ -10,6 +10,7 @@ import time
 
 import os
 import jwt
+import re
 from . import urltools
 import logging
 
@@ -461,7 +462,7 @@ class InvalidPathError(EnforcementError):
     Test paths must be absolute paths (start with '/')
     """
 
-class InvalidAuthorizationResource(EnforcementError):
+class InvalidAuthorizationResource(ValidationFailure, EnforcementError):
     """
     A scope was encountered with an invalid authorization.
 
@@ -678,10 +679,34 @@ class Enforcer(object):
             path = info[1]
             if not path.startswith("/"):
                 raise InvalidAuthorizationResource("Token contains a relative path in scope")
-            norm_path = urltools.normalize_path(path)
+            norm_path = self._normalize_scope_path(path)
         else:
             norm_path = '/'
         return (authz, norm_path)
+
+    @staticmethod
+    def _decode_scope_path_segment(segment):
+        normalized_segment = re.sub(
+            r"%([0-9A-Fa-f]{2})",
+            lambda match: "%" + match.group(1).lower(),
+            segment,
+        )
+        return urltools.unquote(normalized_segment, exceptions='/?+#')
+
+    @classmethod
+    def _normalize_scope_path(cls, path):
+        for segment in path.split("/"):
+            if cls._decode_scope_path_segment(segment) == "..":
+                raise InvalidAuthorizationResource("Token contains path traversal in scope")
+        normalized = urltools.normalize_path(path)
+        # Defense-in-depth: verify the normalized path hasn't escaped root
+        # via double-encoding or other tricks that bypass the segment check.
+        if not normalized.startswith("/"):
+            raise InvalidAuthorizationResource("Token contains path traversal in scope")
+        for segment in normalized.split("/"):
+            if segment == "..":
+                raise InvalidAuthorizationResource("Token contains path traversal in scope")
+        return normalized
 
     @staticmethod
     def _scope_path_matches(requested_path, allowed_path):
