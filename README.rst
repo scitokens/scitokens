@@ -1,8 +1,6 @@
 SciTokens Library
 =================
 
-.. currentmodule:: scitokens
-
 |pypi| |downloads| |license|
 
 .. |pypi| image:: https://badge.fury.io/py/scitokens.svg
