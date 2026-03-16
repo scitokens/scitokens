@@ -332,6 +332,68 @@ class TestKeyCache(unittest.TestCase):
 
         create_webserver.shutdown_server()
 
+    def test_multiple_keys_no_kid(self):
+        """
+        Test that when there are multiple keys for an issuer and no key_id is provided,
+        an error is raised instead of silently returning the first key.
+        This ensures consistency with _get_issuer_publickey behavior.
+        """
+        # Create two different public keys
+        private_key1 = generate_private_key(
+            public_exponent=65537,
+            key_size=2048,
+            backend=default_backend()
+        )
+        public_key1 = private_key1.public_key()
+
+        private_key2 = generate_private_key(
+            public_exponent=65537,
+            key_size=2048,
+            backend=default_backend()
+        )
+        public_key2 = private_key2.public_key()
+
+        # Add both keys to the cache with the same issuer but different key_ids
+        self.keycache.addkeyinfo("https://example.edu/", "key1", public_key1, cache_timer=60)
+        self.keycache.addkeyinfo("https://example.edu/", "key2", public_key2, cache_timer=60)
+
+        # Now try to get a key without specifying key_id - should raise NotImplementedError
+        with self.assertRaises(NotImplementedError) as context:
+            self.keycache.getkeyinfo("https://example.edu/", key_id=None)
+        
+        # Check that the error message is appropriate
+        self.assertIn("multiple keys", str(context.exception).lower())
+
+    def test_single_key_no_kid_works(self):
+        """
+        Test that when there is only one key for an issuer and no key_id is provided,
+        the key is returned successfully (existing behavior should be preserved).
+        """
+        # Create a public key
+        private_key = generate_private_key(
+            public_exponent=65537,
+            key_size=2048,
+            backend=default_backend()
+        )
+        public_key = private_key.public_key()
+        public_pem = public_key.public_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PublicFormat.SubjectPublicKeyInfo
+        )
+
+        # Add only one key to the cache
+        self.keycache.addkeyinfo("https://singlekey.edu/", "onlykey", public_key, cache_timer=60)
+
+        # Getting the key without specifying key_id should work fine
+        retrieved_key = self.keycache.getkeyinfo("https://singlekey.edu/", key_id=None)
+        
+        # Verify we got the correct key
+        retrieved_pem = retrieved_key.public_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PublicFormat.SubjectPublicKeyInfo
+        )
+        self.assertEqual(public_pem, retrieved_pem)
+
 
 import sqlite3
 
