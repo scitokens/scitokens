@@ -1,0 +1,46 @@
+# See the documentation for more information:
+# https://packit.dev/docs/configuration/
+
+upstream_package_name: scitokens
+downstream_package_name: python-scitokens
+specfile_path: configs/python-scitokens.spec
+
+srpm_build_deps:
+  - git
+
+jobs:
+  - job: copr_build
+    trigger: pull_request
+    targets:
+      - fedora-all
+      - epel-8
+      - epel-9
+      - epel-10
+      - epel-10.1
+
+  - job: propose_downstream
+    trigger: release
+    dist_git_branches:
+      - fedora-all
+      - epel8
+      - epel9
+      - epel10
+      - epel10.1
+
+  - job: koji_build
+    trigger: commit
+    dist_git_branches:
+      - fedora-all
+      - epel8
+      - epel9
+      - epel10
+      - epel10.1
+
+  - job: bodhi_update
+    trigger: koji_build
+    dist_git_branches:
+      - fedora-all
+      - epel8
+      - epel9
+      - epel10
+      - epel10.1
