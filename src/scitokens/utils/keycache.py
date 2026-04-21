@@ -77,13 +77,13 @@ class KeyCache(object):
             next_update = 3600
 
         try:
-            conn = sqlite3.connect(self.cache_location)
-            conn.row_factory = sqlite3.Row
-            curs = conn.cursor()
-            curs.execute("DELETE FROM keycache WHERE issuer = ? AND key_id = ?", [issuer, key_id])
-            KeyCache._addkeyinfo(curs, issuer, key_id, public_key, cache_timer=cache_timer, next_update=next_update)
-            conn.commit()
-            conn.close()
+            # Always close DB handles, including when concurrent writes raise errors.
+            with sqlite3.connect(self.cache_location) as conn:
+                conn.row_factory = sqlite3.Row
+                curs = conn.cursor()
+                curs.execute("DELETE FROM keycache WHERE issuer = ? AND key_id = ?", [issuer, key_id])
+                KeyCache._addkeyinfo(curs, issuer, key_id, public_key, cache_timer=cache_timer, next_update=next_update)
+                conn.commit()
         except Exception as ex:
             logger = logging.getLogger("scitokens")
             logger.error(f'Keycache file is immutable. Detailed error: {ex}')
@@ -134,11 +134,10 @@ class KeyCache(object):
         """
         # Open the connection to the database
         try:
-            conn = sqlite3.connect(self.cache_location)
-            curs = conn.cursor()
-            curs.execute("DELETE FROM keycache WHERE issuer = ? AND key_id = ?", [issuer, key_id])
-            conn.commit()
-            conn.close()
+            with sqlite3.connect(self.cache_location) as conn:
+                curs = conn.cursor()
+                curs.execute("DELETE FROM keycache WHERE issuer = ? AND key_id = ?", [issuer, key_id])
+                conn.commit()
         except Exception as ex:
             logger = logging.getLogger("scitokens")
             logger.error(f'Keycache file is immutable. Detailed error: {ex}')
@@ -149,18 +148,17 @@ class KeyCache(object):
         Add a negative cache entry
         """
         try:
-            conn = sqlite3.connect(self.cache_location)
-            conn.row_factory = sqlite3.Row
-            curs = conn.cursor()
-            insert_key_statement = "INSERT OR REPLACE INTO keycache VALUES(?, ?, ?, ?, ?)"
-            keydata = ''
-            curs.execute(insert_key_statement, [issuer, time.time()+cache_retry_interval, key_id,
-                                                keydata, time.time()+cache_retry_interval])
-            if curs.rowcount != 1:
-                logger = logging.getLogger("scitokens")
-                logger.error(UnableToWriteKeyCache("Unable to insert into key cache"))
-            conn.commit()
-            conn.close()
+            with sqlite3.connect(self.cache_location) as conn:
+                conn.row_factory = sqlite3.Row
+                curs = conn.cursor()
+                insert_key_statement = "INSERT OR REPLACE INTO keycache VALUES(?, ?, ?, ?, ?)"
+                keydata = ''
+                curs.execute(insert_key_statement, [issuer, time.time()+cache_retry_interval, key_id,
+                                                    keydata, time.time()+cache_retry_interval])
+                if curs.rowcount != 1:
+                    logger = logging.getLogger("scitokens")
+                    logger.error(UnableToWriteKeyCache("Unable to insert into key cache"))
+                conn.commit()
         except Exception as ex:
             logger = logging.getLogger("scitokens")
             logger.error(f'Keycache file is immutable. Detailed error: {ex}')
