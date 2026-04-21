@@ -15,6 +15,7 @@ def token(payload: dict):
     """
     data = json.dumps({'algorithm': "ES256", 'payload': payload})
     resp = requests.post("https://demo.scitokens.org/issue", data=data)
+    resp.raise_for_status()
     return resp.text
 
 
