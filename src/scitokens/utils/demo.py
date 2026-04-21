@@ -6,24 +6,27 @@ import json
 import requests
 import scitokens
 
-def token(payload: dict):
+def token(payload: dict, timeout: float = 10):
     """
     Get a signed token for the given payload.
 
     :param dict payload: a dictionary specifying the claims
+    :param float timeout: timeout in seconds for the demo service request
     :returns: an encoded token for the payload
     """
     data = json.dumps({'algorithm': "ES256", 'payload': payload})
-    resp = requests.post("https://demo.scitokens.org/issue", data=data)
+    resp = requests.post("https://demo.scitokens.org/issue", data=data, timeout=timeout)
+    resp.raise_for_status()
     return resp.text
 
 
-def parsed_token(payload: dict):
+def parsed_token(payload: dict, timeout: float = 10):
     """
     Get a parsed token for the given payload.
 
     :param dict payload: a dictionary specifying the claims
+    :param float timeout: timeout in seconds for the demo service request
     :returns: a SciToken object
     """
-    token = scitokens.utils.demo.token(payload)
+    token = scitokens.utils.demo.token(payload, timeout=timeout)
     return scitokens.SciToken.deserialize(token)
