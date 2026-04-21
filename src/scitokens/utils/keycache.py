@@ -8,6 +8,7 @@ import sqlite3
 import time
 import re
 import logging
+from contextlib import closing
 from urllib.error import URLError
 
 try:
@@ -77,13 +78,12 @@ class KeyCache(object):
             next_update = 3600
 
         try:
-            conn = sqlite3.connect(self.cache_location)
-            conn.row_factory = sqlite3.Row
-            curs = conn.cursor()
-            curs.execute("DELETE FROM keycache WHERE issuer = ? AND key_id = ?", [issuer, key_id])
-            KeyCache._addkeyinfo(curs, issuer, key_id, public_key, cache_timer=cache_timer, next_update=next_update)
-            conn.commit()
-            conn.close()
+            with closing(sqlite3.connect(self.cache_location)) as conn:
+                conn.row_factory = sqlite3.Row
+                curs = conn.cursor()
+                curs.execute("DELETE FROM keycache WHERE issuer = ? AND key_id = ?", [issuer, key_id])
+                KeyCache._addkeyinfo(curs, issuer, key_id, public_key, cache_timer=cache_timer, next_update=next_update)
+                conn.commit()
         except Exception as ex:
             logger = logging.getLogger("scitokens")
             logger.error(f'Keycache file is immutable. Detailed error: {ex}')
@@ -134,11 +134,10 @@ class KeyCache(object):
         """
         # Open the connection to the database
         try:
-            conn = sqlite3.connect(self.cache_location)
-            curs = conn.cursor()
-            curs.execute("DELETE FROM keycache WHERE issuer = ? AND key_id = ?", [issuer, key_id])
-            conn.commit()
-            conn.close()
+            with closing(sqlite3.connect(self.cache_location)) as conn:
+                curs = conn.cursor()
+                curs.execute("DELETE FROM keycache WHERE issuer = ? AND key_id = ?", [issuer, key_id])
+                conn.commit()
         except Exception as ex:
             logger = logging.getLogger("scitokens")
             logger.error(f'Keycache file is immutable. Detailed error: {ex}')
@@ -149,18 +148,17 @@ class KeyCache(object):
         Add a negative cache entry
         """
         try:
-            conn = sqlite3.connect(self.cache_location)
-            conn.row_factory = sqlite3.Row
-            curs = conn.cursor()
-            insert_key_statement = "INSERT OR REPLACE INTO keycache VALUES(?, ?, ?, ?, ?)"
-            keydata = ''
-            curs.execute(insert_key_statement, [issuer, time.time()+cache_retry_interval, key_id,
-                                                keydata, time.time()+cache_retry_interval])
-            if curs.rowcount != 1:
-                logger = logging.getLogger("scitokens")
-                logger.error(UnableToWriteKeyCache("Unable to insert into key cache"))
-            conn.commit()
-            conn.close()
+            with closing(sqlite3.connect(self.cache_location)) as conn:
+                conn.row_factory = sqlite3.Row
+                curs = conn.cursor()
+                insert_key_statement = "INSERT OR REPLACE INTO keycache VALUES(?, ?, ?, ?, ?)"
+                keydata = ''
+                curs.execute(insert_key_statement, [issuer, time.time()+cache_retry_interval, key_id,
+                                                    keydata, time.time()+cache_retry_interval])
+                if curs.rowcount != 1:
+                    logger = logging.getLogger("scitokens")
+                    logger.error(UnableToWriteKeyCache("Unable to insert into key cache"))
+                conn.commit()
         except Exception as ex:
             logger = logging.getLogger("scitokens")
             logger.error(f'Keycache file is immutable. Detailed error: {ex}')
@@ -219,13 +217,12 @@ class KeyCache(object):
             query_params = [issuer]
         row = None
         try:
-            conn = sqlite3.connect(self.cache_location)
-            conn.row_factory = sqlite3.Row
-            curs = conn.cursor()
-            curs.execute(key_query, query_params)
-            row = curs.fetchone()
-            conn.commit()
-            conn.close()
+            with closing(sqlite3.connect(self.cache_location)) as conn:
+                conn.row_factory = sqlite3.Row
+                curs = conn.cursor()
+                curs.execute(key_query, query_params)
+                row = curs.fetchone()
+                conn.commit()
         except Exception as ex:
             logger.error(f'Keycache file is immutable. Detailed error: {ex}')
 
@@ -441,35 +438,29 @@ class KeyCache(object):
         """
         Create a simple flat sqllite cache
         """
-        conn = sqlite3.connect(sql_file)
-        curs = conn.cursor()
+        with closing(sqlite3.connect(sql_file)) as conn:
+            curs = conn.cursor()
 
-        # Create cache table
-        curs.execute ("CREATE TABLE keycache ("
-                      "issuer text NOT NULL,"
-                      "expiration integer NOT NULL,"
-                      "key_id text,"
-                      "keydata text NOT NULL,"
-                      "next_update integer NOT NULL,"
-                      "PRIMARY KEY (issuer, key_id))")
-        # Save (commit) the changes
-        conn.commit()
-
-        # We can also close the connection if we are done with it.
-        # Just be sure any changes have been committed or they will be lost.
-        conn.close()
+            # Create cache table
+            curs.execute ("CREATE TABLE keycache ("
+                          "issuer text NOT NULL,"
+                          "expiration integer NOT NULL,"
+                          "key_id text,"
+                          "keydata text NOT NULL,"
+                          "next_update integer NOT NULL,"
+                          "PRIMARY KEY (issuer, key_id))")
+            # Save (commit) the changes
+            conn.commit()
 
 
     def list_keys(self):
         """
         List all keys in keycache
         """
-        conn = sqlite3.connect(self.cache_location)
-        curs = conn.cursor()
-        res = curs.execute("SELECT issuer, DATETIME(expiration, 'unixepoch'), key_id, keydata, DATETIME(next_update, 'unixepoch') FROM keycache")
-        tokens = res.fetchall()
-        
-        conn.close()
+        with closing(sqlite3.connect(self.cache_location)) as conn:
+            curs = conn.cursor()
+            res = curs.execute("SELECT issuer, DATETIME(expiration, 'unixepoch'), key_id, keydata, DATETIME(next_update, 'unixepoch') FROM keycache")
+            tokens = res.fetchall()
         return tokens
     
 
@@ -477,18 +468,16 @@ class KeyCache(object):
         """
         Remove a specific key from keycache
         """
-        conn = sqlite3.connect(self.cache_location)
-        curs = conn.cursor()
-        
-        res = curs.execute("SELECT * FROM keycache WHERE issuer = ? AND key_id = ?", [issuer, key_id])
-        if res.fetchone() is None:
-            conn.close()
-            return False
-        
-        res = curs.execute("DELETE FROM keycache WHERE issuer = ? AND key_id = ?", [issuer, key_id])
-        res = curs.fetchall()
-        conn.commit()
-        conn.close()
+        with closing(sqlite3.connect(self.cache_location)) as conn:
+            curs = conn.cursor()
+
+            res = curs.execute("SELECT * FROM keycache WHERE issuer = ? AND key_id = ?", [issuer, key_id])
+            if res.fetchone() is None:
+                return False
+
+            res = curs.execute("DELETE FROM keycache WHERE issuer = ? AND key_id = ?", [issuer, key_id])
+            res = curs.fetchall()
+            conn.commit()
         return True
 
 
@@ -512,11 +501,10 @@ class KeyCache(object):
         Update all keys in keycache
         If force_refresh is True, we refresh all keys regardless of update time
         """
-        conn = sqlite3.connect(self.cache_location)
-        curs = conn.cursor()
-        res = curs.execute("SELECT issuer, key_id FROM keycache")
-        tokens = res.fetchall()
-        conn.close()
+        with closing(sqlite3.connect(self.cache_location)) as conn:
+            curs = conn.cursor()
+            res = curs.execute("SELECT issuer, key_id FROM keycache")
+            tokens = res.fetchall()
         
         res = []
         for issuer, key_id in tokens:
